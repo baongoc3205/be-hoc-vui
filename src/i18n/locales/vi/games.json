@@ -1,0 +1,66 @@
+{
+  "shell": {
+    "question": "Câu hỏi {{current}}/{{total}}",
+    "score": "Điểm",
+    "combo": "Combo",
+    "pause": "Tạm dừng",
+    "resume": "Tiếp tục chơi",
+    "restart": "Chơi lại",
+    "quit": "Về sảnh",
+    "soundOn": "Bật âm",
+    "soundOff": "Tắt âm",
+    "hintCost": "Gợi ý ({{cost}} xu)",
+    "hintFree": "Gợi ý miễn phí",
+    "checkAnswer": "KIỂM TRA",
+    "nextQuestion": "TIẾP TỤC",
+    "timeRemaining": "{{seconds}} giây",
+    "speedBonus": "+{{bonus}} Tốc độ!"
+  },
+  "types": {
+    "quiz": "Trắc nghiệm vui",
+    "drag-match": "Nối cặp kỳ thú",
+    "fill-blank": "Điền vào chỗ trống",
+    "memory-cards": "Lật thẻ trí nhớ",
+    "word-builder": "Ghép từ thông thái",
+    "math-race": "Đua xe Toán học",
+    "sort-order": "Sắp xếp thứ tự",
+    "true-false-swipe": "Đúng hay Sai",
+    "listen-pick": "Nghe và chọn",
+    "clock-reader": "Xem giờ chuẩn xác",
+    "balloon-pop": "Bắn bóng bay",
+    "catch-fall": "Hứng đồ siêu tốc"
+  },
+  "instructions": {
+    "quiz": "Chọn một đáp án đúng nhất!",
+    "drag-match": "Kéo ô bên trái thả vào ô tương ứng bên phải!",
+    "fill-blank": "Chọn các từ hoặc số thích hợp thả vào ô trống!",
+    "memory-cards": "Lật tìm các cặp thẻ tương ứng với nhau!",
+    "word-builder": "Sắp xếp các chữ cái để tạo thành từ hoàn chỉnh!",
+    "math-race": "Giải thật nhanh để xe của bạn phóng vọt về đích!",
+    "sort-order": "Kéo các thẻ để xếp đúng thứ tự từ bé đến lớn hoặc theo trình tự!",
+    "true-false-swipe": "Vuốt sang PHẢI nếu Đúng, vuốt sang TRÁI nếu Sai!",
+    "listen-pick": "Bấm loa nghe từ ngữ rồi chọn hình tương ứng!",
+    "clock-reader": "Kéo kim đồng hồ đến đúng thời gian yêu cầu!",
+    "balloon-pop": "Bấm vào quả bóng bay chứa đáp án chính xác!",
+    "catch-fall": "Di chuyển giỏ để hứng các vật phẩm phù hợp!"
+  },
+  "result": {
+    "titleWin": "XUẤT SẮC!",
+    "titleAlmost": "SẮP ĐẠT RỒI!",
+    "starsEarned": "{{count}} sao",
+    "correctCount": "Đúng {{correct}}/{{total}} câu",
+    "accuracy": "Độ chính xác {{percent}}%",
+    "xpEarned": "+{{xp}} XP",
+    "coinsEarned": "+{{coins}} Xu",
+    "firstClearBonus": "Thưởng vượt ải lần đầu: +10 xu!",
+    "newBadge": "Huy hiệu mới đã mở khóa!",
+    "continue": "TIẾP TỤC",
+    "replay": "CHƠI LẠI"
+  },
+  "heartsModal": {
+    "title": "Hết tim rồi!",
+    "description": "Đừng lo lắng, hãy chọn cách tiếp tục nhé:",
+    "reviewFree": "Xem lại bài học (Miễn phí)",
+    "refillCoins": "Đổi {{cost}} xu lấy 3 tim"
+  }
+}

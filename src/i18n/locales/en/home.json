@@ -1,0 +1,37 @@
+{
+  "splash": {
+    "tapToStart": "TAP TO START",
+    "tip": "Playing 15 minutes a day boosts memory and sharp thinking!",
+    "loading": "Loading adventure..."
+  },
+  "profiles": {
+    "title": "Who's Playing?",
+    "subtitle": "Choose your profile to resume the adventure",
+    "newProfile": "Add New Profile",
+    "manage": "Manage Profiles",
+    "grade": "Grade {{grade}}"
+  },
+  "onboarding": {
+    "title": "Welcome Friend!",
+    "stepNickname": "What is your nickname?",
+    "nicknamePlaceholder": "Type nickname (up to 12 chars)...",
+    "stepGrade": "Which grade are you in?",
+    "stepAvatar": "Choose your style!",
+    "stepFavorites": "What's your favorite subject?",
+    "mimiGreeting": "I'm Mimi! Let's explore the world of learning together!",
+    "finish": "READY TO EXPLORE!"
+  },
+  "lobby": {
+    "greetingMorning": "Good morning, {{name}}! Ready to explore?",
+    "greetingAfternoon": "Good afternoon, {{name}}! Let's solve some fun puzzles!",
+    "greetingEvening": "Good evening, {{name}}! A quick game before rest!",
+    "greetingNight": "It's late, {{name}}! Time to get a good sleep 🌙",
+    "playNext": "PLAY NOW",
+    "continueLesson": "Next Lesson",
+    "dailyQuests": "Daily Quests",
+    "dailyChest": "Daily Chest",
+    "openChest": "OPEN CHEST",
+    "events": "Events",
+    "streakDays": "{{count}} Day Streak"
+  }
+}

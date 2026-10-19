@@ -1,0 +1,62 @@
+{
+  "app": {
+    "name": "KidQuest",
+    "subtitle": "Playful Learning Adventure"
+  },
+  "action": {
+    "play": "Play",
+    "continue": "Continue",
+    "retry": "Try Again",
+    "claim": "Claim",
+    "check": "Check",
+    "start": "Start",
+    "back": "Back",
+    "close": "Close",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "done": "Done",
+    "hint": "Hint",
+    "listen": "Listen",
+    "next": "Next"
+  },
+  "nav": {
+    "lobby": "Lobby",
+    "worlds": "Worlds",
+    "rewards": "Treasures",
+    "shop": "Shop",
+    "me": "Me",
+    "settings": "Settings",
+    "parents": "Parents"
+  },
+  "resources": {
+    "coins": "Gold Coins",
+    "gems": "Gems",
+    "stars": "Stars",
+    "energy": "Energy",
+    "hearts": "Hearts",
+    "level": "Level"
+  },
+  "feedback": {
+    "correct": "Awesome! Correct!",
+    "correctSub": "You answered wonderfully!",
+    "wrong": "So close! Keep going!",
+    "wrongSub": "No worries, let's learn together!",
+    "combo": "COMBO x{{count}}!",
+    "hintUsed": "Hint revealed"
+  },
+  "popup": {
+    "win": "Level Complete!",
+    "almost": "Almost There!",
+    "levelUp": "Level Up!",
+    "dailyChest": "Daily Chest",
+    "paused": "Game Paused",
+    "outOfEnergy": "Out of Energy",
+    "outOfHearts": "No Hearts Left!"
+  },
+  "ageTheme": {
+    "sprout": "Sprout (Grade 1-2)",
+    "bud": "Bud (Grade 3-5)",
+    "wing": "Wing (Grade 6-9)"
+  }
+}

@@ -1,0 +1,1 @@
+{ "name": "Bé Học Vui", "short_name": "Bé Học Vui", "start_url": "/", "display": "standalone", "orientation": "any", "background_color": "#F8F0EA", "theme_color": "#7B6668", "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }] }

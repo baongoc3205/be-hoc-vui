@@ -1,0 +1,96 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  darkMode: ['selector', '[data-theme="dark"]'],
+  theme: {
+    extend: {
+      colors: {
+        btn: {
+          'green-top': 'var(--btn-green-top)',
+          'green-base': 'var(--btn-green-base)',
+          'green-bottom': 'var(--btn-green-bottom)',
+          'green-edge': 'var(--btn-green-edge)',
+          'orange-top': 'var(--btn-orange-top)',
+          'orange-base': 'var(--btn-orange-base)',
+          'orange-bottom': 'var(--btn-orange-bottom)',
+          'orange-edge': 'var(--btn-orange-edge)',
+          'blue-top': 'var(--btn-blue-top)',
+          'blue-base': 'var(--btn-blue-base)',
+          'blue-bottom': 'var(--btn-blue-bottom)',
+          'blue-edge': 'var(--btn-blue-edge)',
+          'purple-top': 'var(--btn-purple-top)',
+          'purple-base': 'var(--btn-purple-base)',
+          'purple-bottom': 'var(--btn-purple-bottom)',
+          'purple-edge': 'var(--btn-purple-edge)',
+          'pink-top': 'var(--btn-pink-top)',
+          'pink-base': 'var(--btn-pink-base)',
+          'pink-bottom': 'var(--btn-pink-bottom)',
+          'pink-edge': 'var(--btn-pink-edge)',
+          'gray-top': 'var(--btn-gray-top)',
+          'gray-base': 'var(--btn-gray-base)',
+          'gray-bottom': 'var(--btn-gray-bottom)',
+          'gray-edge': 'var(--btn-gray-edge)',
+        },
+        resource: {
+          coin: 'var(--c-coin)',
+          'coin-edge': 'var(--c-coin-edge)',
+          star: 'var(--c-star)',
+          'star-edge': 'var(--c-star-edge)',
+          gem: 'var(--c-gem)',
+          'gem-edge': 'var(--c-gem-edge)',
+          energy: 'var(--c-energy)',
+          heart: 'var(--c-heart)',
+        },
+        panel: {
+          bg: 'var(--panel-bg)',
+          'bg-2': 'var(--panel-bg-2)',
+          edge: 'var(--panel-edge)',
+          inner: 'var(--panel-inner)',
+        },
+        ribbon: {
+          base: 'var(--ribbon-base)',
+          dark: 'var(--ribbon-dark)',
+          edge: 'var(--ribbon-edge)',
+        },
+        sky: {
+          top: 'var(--sky-top)',
+          bottom: 'var(--sky-bottom)',
+        },
+        grass: {
+          DEFAULT: 'var(--grass)',
+          dark: 'var(--grass-dark)',
+        },
+        ink: {
+          DEFAULT: 'var(--c-ink)',
+          soft: 'var(--c-ink-soft)',
+        },
+        game: {
+          correct: 'var(--c-correct)',
+          'wrong-soft': 'var(--c-wrong-soft)',
+          math: 'var(--c-math)',
+          vietnamese: 'var(--c-vietnamese)',
+          english: 'var(--c-english)',
+          science: 'var(--c-science)',
+        },
+      },
+      fontFamily: {
+        display: ['var(--font-display)'],
+        body: ['var(--font-body)'],
+      },
+      borderRadius: {
+        'game-sm': 'var(--radius-sm)',
+        'game-md': 'var(--radius-md)',
+        'game-lg': 'var(--radius-lg)',
+        'game-pill': 'var(--radius-pill)',
+      },
+      borderWidth: {
+        'game': 'var(--outline)',
+        'game-sm': 'var(--outline-sm)',
+      },
+    },
+  },
+  plugins: [],
+}

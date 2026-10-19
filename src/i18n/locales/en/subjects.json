@@ -1,0 +1,38 @@
+{
+  "list": {
+    "math": "Math",
+    "vietnamese": "Vietnamese",
+    "english": "English",
+    "science": "Science"
+  },
+  "worlds": {
+    "math": "Number Island",
+    "vietnamese": "Letter Village",
+    "english": "ABC City",
+    "science": "Discovery Forest"
+  },
+  "worldDescriptions": {
+    "math": "Explore the wondrous arithmetic lands with wise Bo the Owl",
+    "vietnamese": "Visit peaceful villages and master words with Mochi the Rabbit",
+    "english": "Roam the vibrant avenues and speak English with Foxy the Fox",
+    "science": "Venture into mystical jungles and experiment with Kiwi the Frog"
+  },
+  "map": {
+    "progress": "Progress: {{percent}}%",
+    "level": "Level {{number}}",
+    "bossLevel": "BOSS CHALLENGE",
+    "chestLevel": "BONUS CHEST",
+    "locked": "Locked Level",
+    "current": "Current Level",
+    "completed": "Completed",
+    "starsCollected": "{{current}}/{{total}} Stars"
+  },
+  "lessonModal": {
+    "levelTitle": "LEVEL {{number}}",
+    "goal": "Goal: Score at least {{correct}}/{{total}} correct",
+    "gameType": "Game Type",
+    "rewards": "Rewards",
+    "energyCost": "Costs 1 Energy ⚡",
+    "startPlay": "START LEVEL"
+  }
+}

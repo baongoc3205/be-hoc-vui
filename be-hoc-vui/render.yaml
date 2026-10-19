@@ -1,0 +1,26 @@
+# Cấu hình triển khai miễn phí trên Render (https://render.com) — dùng nút "Deploy to Render" hoặc New → Blueprint.
+services:
+  - type: web
+    name: be-hoc-vui
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: echo "Giao diện đã được build sẵn trong client/dist"
+    startCommand: node server/index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: TZ_GAME
+        value: Asia/Ho_Chi_Minh
+      # Cơ sở dữ liệu Turso (miễn phí) để dữ liệu KHÔNG bị mất khi Render khởi động lại.
+      # Điền khi tạo dịch vụ — xem docs/DEPLOY.md
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false

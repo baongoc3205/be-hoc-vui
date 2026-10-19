@@ -1,0 +1,17 @@
+{
+  "notFound": {
+    "title": "Ôi! Lạc đường rồi!",
+    "description": "Mimi đang cầm bản đồ ngược rồi! Trang này không tồn tại.",
+    "backHome": "VỀ SẢNH CHÍNH"
+  },
+  "offline": {
+    "title": "Mất kết nối Internet",
+    "description": "Bạn vẫn có thể chơi các bài học đã tải về nhé!",
+    "retry": "Thử kết nối lại"
+  },
+  "crash": {
+    "title": "Đã có chút trục trặc!",
+    "description": "Đừng lo, điểm số và xu của bạn vẫn an toàn.",
+    "reload": "TẢI LẠI TRANG"
+  }
+}

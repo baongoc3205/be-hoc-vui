@@ -1,0 +1,70 @@
+@import './tokens.css';
+@import './game-text.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-body);
+    font-size: var(--fs-base, 18px);
+    color: var(--c-ink);
+    background-color: var(--sky-top);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Accessibility focus ring */
+  *:focus-visible {
+    outline: 3px solid var(--btn-blue-top);
+    outline-offset: 2px;
+  }
+
+  /* Cho phép chọn văn bản ở khu vực nhập liệu hoặc giải thích */
+  input, textarea, [data-selectable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+/* Tôn trọng reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom scrollbar kiểu game */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--panel-edge);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--panel-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--btn-orange-edge);
+}

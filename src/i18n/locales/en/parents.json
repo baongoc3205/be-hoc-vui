@@ -1,0 +1,45 @@
+{
+  "gate": {
+    "title": "Parental Gate",
+    "prompt": "Please solve this calculation to verify you are a parent or guardian:",
+    "question": "Calculate: {{a}} + {{b}} = ?",
+    "placeholder": "Enter number answer...",
+    "error": "Incorrect answer. Please try again!",
+    "submit": "ENTER PARENT AREA",
+    "back": "Back to Game"
+  },
+  "dashboard": {
+    "title": "Parents Corner",
+    "subtitle": "Learning insights and safety controls for your child",
+    "tabs": {
+      "report": "Weekly Report",
+      "limits": "Screen Time",
+      "profiles": "Profiles"
+    },
+    "weeklyReport": {
+      "totalMinutes": "Study time this week",
+      "lessonsDone": "Lessons completed",
+      "averageAccuracy": "Average accuracy",
+      "subjectBreakdown": "Breakdown by subject"
+    },
+    "timeLimits": {
+      "title": "Daily Screen Time Limit",
+      "status": "Limit status",
+      "dailyCap": "Maximum daily play time (minutes)",
+      "breakReminder": "Eye rest reminder every 20 minutes",
+      "energySystem": "Natural Energy System (naturally regulates continuous play)",
+      "saved": "Screen time settings saved successfully!"
+    },
+    "profiles": {
+      "title": "Student Profiles",
+      "deleteConfirm": "Are you sure you want to delete this profile? All saved progress will be lost permanently.",
+      "delete": "Delete Profile",
+      "cannotDeleteLast": "You must keep at least one profile."
+    },
+    "timeOut": {
+      "title": "Time for a Break!",
+      "message": "You've worked so hard today! Time to relax, move around, or sleep 🌙",
+      "close": "Close App"
+    }
+  }
+}

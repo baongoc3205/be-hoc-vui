@@ -1,0 +1,38 @@
+{
+  "list": {
+    "math": "Toán học",
+    "vietnamese": "Tiếng Việt",
+    "english": "Tiếng Anh",
+    "science": "Khoa học"
+  },
+  "worlds": {
+    "math": "Đảo Con Số",
+    "vietnamese": "Làng Chữ",
+    "english": "Thành Phố ABC",
+    "science": "Rừng Khám Phá"
+  },
+  "worldDescriptions": {
+    "math": "Khám phá vùng đất số học diệu kỳ cùng Cú Bơ thông thái",
+    "vietnamese": "Ghé thăm làng quê yên bình, gieo vần cùng Thỏ Mochi",
+    "english": "Dạo bước thành phố sôi động, luyện tiếng Anh cùng Cáo Foxy",
+    "science": "Thám hiểm khu rừng bí ẩn, làm thí nghiệm cùng Ếch Kiwi"
+  },
+  "map": {
+    "progress": "Tiến độ: {{percent}}%",
+    "level": "Màn {{number}}",
+    "bossLevel": "MÀN TRÙM",
+    "chestLevel": "RƯƠNG THƯỞNG",
+    "locked": "Màn chưa mở khóa",
+    "current": "Màn đang học",
+    "completed": "Đã hoàn thành",
+    "starsCollected": "{{current}}/{{total}} Sao"
+  },
+  "lessonModal": {
+    "levelTitle": "MÀN {{number}}",
+    "goal": "Mục tiêu: Đạt ít nhất {{correct}}/{{total}} câu đúng",
+    "gameType": "Dạng trò chơi",
+    "rewards": "Phần thưởng",
+    "energyCost": "Tốn 1 Năng lượng ⚡",
+    "startPlay": "BẮT ĐẦU CHƠI"
+  }
+}

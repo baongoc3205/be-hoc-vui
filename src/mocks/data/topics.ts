@@ -1,0 +1,121 @@
+import { Topic } from '@/types';
+
+export const mockTopics: Topic[] = [
+  // Grade 1 (Sprout Theme)
+  {
+    id: 'topic-math-g1-1',
+    subjectId: 'math',
+    grade: 1,
+    title: { vi: 'Đếm và so sánh số 1–10', en: 'Counting & Comparing 1–10' },
+    order: 1,
+    lessonIds: ['l-m1-01', 'l-m1-02', 'l-m1-03', 'l-m1-04', 'l-m1-05', 'l-m1-06'],
+  },
+  {
+    id: 'topic-math-g1-2',
+    subjectId: 'math',
+    grade: 1,
+    title: { vi: 'Phép cộng trừ trong phạm vi 10', en: 'Addition & Subtraction within 10' },
+    order: 2,
+    lessonIds: ['l-m1-07', 'l-m1-08', 'l-m1-09', 'l-m1-10', 'l-m1-11', 'l-m1-12'],
+  },
+  {
+    id: 'topic-viet-g1-1',
+    subjectId: 'vietnamese',
+    grade: 1,
+    title: { vi: 'Làm quen chữ cái và thanh điệu', en: 'Alphabet & Tone Marks' },
+    order: 1,
+    lessonIds: ['l-v1-01', 'l-v1-02', 'l-v1-03', 'l-v1-04', 'l-v1-05', 'l-v1-06'],
+  },
+  {
+    id: 'topic-eng-g1-1',
+    subjectId: 'english',
+    grade: 1,
+    title: { vi: 'Màu sắc và các con vật', en: 'Colors & Animals' },
+    order: 1,
+    lessonIds: ['l-e1-01', 'l-e1-02', 'l-e1-03', 'l-e1-04', 'l-e1-05', 'l-e1-06'],
+  },
+  {
+    id: 'topic-sci-g1-1',
+    subjectId: 'science',
+    grade: 1,
+    title: { vi: 'Cơ thể của bé và các giác quan', en: 'My Body & Five Senses' },
+    order: 1,
+    lessonIds: ['l-s1-01', 'l-s1-02', 'l-s1-03', 'l-s1-04', 'l-s1-05', 'l-s1-06'],
+  },
+
+  // Grade 3 (Bud Theme)
+  {
+    id: 'topic-math-g3-1',
+    subjectId: 'math',
+    grade: 3,
+    title: { vi: 'Bảng nhân và bảng chia', en: 'Multiplication & Division Tables' },
+    order: 1,
+    lessonIds: ['l-m3-01', 'l-m3-02', 'l-m3-03', 'l-m3-04', 'l-m3-05', 'l-m3-06'],
+  },
+  {
+    id: 'topic-math-g3-2',
+    subjectId: 'math',
+    grade: 3,
+    title: { vi: 'Xem đồng hồ và đo thời gian', en: 'Clock Reading & Time Measurement' },
+    order: 2,
+    lessonIds: ['l-m3-07', 'l-m3-08', 'l-m3-09', 'l-m3-10'],
+  },
+  {
+    id: 'topic-viet-g3-1',
+    subjectId: 'vietnamese',
+    grade: 3,
+    title: { vi: 'Từ trái nghĩa và phép so sánh', en: 'Antonyms & Similes' },
+    order: 1,
+    lessonIds: ['l-v3-01', 'l-v3-02', 'l-v3-03', 'l-v3-04', 'l-v3-05', 'l-v3-06'],
+  },
+  {
+    id: 'topic-eng-g3-1',
+    subjectId: 'english',
+    grade: 3,
+    title: { vi: 'Trường học và thời tiết', en: 'School Life & Weather' },
+    order: 1,
+    lessonIds: ['l-e3-01', 'l-e3-02', 'l-e3-03', 'l-e3-04', 'l-e3-05', 'l-e3-06'],
+  },
+  {
+    id: 'topic-sci-g3-1',
+    subjectId: 'science',
+    grade: 3,
+    title: { vi: 'Nước, không khí và sự sống', en: 'Water, Air & Living Things' },
+    order: 1,
+    lessonIds: ['l-s3-01', 'l-s3-02', 'l-s3-03', 'l-s3-04', 'l-s3-05', 'l-s3-06'],
+  },
+
+  // Grade 6 (Wing Theme)
+  {
+    id: 'topic-math-g6-1',
+    subjectId: 'math',
+    grade: 6,
+    title: { vi: 'Tập hợp số nguyên và quy tắc dấu', en: 'Integers & Sign Rules' },
+    order: 1,
+    lessonIds: ['l-m6-01', 'l-m6-02', 'l-m6-03', 'l-m6-04', 'l-m6-05', 'l-m6-06'],
+  },
+  {
+    id: 'topic-viet-g6-1',
+    subjectId: 'vietnamese',
+    grade: 6,
+    title: { vi: 'Từ mượn và biện pháp tu từ', en: 'Loanwords & Rhetorical Devices' },
+    order: 1,
+    lessonIds: ['l-v6-01', 'l-v6-02', 'l-v6-03', 'l-v6-04', 'l-v6-05', 'l-v6-06'],
+  },
+  {
+    id: 'topic-eng-g6-1',
+    subjectId: 'english',
+    grade: 6,
+    title: { vi: 'Thì hiện tại tiếp diễn và sở thích', en: 'Present Continuous & Hobbies' },
+    order: 1,
+    lessonIds: ['l-e6-01', 'l-e6-02', 'l-e6-03', 'l-e6-04', 'l-e6-05', 'l-e6-06'],
+  },
+  {
+    id: 'topic-sci-g6-1',
+    subjectId: 'science',
+    grade: 6,
+    title: { vi: 'Tế bào - Đơn vị cơ bản của sự sống', en: 'Cells - Basic Units of Life' },
+    order: 1,
+    lessonIds: ['l-s6-01', 'l-s6-02', 'l-s6-03', 'l-s6-04', 'l-s6-05', 'l-s6-06'],
+  },
+];

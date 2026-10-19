@@ -1,0 +1,54 @@
+{
+  "tabs": {
+    "badges": "Huy hiệu",
+    "stickers": "Album dán hình",
+    "chests": "Rương báu",
+    "quests": "Nhiệm vụ"
+  },
+  "badges": {
+    "title": "Bộ sưu tập Huy hiệu",
+    "earned": "Đã đạt: {{count}}/{{total}}",
+    "unlockedOn": "Mở khóa ngày {{date}}"
+  },
+  "stickers": {
+    "title": "Album dán hình",
+    "sets": {
+      "animals": "Động vật đáng yêu",
+      "space": "Vũ trụ bao la",
+      "food": "Món ngon Việt Nam",
+      "places": "Danh lam thắng cảnh"
+    }
+  },
+  "quests": {
+    "title": "Nhiệm vụ ngày",
+    "resetIn": "Làm mới sau: {{time}}",
+    "claimReward": "Nhận {{coins}} xu",
+    "claimed": "Đã nhận",
+    "progress": "{{current}}/{{target}}"
+  },
+  "shop": {
+    "title": "Cửa hàng phụ kiện",
+    "subtitle": "Dùng xu vàng tích lũy từ học tập để sắm đồ!",
+    "categories": {
+      "hair": "Kiểu tóc",
+      "outfit": "Trang phục",
+      "hat": "Mũ nón",
+      "glasses": "Kính mắt",
+      "pet": "Thú cưng mini",
+      "frame": "Khung ảnh"
+    },
+    "buy": "Mua ({{price}} xu)",
+    "owned": "Đã sở hữu",
+    "wearing": "Đang dùng",
+    "wear": "Mặc đồ",
+    "notEnoughCoins": "Bạn chưa đủ xu, hãy làm bài học để nhận thêm nhé!"
+  },
+  "me": {
+    "title": "Nhân vật của tớ",
+    "levelBadge": "Cấp {{level}}",
+    "stats": "Thống kê vui",
+    "totalStars": "Tổng số sao",
+    "lessonsCompleted": "Màn đã qua",
+    "streakDays": "Chuỗi học tập"
+  }
+}

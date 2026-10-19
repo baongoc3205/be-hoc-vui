@@ -1,0 +1,37 @@
+{
+  "splash": {
+    "tapToStart": "CHẠM ĐỂ BẮT ĐẦU",
+    "tip": "Mỗi ngày chơi 15 phút giúp bé thông minh và nhớ lâu hơn!",
+    "loading": "Đang tải dữ liệu..."
+  },
+  "profiles": {
+    "title": "Ai đang chơi thế?",
+    "subtitle": "Chọn hồ sơ của bạn để tiếp tục cuộc phiêu lưu",
+    "newProfile": "Tạo hồ sơ mới",
+    "manage": "Quản lý hồ sơ",
+    "grade": "Lớp {{grade}}"
+  },
+  "onboarding": {
+    "title": "Chào bạn mới!",
+    "stepNickname": "Biệt danh của bạn là gì?",
+    "nicknamePlaceholder": "Nhập biệt danh (tối đa 12 chữ)...",
+    "stepGrade": "Bạn đang học lớp mấy?",
+    "stepAvatar": "Chọn diện mạo cho bạn nhé!",
+    "stepFavorites": "Môn học bạn thích nhất?",
+    "mimiGreeting": "Tớ là Mimi! Hãy cùng tớ khám phá thế giới học tập nhé!",
+    "finish": "SẴN SÀNG KHÁM PHÁ!"
+  },
+  "lobby": {
+    "greetingMorning": "Chào buổi sáng, {{name}}! Sẵn sàng khám phá chưa?",
+    "greetingAfternoon": "Chào buổi chiều, {{name}}! Cùng làm vài câu đố nhé!",
+    "greetingEvening": "Chào buổi tối, {{name}}! Học một chút rồi nghỉ ngơi nha!",
+    "greetingNight": "Đã muộn rồi, {{name}} ơi! Đi ngủ sớm mai học tiếp nhé 🌙",
+    "playNext": "CHƠI TIẾP",
+    "continueLesson": "Bài học tiếp theo",
+    "dailyQuests": "Nhiệm vụ ngày",
+    "dailyChest": "Rương hằng ngày",
+    "openChest": "MỞ RƯƠNG",
+    "events": "Sự kiện",
+    "streakDays": "{{count}} ngày liên tiếp"
+  }
+}

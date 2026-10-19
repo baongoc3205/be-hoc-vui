@@ -1,0 +1,66 @@
+{
+  "shell": {
+    "question": "Question {{current}}/{{total}}",
+    "score": "Score",
+    "combo": "Combo",
+    "pause": "Pause",
+    "resume": "Resume Game",
+    "restart": "Restart",
+    "quit": "Quit to Lobby",
+    "soundOn": "Unmute",
+    "soundOff": "Mute",
+    "hintCost": "Hint ({{cost}} Coins)",
+    "hintFree": "Free Hint",
+    "checkAnswer": "CHECK",
+    "nextQuestion": "CONTINUE",
+    "timeRemaining": "{{seconds}}s",
+    "speedBonus": "+{{bonus}} Speed!"
+  },
+  "types": {
+    "quiz": "Fun Quiz",
+    "drag-match": "Magic Match",
+    "fill-blank": "Fill the Blank",
+    "memory-cards": "Memory Cards",
+    "word-builder": "Word Builder",
+    "math-race": "Math Race",
+    "sort-order": "Sort in Order",
+    "true-false-swipe": "True or False",
+    "listen-pick": "Listen & Pick",
+    "clock-reader": "Clock Master",
+    "balloon-pop": "Balloon Pop",
+    "catch-fall": "Catch the Stars"
+  },
+  "instructions": {
+    "quiz": "Choose the best correct answer!",
+    "drag-match": "Drag the item on the left onto its pair on the right!",
+    "fill-blank": "Drag words or numbers to fill in the missing spots!",
+    "memory-cards": "Flip cards to find all matching pairs!",
+    "word-builder": "Arrange letters in order to build the word!",
+    "math-race": "Solve quickly to boost your race car across the finish line!",
+    "sort-order": "Arrange items in correct ascending or chronological sequence!",
+    "true-false-swipe": "Swipe RIGHT for True, swipe LEFT for False!",
+    "listen-pick": "Press speaker to hear the word, then pick the matching picture!",
+    "clock-reader": "Drag clock hands to the requested time!",
+    "balloon-pop": "Pop the balloon displaying the correct answer!",
+    "catch-fall": "Move your basket to catch items that match the rule!"
+  },
+  "result": {
+    "titleWin": "AWESOME JOB!",
+    "titleAlmost": "ALMOST THERE!",
+    "starsEarned": "{{count}} stars",
+    "correctCount": "{{correct}}/{{total}} correct answers",
+    "accuracy": "{{percent}}% accuracy",
+    "xpEarned": "+{{xp}} XP",
+    "coinsEarned": "+{{coins}} Coins",
+    "firstClearBonus": "First Clear Bonus: +10 coins!",
+    "newBadge": "New badge unlocked!",
+    "continue": "CONTINUE",
+    "replay": "REPLAY"
+  },
+  "heartsModal": {
+    "title": "Out of Hearts!",
+    "description": "Don't fret! Choose how you would like to proceed:",
+    "reviewFree": "Review Lesson (Free)",
+    "refillCoins": "Refill 3 Hearts for {{cost}} Coins"
+  }
+}

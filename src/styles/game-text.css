@@ -1,0 +1,104 @@
+/* Game Typography & Text Effects */
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Chữ nổi phong cách game với viền sắc nét */
+.text-game {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: #ffffff;
+  paint-order: stroke fill;
+  -webkit-text-stroke: 1.5px var(--edge, #22660E);
+  text-shadow: 0 2px 0 var(--edge, #22660E);
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+/* Giảm stroke đối với cỡ chữ nhỏ hơn để tránh bết dấu tiếng Việt */
+@media (max-width: 640px), (min-width: 0px) {
+  .text-game-sm,
+  .text-sm .text-game,
+  .text-xs .text-game {
+    -webkit-text-stroke: 1px var(--edge, #22660E);
+  }
+}
+
+.text-game-green { --edge: var(--btn-green-edge); }
+.text-game-orange { --edge: var(--btn-orange-edge); }
+.text-game-blue { --edge: var(--btn-blue-edge); }
+.text-game-purple { --edge: var(--btn-purple-edge); }
+.text-game-pink { --edge: var(--btn-pink-edge); }
+.text-game-gray { --edge: var(--btn-gray-edge); }
+.text-game-brown { --edge: var(--panel-edge); }
+.text-game-ribbon { --edge: var(--ribbon-edge); }
+
+/* Tiêu đề vàng kim óng ánh */
+.text-title-gold {
+  font-family: var(--font-display);
+  font-weight: 800;
+  background: linear-gradient(180deg, #FFF9A6 0%, #FFD700 45%, #FFA500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 0 #7A3B00) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.35));
+  paint-order: stroke fill;
+  letter-spacing: 0.03em;
+  display: inline-block;
+}
+
+/* Thang kích thước chữ chuẩn */
+.text-game-display {
+  font-size: 44px;
+  line-height: 1.2;
+}
+
+.text-game-h1 {
+  font-size: 34px;
+  line-height: 1.25;
+}
+
+.text-game-h2 {
+  font-size: 28px;
+  line-height: 1.3;
+}
+
+.text-game-h3 {
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.text-game-body {
+  font-size: var(--fs-base, 18px);
+  line-height: 1.5;
+}
+
+.text-game-small {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Bảng hoa văn chấm mờ đặc trưng casual game panel */
+.panel-polka-dots {
+  background-image: radial-gradient(var(--panel-edge) 1px, transparent 1px);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+/* Viền nút và popup 3D */
+.candy-edge {
+  border-color: var(--edge, var(--panel-edge));
+}
+
+/* Nút game 3D */
+.candy-button-shadow {
+  box-shadow: 0 var(--depth, 6px) 0 0 var(--btn-edge, rgba(0, 0, 0, 0.25));
+}
+
+.candy-button-shadow-pressed {
+  box-shadow: 0 var(--depth-pressed, 2px) 0 0 var(--btn-edge, rgba(0, 0, 0, 0.25));
+}

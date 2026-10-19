@@ -1,0 +1,18 @@
+{
+  "title": "Cài đặt trò chơi",
+  "audioSection": "Âm thanh & Lồng tiếng",
+  "soundEffects": "Hiệu ứng âm thanh",
+  "bgMusic": "Nhạc nền",
+  "ttsVoice": "Đọc câu hỏi to (Giọng đọc)",
+  "haptics": "Rung phản hồi (Haptics)",
+  "displaySection": "Hiển thị & Trợ năng",
+  "reducedMotion": "Giảm chuyển động (Tắt nảy/bay)",
+  "highLegibility": "Chữ dễ đọc (Tăng khoảng cách chữ)",
+  "darkMode": "Giao diện ban đêm (Dark Mode)",
+  "languageSection": "Ngôn ngữ & Độ tuổi",
+  "language": "Ngôn ngữ giao diện",
+  "ageTheme": "Giao diện theo lứa tuổi",
+  "about": "Thông tin ứng dụng",
+  "version": "Phiên bản: 2.0.0 (KidQuest Engine)",
+  "developerMode": "Công cụ thử nghiệm (Dành cho Dev)"
+}

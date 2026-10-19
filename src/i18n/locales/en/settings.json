@@ -1,0 +1,18 @@
+{
+  "title": "Game Settings",
+  "audioSection": "Audio & Speech",
+  "soundEffects": "Sound Effects (SFX)",
+  "bgMusic": "Background Music",
+  "ttsVoice": "Read Questions Aloud (TTS Voice)",
+  "haptics": "Vibration Feedback (Haptics)",
+  "displaySection": "Display & Accessibility",
+  "reducedMotion": "Reduce Motion (No bouncy particles)",
+  "highLegibility": "High Legibility Text",
+  "darkMode": "Dark Mode Theme",
+  "languageSection": "Language & Age Theme",
+  "language": "App Language",
+  "ageTheme": "Age Group Theme",
+  "about": "About KidQuest",
+  "version": "Version: 2.0.0 (KidQuest Engine)",
+  "developerMode": "Developer Tools (UI / Art Gallery)"
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="starGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFE043" />
+      <stop offset="100%" stop-color="#FFA800" />
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="#2FB4F5" stroke="#0B4C80" stroke-width="4" />
+  <path d="M32 10 L37.5 24.5 L53 25.5 L41 35 L45 50 L32 41 L19 50 L23 35 L11 25.5 L26.5 24.5 Z" 
+        fill="url(#starGrad)" stroke="#7A3B00" stroke-width="3" stroke-linejoin="round" />
+  <ellipse cx="28" cy="28" rx="2" ry="3" fill="#3A2A5C" />
+  <ellipse cx="36" cy="28" rx="2" ry="3" fill="#3A2A5C" />
+  <circle cx="27" cy="27" r="0.8" fill="#FFFFFF" />
+  <circle cx="35" cy="27" r="0.8" fill="#FFFFFF" />
+  <path d="M30 34 Q32 37 34 34" stroke="#7A3B00" stroke-width="2" stroke-linecap="round" fill="none" />
+</svg>

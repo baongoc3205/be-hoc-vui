@@ -1,0 +1,127 @@
+:root {
+  /* Nút & trạng thái – mỗi màu có bộ 4: top (sáng), base, bottom (đậm), edge (viền/đế) */
+  --btn-green-top: #8EF04A;
+  --btn-green-base: #5BCB2A;
+  --btn-green-bottom: #3FA51A;
+  --btn-green-edge: #22660E;
+
+  --btn-orange-top: #FFC54D;
+  --btn-orange-base: #FF9F1C;
+  --btn-orange-bottom: #F07B0A;
+  --btn-orange-edge: #8F4300;
+
+  --btn-blue-top: #6FD8FF;
+  --btn-blue-base: #2FB4F5;
+  --btn-blue-bottom: #1A8BD6;
+  --btn-blue-edge: #0B4C80;
+
+  --btn-purple-top: #C79BFF;
+  --btn-purple-base: #9B5CF6;
+  --btn-purple-bottom: #7A3BE0;
+  --btn-purple-edge: #40197F;
+
+  --btn-pink-top: #FF9EC2;
+  --btn-pink-base: #FF5C93;
+  --btn-pink-bottom: #E43B76;
+  --btn-pink-edge: #821740;
+
+  --btn-gray-top: #E9EEF5;
+  --btn-gray-base: #C9D2DE;
+  --btn-gray-bottom: #A7B3C3;
+  --btn-gray-edge: #56627A; /* disabled */
+
+  /* Tài nguyên */
+  --c-coin: #FFC928;
+  --c-coin-edge: #B9770E;
+  --c-star: #FFD93B;
+  --c-star-edge: #C98A00;
+  --c-gem: #3EE0E8;
+  --c-gem-edge: #0E7E8A;
+  --c-energy: #7CF05A;
+  --c-heart: #FF5C7A;
+
+  /* Panel / popup */
+  --panel-bg: #FFF7E8;
+  --panel-bg-2: #FFEACC;
+  --panel-edge: #7A4A1E;
+  --panel-inner: #F2D9B0;
+  --ribbon-base: #FF5C5C;
+  --ribbon-dark: #C72E3C;
+  --ribbon-edge: #6E1220;
+  --hud-pill: rgba(30, 24, 60, 0.55);
+
+  /* Nền & chữ */
+  --sky-top: #7FD3FF;
+  --sky-bottom: #D8F4FF;
+  --grass: #79D45A;
+  --grass-dark: #4FA437;
+  --c-ink: #3A2A5C;
+  --c-ink-soft: #6E6390;
+  --c-text-on-btn: #FFFFFF;
+
+  /* Kết quả trả lời */
+  --c-correct: #5BCB2A;
+  --c-wrong-soft: #FF8FA3; /* san hô dịu, KHÔNG đỏ gắt */
+
+  /* Màu môn học (thế giới) */
+  --c-math: #2FB4F5;
+  --c-vietnamese: #FF9F1C;
+  --c-english: #9B5CF6;
+  --c-science: #5BCB2A;
+
+  /* Hình khối */
+  --outline: 4px;
+  --outline-sm: 3px;
+  --radius-sm: 14px;
+  --radius-md: 22px;
+  --radius-lg: 32px;
+  --radius-pill: 9999px;
+  --depth: 6px;              /* độ dày đế nút */
+  --depth-pressed: 2px;
+
+  /* Typography */
+  --font-display: 'Baloo 2', 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+  --fs-base: 18px;
+}
+
+/* Theme theo nhóm tuổi: Mầm Xanh (Lớp 1-2) */
+[data-age="sprout"] {
+  --fs-base: 20px;
+  --radius-md: 26px;
+  --radius-lg: 36px;
+}
+
+/* Theme theo nhóm tuổi: Chồi Non (Lớp 3-5) */
+[data-age="bud"] {
+  --fs-base: 18px;
+  --radius-md: 22px;
+  --radius-lg: 32px;
+}
+
+/* Theme theo nhóm tuổi: Cánh Bay (Lớp 6-9) */
+[data-age="wing"] {
+  --fs-base: 16px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --outline: 3px;
+  --sky-top: #4B3FA8;
+  --sky-bottom: #8E7CF0;
+  --panel-bg: #F3F0FF;
+  --panel-bg-2: #E8E2FF;
+  --panel-edge: #2E2370;
+  --panel-inner: #D6CEF5;
+}
+
+/* Dark mode */
+[data-theme="dark"] {
+  --sky-top: #1A1747;
+  --sky-bottom: #3B2F7A;
+  --panel-bg: #2C2558;
+  --panel-bg-2: #241E4A;
+  --panel-edge: #120E2E;
+  --panel-inner: #3D3575;
+  --c-ink: #F4F0FF;
+  --c-ink-soft: #BDB3E8;
+  --hud-pill: rgba(14, 10, 32, 0.75);
+}

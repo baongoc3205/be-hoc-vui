@@ -1,0 +1,45 @@
+{
+  "gate": {
+    "title": "Cổng phụ huynh",
+    "prompt": "Vui lòng giải phép tính dưới đây để xác nhận bạn là phụ huynh:",
+    "question": "Tính kết quả: {{a}} + {{b}} = ?",
+    "placeholder": "Nhập đáp án số...",
+    "error": "Đáp án chưa chính xác, vui lòng thử lại!",
+    "submit": "XÁC NHẬN VÀO GÓC PHỤ HUYNH",
+    "back": "Quay lại game"
+  },
+  "dashboard": {
+    "title": "Góc phụ huynh",
+    "subtitle": "Báo cáo học tập và cài đặt an toàn cho con",
+    "tabs": {
+      "report": "Báo cáo tuần",
+      "limits": "Giới hạn thời gian",
+      "profiles": "Quản lý hồ sơ"
+    },
+    "weeklyReport": {
+      "totalMinutes": "Thời gian học tuần này",
+      "lessonsDone": "Số bài học hoàn thành",
+      "averageAccuracy": "Độ chính xác trung bình",
+      "subjectBreakdown": "Phân bổ theo môn học"
+    },
+    "timeLimits": {
+      "title": "Giới hạn thời gian chơi hàng ngày",
+      "status": "Trạng thái giới hạn",
+      "dailyCap": "Thời lượng tối đa mỗi ngày (phút)",
+      "breakReminder": "Nhắc nghỉ mắt sau mỗi 20 phút",
+      "energySystem": "Bật cơ chế Năng lượng tự nhiên (giới hạn số màn liên tục)",
+      "saved": "Đã lưu cài đặt giới hạn thành công!"
+    },
+    "profiles": {
+      "title": "Danh sách hồ sơ học sinh",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa hồ sơ này? Toàn bộ tiến độ sẽ bị xóa vĩnh viễn.",
+      "delete": "Xóa hồ sơ",
+      "cannotDeleteLast": "Cần giữ ít nhất 1 hồ sơ."
+    },
+    "timeOut": {
+      "title": "Đến giờ nghỉ ngơi rồi!",
+      "message": "Hôm nay bạn đã học rất chăm chỉ! Hãy nghỉ ngơi, vận động hoặc đi ngủ nhé 🌙",
+      "close": "Đóng ứng dụng"
+    }
+  }
+}

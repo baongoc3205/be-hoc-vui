@@ -1,0 +1,17 @@
+{
+  "notFound": {
+    "title": "Oops! We're Lost!",
+    "description": "Mimi is holding the map upside down! This page doesn't exist.",
+    "backHome": "BACK TO LOBBY"
+  },
+  "offline": {
+    "title": "No Internet Connection",
+    "description": "You can still enjoy all downloaded offline lessons!",
+    "retry": "Try Reconnecting"
+  },
+  "crash": {
+    "title": "Something Went Wobble!",
+    "description": "Don't worry, your score and gold coins are completely safe.",
+    "reload": "RELOAD GAME"
+  }
+}

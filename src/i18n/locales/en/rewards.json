@@ -1,0 +1,54 @@
+{
+  "tabs": {
+    "badges": "Badges",
+    "stickers": "Sticker Album",
+    "chests": "Chests",
+    "quests": "Quests"
+  },
+  "badges": {
+    "title": "Badge Collection",
+    "earned": "Earned: {{count}}/{{total}}",
+    "unlockedOn": "Unlocked on {{date}}"
+  },
+  "stickers": {
+    "title": "Sticker Album",
+    "sets": {
+      "animals": "Cute Animals",
+      "space": "Cosmic Space",
+      "food": "Delicious Food",
+      "places": "Scenic Landscapes"
+    }
+  },
+  "quests": {
+    "title": "Daily Quests",
+    "resetIn": "Resets in: {{time}}",
+    "claimReward": "Claim {{coins}} Coins",
+    "claimed": "Claimed",
+    "progress": "{{current}}/{{target}}"
+  },
+  "shop": {
+    "title": "Avatar Shop",
+    "subtitle": "Use coins earned from study to dress up!",
+    "categories": {
+      "hair": "Hair",
+      "outfit": "Outfit",
+      "hat": "Hats",
+      "glasses": "Glasses",
+      "pet": "Mini Pet",
+      "frame": "Frames"
+    },
+    "buy": "Buy ({{price}} Coins)",
+    "owned": "Owned",
+    "wearing": "Equipped",
+    "wear": "Equip",
+    "notEnoughCoins": "Not enough coins! Play more lessons to earn extra gold!"
+  },
+  "me": {
+    "title": "My Character",
+    "levelBadge": "Level {{level}}",
+    "stats": "Fun Stats",
+    "totalStars": "Total Stars",
+    "lessonsCompleted": "Lessons Cleared",
+    "streakDays": "Learning Streak"
+  }
+}

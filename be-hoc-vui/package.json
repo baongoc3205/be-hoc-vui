@@ -1,0 +1,29 @@
+{
+  "name": "be-hoc-vui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bé Học Vui — web game học tập song ngữ cho học sinh lớp 1–9 (frontend + backend).",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node scripts/dev.js",
+    "build": "vite build --config client/vite.config.ts",
+    "build:fast": "node scripts/build-fast.mjs",
+    "typecheck": "tsc -p client/tsconfig.json --noEmit",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.7.3",
+    "vite": "^6.1.0"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

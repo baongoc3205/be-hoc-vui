@@ -1,0 +1,62 @@
+{
+  "app": {
+    "name": "Bé Học Vui",
+    "subtitle": "Phiêu lưu học tập kỳ thú"
+  },
+  "action": {
+    "play": "Chơi",
+    "continue": "Tiếp tục",
+    "retry": "Chơi lại",
+    "claim": "Nhận",
+    "check": "Kiểm tra",
+    "start": "Bắt đầu",
+    "back": "Quay lại",
+    "close": "Đóng",
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "done": "Xong",
+    "hint": "Gợi ý",
+    "listen": "Nghe lại",
+    "next": "Câu tiếp"
+  },
+  "nav": {
+    "lobby": "Sảnh",
+    "worlds": "Thế giới",
+    "rewards": "Kho báu",
+    "shop": "Cửa hàng",
+    "me": "Tớ",
+    "settings": "Cài đặt",
+    "parents": "Phụ huynh"
+  },
+  "resources": {
+    "coins": "Xu vàng",
+    "gems": "Kim cương",
+    "stars": "Ngôi sao",
+    "energy": "Năng lượng",
+    "hearts": "Trái tim",
+    "level": "Cấp"
+  },
+  "feedback": {
+    "correct": "Chính xác! Giỏi quá!",
+    "correctSub": "Bạn đã trả lời rất chuẩn!",
+    "wrong": "Gần đúng rồi, cố lên nhé!",
+    "wrongSub": "Không sao cả, hãy cùng xem đáp án đúng nha!",
+    "combo": "COMBO x{{count}}!",
+    "hintUsed": "Đã mở gợi ý"
+  },
+  "popup": {
+    "win": "Hoàn thành!",
+    "almost": "Sắp được rồi!",
+    "levelUp": "Lên cấp!",
+    "dailyChest": "Rương mỗi ngày",
+    "paused": "Tạm dừng",
+    "outOfEnergy": "Hết năng lượng",
+    "outOfHearts": "Hết tim rồi!"
+  },
+  "ageTheme": {
+    "sprout": "Mầm Xanh (Lớp 1-2)",
+    "bud": "Chồi Non (Lớp 3-5)",
+    "wing": "Cánh Bay (Lớp 6-9)"
+  }
+}
