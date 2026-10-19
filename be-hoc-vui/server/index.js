@@ -82,7 +82,8 @@ export function createApp(db) {
   r.post('/api/auth/password', async (req) => {
     const p = (await requireParent(db, req));
     const { current, next } = await readJson(req);
-    if (!p.is_guest && !verifyPassword(String(current ?? ''), p.pass_hash)) throw new HttpError(401, 'BAD_CREDENTIALS');
+    if (p.is_guest) throw new HttpError(400, 'NOT_REGISTERED');
+    if (!verifyPassword(String(current ?? ''), p.pass_hash)) throw new HttpError(401, 'BAD_CREDENTIALS');
     if (String(next ?? '').length < 6) throw new HttpError(400, 'WEAK_PASSWORD');
     (await db.prepare('UPDATE parents SET pass_hash = ? WHERE id = ?').run(hashPassword(next), p.id));
     return [200, { ok: true }];
@@ -150,6 +151,7 @@ export function createApp(db) {
     return [200, (await G.finishSession(db, c, sid, await readJson(req)))];
   });
   r.post('/api/children/:id/chests/:lessonId', async (req, res, { id, lessonId }) => [200, (await G.openMapChest(db, await childOf(req, id), lessonId))]);
+  r.post('/api/children/:id/checkin', async (req, res, { id }) => [200, (await G.doCheckin(db, await childOf(req, id)))]);
   r.post('/api/children/:id/daily-chest', async (req, res, { id }) => [200, (await G.openDailyChest(db, await childOf(req, id)))]);
   r.post('/api/children/:id/quests/:qid/claim', async (req, res, { id, qid }) => [200, (await G.claimQuest(db, await childOf(req, id), qid))]);
   r.post('/api/children/:id/shop/:itemId', async (req, res, { id, itemId }) => [200, (await G.buyItem(db, await childOf(req, id), itemId))]);

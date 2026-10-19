@@ -104,7 +104,7 @@ export function Hud({ compact = false }: { compact?: boolean }) {
   if (!cs) return <div className="hud" />;
   return (
     <div className={`hud ${compact ? 'compact' : ''}`}>
-      <HudPill kind="energy" label="energy" icon={<EnergyIcon size={34} />} value={cs.energy.enabled ? `${cs.energy.value}/${cs.energy.max}` : '∞'} onPlus={compact ? undefined : () => go('rewards/chest')} />
+      <HudPill kind="energy" label="energy" icon={<EnergyIcon size={34} />} value={cs.energy.enabled ? `${cs.energy.value}/${cs.energy.max}` : '∞'} onPlus={compact ? undefined : () => go('rewards/checkin')} />
       {!compact && <HudPill kind="stars" label="stars" icon={<StarIcon size={32} />} value={fmt(cs.stars)} onPlus={() => go('worlds')} />}
       <HudPill kind="coins" label="coins" icon={<CoinIcon size={34} />} value={fmt(coins)} onPlus={compact ? undefined : () => go('rewards')} />
     </div>

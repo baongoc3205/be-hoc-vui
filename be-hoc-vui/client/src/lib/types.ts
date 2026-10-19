@@ -14,10 +14,15 @@ export interface Parent { id: number; name: string; email: string | null; isGues
 export interface ChildSettings { dailyLimitMin: number; energy: boolean; leaderboard: boolean }
 export interface Child { id: number; nickname: string; grade: number; ageTheme: 'sprout' | 'bud' | 'wing'; look: Look; settings: ChildSettings }
 export interface Quest { id: string; name: LText; target: number; coins: number; progress: number; done: boolean; claimed: boolean }
+export interface Checkin {
+  today: boolean; claimed: number; nextSeq: number | null; total: number;
+  last: { coins: number; energy: number; item: string | null } | null;
+  rewards: { day: number; coins: number; energy: number; gift: boolean }[];
+}
 export interface ChildState {
   child: Child; coins: number; xp: number; level: { level: number; current: number; needed: number }; stars: number;
   energy: { value: number; max: number; nextInMs: number; enabled: boolean };
-  streak: number; chestAvailable: boolean; quests: Quest[]; badges: string[]; owned: string[];
+  streak: number; chestAvailable: boolean; checkin: Checkin; quests: Quest[]; badges: string[]; owned: string[];
   today: { minutes: number; limit: number };
   next?: { subject: SubjectId; done: number; total: number; lesson: { id: string; index: number; game: GameType; kind: string; name: LText } | null; topic: LText | null } | null;
 }

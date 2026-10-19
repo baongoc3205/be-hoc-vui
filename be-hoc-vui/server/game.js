@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { HttpError } from './http.js';
 import { buildRounds } from './rounds.js';
 import { computeRewards, currentEnergy, gradeRound, levelInfo, makeRng, shuffle, ageThemeForGrade, MAX_ENERGY } from '../shared/logic.js';
-import { BADGES, DEFAULT_LOOK, FREE_ITEMS, GAME_INFO, LESSONS, QUEST_POOL, SHOP, SUBJECTS, TOPICS, lessonById, lessonsFor, shopById, topicById } from './content/index.js';
+import { BADGES, CHECKIN_REWARDS, DEFAULT_LOOK, FREE_ITEMS, GAME_INFO, LESSONS, QUEST_POOL, SHOP, SUBJECTS, TOPICS, lessonById, lessonsFor, shopById, topicById } from './content/index.js';
 
 const TZ = process.env.TZ_GAME || 'Asia/Ho_Chi_Minh';
 const dayFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -69,6 +69,49 @@ async function ensureQuests(db, child, day) {
   return rows.map((r) => { const q = QUEST_POOL.find((x) => x.id === r.quest_id); return { id: q.id, name: q.name, target: q.target, coins: q.coins, progress: Math.min(r.progress, q.target), done: r.progress >= q.target, claimed: !!r.claimed }; });
 }
 
+// ---------------- Điểm danh ----------------
+/** Trạng thái điểm danh: đã điểm danh hôm nay chưa, đang ở ngày mấy của chuỗi 7 ngày. */
+export async function checkinInfo(db, child, today = dayKey()) {
+  const last = await db.prepare('SELECT * FROM checkins WHERE child_id = ? ORDER BY day DESC LIMIT 1').get(child.id);
+  const total = Number((await db.prepare('SELECT COUNT(*) n FROM checkins WHERE child_id = ?').get(child.id)).n);
+  const doneToday = last?.day === today;
+  const chained = !!last && (doneToday || last.day === prevDay(today));
+  // claimed = số ô đã đóng dấu trong tuần hiện tại; nextSeq = ô sẽ nhận hôm nay (null nếu đã nhận)
+  let claimed = chained ? Number(last.seq) : 0;
+  if (!doneToday && claimed >= 7) claimed = 0;
+  return {
+    today: doneToday, claimed, nextSeq: doneToday ? null : claimed + 1, total,
+    last: doneToday ? { coins: Number(last.coins), energy: Number(last.energy), item: last.item ?? null } : null,
+    rewards: CHECKIN_REWARDS.map((r) => ({ day: r.day, coins: r.coins, energy: r.energy, gift: !!r.gift })),
+  };
+}
+
+export async function doCheckin(db, child) {
+  const today = dayKey();
+  const info = await checkinInfo(db, child, today);
+  if (info.today) throw new HttpError(409, 'ALREADY_CHECKED_IN');
+  const seq = info.nextSeq;
+  const rw = CHECKIN_REWARDS[seq - 1];
+  const owned = json(child.owned, FREE_ITEMS);
+  let item = null, coins = rw.coins;
+  if (rw.gift) {
+    const pool = SHOP.filter((i) => i.price > 0 && i.price <= 200 && !owned.includes(i.id));
+    if (pool.length) item = pool[Math.floor(Math.random() * pool.length)];
+    else coins += 100;
+  }
+  // INSERT OR IGNORE + kiểm tra changes → bấm 2 lần cùng lúc cũng chỉ nhận quà 1 lần
+  const ins = await db.prepare('INSERT OR IGNORE INTO checkins (child_id, day, seq, coins, energy, item) VALUES (?, ?, ?, ?, ?, ?)').run(child.id, today, seq, coins, rw.energy, item?.id ?? null);
+  if (!ins.changes) throw new HttpError(409, 'ALREADY_CHECKED_IN');
+  const en = currentEnergy(child.energy, child.energy_at, Date.now());
+  const energy = Math.min(MAX_ENERGY, en.value + rw.energy);
+  if (item) owned.push(item.id);
+  await db.prepare('UPDATE children SET coins = coins + ?, energy = ?, energy_at = ?, owned = ?, chest_date = ? WHERE id = ?')
+    .run(coins, energy, energy >= MAX_ENERGY ? Date.now() : en.updatedAt, JSON.stringify(owned), today, child.id);
+  const newBadges = await awardBadges(db, child.id);
+  const fresh = await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id);
+  return { day: seq, coins, energy: rw.energy, item: item ? { id: item.id, slot: item.slot, value: item.value, name: item.name } : null, newBadges, state: await stateOf(db, fresh) };
+}
+
 export async function stateOf(db, child) {
   const now = Date.now(); const today = dayKey(now);
   const settings = { ...DEFAULT_SETTINGS, ...json(child.settings, {}) };
@@ -81,6 +124,7 @@ export async function stateOf(db, child) {
     coins: child.coins, xp: child.xp, level: levelInfo(child.xp), stars,
     energy: { value: settings.energy ? en.value : MAX_ENERGY, max: MAX_ENERGY, nextInMs: settings.energy ? en.nextInMs : 0, enabled: settings.energy },
     streak, chestAvailable: child.chest_date !== today,
+    checkin: await checkinInfo(db, child, today),
     quests: (await ensureQuests(db, child, today)),
     badges: (await db.prepare('SELECT badge_id FROM badges WHERE child_id = ?').all(child.id)).map((r) => r.badge_id),
     owned: [...new Set([...FREE_ITEMS, ...json(child.owned, [])])],
@@ -179,7 +223,8 @@ export async function statsFor(db, child) {
   const tot = (await db.prepare('SELECT COALESCE(SUM(correct),0) c FROM daily_stats WHERE child_id = ?').get(child.id)).c;
   const morning = (await db.prepare('SELECT finished_at FROM play_sessions WHERE child_id = ? AND finished_at IS NOT NULL AND stars >= 1').all(child.id)).filter((r) => Number(hourFmt.format(new Date(r.finished_at))) < 9).length;
   const owned = json(child.owned, FREE_ITEMS);
-  return { lessonsDone: Object.values(bySubject).reduce((a, b) => a + b, 0), bySubject, threeStars, bossDone, perfectBoss, correctTotal: tot, streak: child.streak, level: levelInfo(child.xp).level, coins: child.coins, bought: owned.filter((id) => !FREE_ITEMS.includes(id)).length, morning };
+  const checkins = Number((await db.prepare('SELECT COUNT(*) n FROM checkins WHERE child_id = ?').get(child.id)).n);
+  return { checkins, lessonsDone: Object.values(bySubject).reduce((a, b) => a + b, 0), bySubject, threeStars, bossDone, perfectBoss, correctTotal: tot, streak: child.streak, level: levelInfo(child.xp).level, coins: child.coins, bought: owned.filter((id) => !FREE_ITEMS.includes(id)).length, morning };
 }
 async function awardBadges(db, childId) {
   const child = (await db.prepare('SELECT * FROM children WHERE id = ?').get(childId));

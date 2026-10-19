@@ -39,10 +39,13 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS quests (
     child_id INTEGER NOT NULL REFERENCES children(id) ON DELETE CASCADE, day TEXT NOT NULL, quest_id TEXT NOT NULL,
     progress INTEGER NOT NULL DEFAULT 0, claimed INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (child_id, day, quest_id))`,
+  `CREATE TABLE IF NOT EXISTS checkins (
+    child_id INTEGER NOT NULL REFERENCES children(id) ON DELETE CASCADE, day TEXT NOT NULL, seq INTEGER NOT NULL,
+    coins INTEGER NOT NULL DEFAULT 0, energy INTEGER NOT NULL DEFAULT 0, item TEXT, PRIMARY KEY (child_id, day))`,
 ];
 
 /** Bảng phụ thuộc vào children — xoá thủ công để chạy đúng cả khi foreign key không bật (Turso). */
-export const CHILD_TABLES = ['lesson_progress', 'play_sessions', 'daily_stats', 'badges', 'quests'];
+export const CHILD_TABLES = ['lesson_progress', 'play_sessions', 'daily_stats', 'badges', 'quests', 'checkins'];
 
 // ======================= SQLite trên máy =======================
 async function localAdapter(file) {

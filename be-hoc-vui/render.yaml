@@ -5,7 +5,7 @@ services:
     runtime: node
     plan: free
     region: singapore
-    buildCommand: echo "Giao diện đã được build sẵn trong client/dist"
+    buildCommand: npm install --include=dev && npm run build:fast
     startCommand: node server/index.js
     healthCheckPath: /api/health
     autoDeploy: true

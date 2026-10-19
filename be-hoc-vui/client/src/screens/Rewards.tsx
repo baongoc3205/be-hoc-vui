@@ -4,33 +4,27 @@ import { setChildState, toast, useApp } from '../lib/store';
 import { useT } from '../lib/hooks';
 import type { ChildState, Look } from '../lib/types';
 import { Bar, Btn, Panel, SideTabs, Spinner, TopBar } from '../ui/kit';
+import { BadgeGrid } from '../ui/Badges';
 import { Scene } from '../ui/Scene';
 import { Chibi } from '../ui/Chibi';
-import { BadgeMedal, ChestIcon, CoinIcon, Glyph } from '../ui/Icons';
+import { CoinIcon, Glyph } from '../ui/Icons';
+import { CheckinCalendar, CheckinGot, useCheckin } from '../ui/Checkin';
 import { errText } from './Auth';
-import { sfx } from '../lib/sfx';
-import { burstAt, confettiRain, flyCoins } from '../lib/fx';
+import { burstAt, flyCoins } from '../lib/fx';
 
 export function Rewards({ tab = 'quests' }: { tab?: string }) {
   const T = useT();
   const cs = useApp((s) => s.cs)!;
-  const catalog = useApp((s) => s.catalog)!;
   const childId = useApp((s) => s.childId);
-  const [cur, setCur] = useState<'quests' | 'chest' | 'badges'>((['quests', 'chest', 'badges'].includes(tab) ? tab : 'quests') as 'quests');
-  const [shake, setShake] = useState(false);
-  const [got, setGot] = useState<{ c: number; e: number } | null>(null);
+  const initial = tab === 'chest' ? 'checkin' : tab;
+  const [cur, setCur] = useState<'quests' | 'checkin' | 'badges'>((['quests', 'checkin', 'badges'].includes(initial) ? initial : 'quests') as 'quests');
+  useEffect(() => { const t = tab === 'chest' ? 'checkin' : tab; if (['quests', 'checkin', 'badges'].includes(t)) setCur(t as 'quests'); }, [tab]);
+  const ck = useCheckin();
+  const got = ck.result;
 
   const claim = async (id: string, el: HTMLElement) => {
     try { const r = await api.post<{ coins: number; state: ChildState }>(`/children/${childId}/quests/${id}/claim`); flyCoins(el, 5); burstAt(el, 'stars', 12); setChildState(r.state); }
     catch (e) { toast(errText(T, e), 'warn'); }
-  };
-  const openChest = async (el: HTMLElement) => {
-    setShake(true); sfx.whoosh();
-    setTimeout(async () => {
-      try { const r = await api.post<{ coins: number; energy: number; state: ChildState }>(`/children/${childId}/daily-chest`); sfx.open(); confettiRain(); flyCoins(el, 7); setGot({ c: r.coins, e: r.energy }); setChildState(r.state); }
-      catch (e) { toast(errText(T, e), 'warn'); }
-      setShake(false);
-    }, 900);
   };
 
   return (
@@ -39,7 +33,7 @@ export function Rewards({ tab = 'quests' }: { tab?: string }) {
       <div className="screen-content">
         <TopBar title={T.t('treasure')} to="lobby" />
         <div className="layout3">
-          <div className="col-left"><SideTabs tabs={[{ key: 'quests', label: T.t('quests'), badge: cs.quests.some((q) => q.done && !q.claimed) }, { key: 'chest', label: T.t('dailyChest'), badge: cs.chestAvailable }, { key: 'badges', label: T.t('achievements') }]} value={cur} onChange={setCur} /></div>
+          <div className="col-left"><SideTabs tabs={[{ key: 'quests', label: T.t('quests'), badge: cs.quests.some((q) => q.done && !q.claimed) }, { key: 'checkin', label: T.t('checkin'), badge: !cs.checkin.today }, { key: 'badges', label: T.t('achievements') }]} value={cur} onChange={setCur} /></div>
           <div className="col-center"><div className="char-stage"><Chibi look={cs.child.look} mood={got ? 'cheer' : 'idle'} size={400} /></div></div>
           <div className="col-right">
             {cur === 'quests' && (
@@ -54,20 +48,19 @@ export function Rewards({ tab = 'quests' }: { tab?: string }) {
                 ))}
               </Panel>
             )}
-            {cur === 'chest' && (
-              <Panel head={<h2>{T.t('chestTitle')}</h2>}>
-                <div className="chest-big">
-                  <div className={`chest ${shake ? 'shake' : ''}`}><ChestIcon size={200} open={!cs.chestAvailable} /></div>
-                  {got ? <div className="section-title">{T.t('chestGot', { c: got.c, e: got.e })}</div> : null}
-                  {cs.chestAvailable ? <Btn tone="orange" size="lg" disabled={shake} onClick={(e) => openChest(e.currentTarget)}>{T.t('chestReady')}</Btn> : <div className="muted section-title">{T.t('chestTomorrow')}</div>}
+            {cur === 'checkin' && (
+              <Panel className="scroll-y" head={<><Glyph name="calendar" size={34} /><h2>{T.t('checkinTitle')}</h2></>}>
+                <CheckinCalendar />
+                {got ? <CheckinGot r={got} /> : <p className="muted ck-hint">{cs.checkin.today ? T.t('checkinDone') : T.t('checkinHint')}</p>}
+                <div className="muted ck-total">{T.t('checkinTotal', { n: cs.checkin.total })}</div>
+                <div className="panel-actions">
+                  <Btn tone={cs.checkin.today ? 'gray' : 'orange'} disabled={cs.checkin.today || ck.busy} onClick={(e) => ck.claim(e.currentTarget)}>{cs.checkin.today ? T.t('checkinDoneShort') : T.t('checkinBtn')}</Btn>
                 </div>
               </Panel>
             )}
             {cur === 'badges' && (
               <Panel className="scroll-y" head={<h2>{T.t('badgesTitle')}</h2>}>
-                <div className="badge-grid">
-                  {catalog.badges.map((b) => { const ok = cs.badges.includes(b.id); return <div key={b.id} className={`badge-card ${ok ? '' : 'off'}`}><BadgeMedal icon={b.icon} size={64} earned={ok} /><h4>{T.tx(b.name)}</h4><p>{T.tx(b.desc)}</p></div>; })}
-                </div>
+                <BadgeGrid />
               </Panel>
             )}
           </div>

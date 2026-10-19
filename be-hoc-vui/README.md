@@ -104,7 +104,9 @@ Hướng dẫn chi tiết từng bước: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
   | Chọn đáp án | Đố vui, Đúng/Sai (vuốt thẻ), Điền chỗ trống, Nghe và chọn |
   | Kéo, ghép, xếp | Nối cặp, Lật thẻ trí nhớ, Sắp xếp, Ghép chữ, Xem đồng hồ |
   | Hành động | Hứng đồ, Đua xe Toán, Bắn bóng bay |
-- 🏆 **Phần thưởng**: xu, EXP và cấp độ, 22 huy hiệu, 3 nhiệm vụ mỗi ngày, rương mỗi ngày, chuỗi ngày học, bảng thi đua gia đình.
+- 🏆 **Phần thưởng**: xu, EXP và cấp độ, 24 huy hiệu, 3 nhiệm vụ mỗi ngày, chuỗi ngày học, bảng thi đua gia đình.
+- 📅 **Điểm danh 7 ngày**: mỗi ngày vào sảnh sẽ hiện lịch điểm danh. Quà tăng dần từ 10 đến 60 xu kèm năng lượng, ngày thứ 7 tặng thêm một món đồ thời trang ngẫu nhiên. Bỏ lỡ một ngày thì chuỗi quay về ngày 1. Có huy hiệu cho 7 và 30 ngày điểm danh. Lịch sử điểm danh lưu trên máy chủ, nên đăng nhập ở máy khác vẫn giữ nguyên.
+- 📱 **Giao diện điện thoại**: trên màn hình dọc, trang không cuộn. Nhân vật nằm trong khung cố định phía trên, chỉ phần nội dung bên dưới cuộn, nút chính luôn dính ở đáy. Bóng thoại đặt bên cạnh để không che nhân vật. Điện thoại xoay ngang dùng bố cục 2 cột.
 - 👗 **Tủ đồ 86 món** để tự phối đồ cho nhân vật (xem [mục 5](#5-tủ-đồ-thời-trang)).
 - ✨ **Hiệu ứng**:
   - Combo, pháo giấy, xu bay vào thanh tài nguyên.
@@ -118,7 +120,7 @@ Hướng dẫn chi tiết từng bước: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
 - ⌨️ Điều khiển được bằng bàn phím (phím 1–4, mũi tên, Enter), có chế độ giảm chuyển động.
 
 ### Cho phụ huynh (vào qua cổng phép nhân)
-- 👨‍👩‍👧 **Tài khoản**: tối đa 4 hồ sơ bé, đổi mật khẩu, nâng cấp tài khoản khách.
+- 👨‍👩‍👧 **Tài khoản**: tối đa 4 hồ sơ bé, đổi mật khẩu, nâng cấp tài khoản khách (sảnh hiện nhắc "Lưu tiến độ" khi đang dùng tài khoản khách). Phiên đăng nhập giữ 60 ngày.
 - 📊 **Báo cáo**: biểu đồ số phút học trong 7 ngày, độ chính xác theo từng môn, hoạt động gần đây.
 - ⏱️ **Giới hạn**:
   - Thời gian học mỗi ngày (15–120 phút, hoặc không giới hạn).
@@ -189,7 +191,7 @@ npm run dev     # server API cổng 5174 + giao diện hot-reload cổng 5173 �
 |---|---|
 | `npm start` | Chạy server, phục vụ cả API lẫn giao diện đã build |
 | `npm run dev` | Chạy chế độ phát triển |
-| `npm run build` | Build giao diện bằng Vite vào `client/dist` (**chạy lại trước khi đẩy lên web nếu có sửa giao diện**) |
+| `npm run build` | Build giao diện bằng Vite vào `client/dist` (khi đưa lên Render, giao diện được build tự động) |
 | `npm run build:fast` | Build nhanh bằng esbuild (phương án dự phòng) |
 | `npm run typecheck` | Kiểm tra kiểu TypeScript |
 | `npm test` | Chạy 5 nhóm test (xem bên dưới) |

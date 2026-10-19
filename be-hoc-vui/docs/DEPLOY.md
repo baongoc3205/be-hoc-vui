@@ -54,10 +54,19 @@ Bảng dữ liệu sẽ được máy chủ tự tạo ở lần chạy đầu t
 
 Kiểm tra máy chủ: mở `https://<địa-chỉ-của-bạn>/api/health`, trang sẽ hiện `{"ok":true,...}`.
 
+## Gặp lỗi?
+
+| Lỗi | Cách sửa |
+|---|---|
+| `Cannot find module '.../server/index.js'` | Dự án nằm trong thư mục con của repo. Vào Render → Settings → **Root Directory**, điền tên thư mục đó (ví dụ `be-hoc-vui`) |
+| Trang hiện "Chưa build giao diện" | Vào Render → Settings → **Build Command**, điền `npm install --include=dev && npm run build:fast` |
+| `Blueprint file … not found` | Để trống ô **Blueprint Path** (hoặc điền `thư-mục-con/render.yaml`). Không dán URL Turso vào ô này |
+| Log ghi `Dữ liệu: …behocvui.db` | Chưa có biến `TURSO_DATABASE_URL` và `TURSO_AUTH_TOKEN`. Thêm ở Render → **Environment** |
+
 ## Lưu ý về gói miễn phí
 
 - Render sẽ cho máy chủ "ngủ" sau **15 phút không có ai truy cập**. Lần mở tiếp theo phải chờ khoảng **30–60 giây** để máy chủ thức dậy, sau đó chạy bình thường. Dữ liệu vẫn an toàn vì nằm ở Turso.
 - Muốn máy chủ luôn thức: tạo một monitor miễn phí ở https://uptimerobot.com, cho nó gọi `https://<địa-chỉ>/api/health` mỗi 10 phút. Gói miễn phí của Render có 750 giờ mỗi tháng, đủ để chạy 1 dịch vụ suốt cả tháng.
 - Khi sửa code: đẩy thay đổi lên GitHub, Render sẽ tự triển khai lại.
-  - Nếu sửa giao diện, chạy `npm run build` trên máy trước khi đẩy, vì Render dùng bản `client/dist` đã build sẵn.
+  - Render tự build lại giao diện mỗi lần triển khai (lệnh `npm install --include=dev && npm run build:fast` trong `render.yaml`), nên không cần đẩy thư mục `client/dist`.
 - Muốn dùng tên miền riêng (ví dụ `behocvui.vn`): vào Render → Settings → **Custom Domains**.

@@ -187,7 +187,22 @@ export const BADGES = [
   { id: 'saver', icon: 'coin', name: L('Heo đất', 'Piggy bank'), desc: L('Có 300 xu', 'Hold 300 coins'), cond: (s) => s.coins >= 300 },
   { id: 'stylist', icon: 'shirt', name: L('Nhà tạo mẫu', 'Stylist'), desc: L('Mua 3 món đồ', 'Buy 3 items'), cond: (s) => s.bought >= 3 },
   { id: 'early-bird', icon: 'sun', name: L('Chăm chỉ buổi sáng', 'Early bird'), desc: L('Học xong 1 màn trước 9 giờ sáng', 'Finish a level before 9 am'), cond: (s) => s.morning >= 1 },
+  { id: 'checkin-7', icon: 'calendar', name: L('Chăm điểm danh', 'Daily visitor'), desc: L('Điểm danh 7 ngày', 'Check in on 7 days'), cond: (s) => s.checkins >= 7 },
+  { id: 'checkin-30', icon: 'calendar2', name: L('Bạn thân của Bé Học Vui', 'Best friend'), desc: L('Điểm danh 30 ngày', 'Check in on 30 days'), cond: (s) => s.checkins >= 30 },
   { id: 'perfect-boss', icon: 'gem', name: L('Hoàn hảo', 'Flawless'), desc: L('Đạt 3 sao ở màn trùm', '3 stars on a boss level'), cond: (s) => s.perfectBoss >= 1 },
+];
+
+// ---------------- Điểm danh 7 ngày ----------------
+// Mỗi ngày bé vào học và bấm "Điểm danh" nhận quà; điểm danh liền mạch thì quà tăng dần,
+// ngày thứ 7 nhận một món đồ thời trang ngẫu nhiên. Bỏ lỡ một ngày → bắt đầu lại từ ngày 1.
+export const CHECKIN_REWARDS = [
+  { day: 1, coins: 10, energy: 1 },
+  { day: 2, coins: 15, energy: 1 },
+  { day: 3, coins: 20, energy: 2 },
+  { day: 4, coins: 25, energy: 2 },
+  { day: 5, coins: 30, energy: 2 },
+  { day: 6, coins: 40, energy: 3 },
+  { day: 7, coins: 60, energy: 3, gift: true },
 ];
 
 // ---------------- Nhiệm vụ hằng ngày ----------------

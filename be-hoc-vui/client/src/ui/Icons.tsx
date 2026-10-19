@@ -126,6 +126,7 @@ export function CrownIcon({ size = 24, ...p }: P) {
 
 // ---------------- Glyph đơn sắc (dùng currentColor) ----------------
 const GLYPHS: Record<string, ReactNode> = {
+  calendar: <g fill="currentColor"><rect x="3" y="5" width="18" height="16" rx="4" opacity=".9" /><rect x="7" y="2.5" width="2.6" height="5" rx="1.3" /><rect x="14.4" y="2.5" width="2.6" height="5" rx="1.3" /><path d="M8 14.2l2.6 2.6L16.4 11" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></g>,
   back: <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />,
   plus: <path d="M12 6v12M6 12h12" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" />,
   close: <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" />,
@@ -232,7 +233,7 @@ export function GameTile({ game, size = 72, tone = 'rose' }: { game: string; siz
 
 /** Huy hiệu tròn (huy chương) với glyph. */
 export function BadgeMedal({ icon, size = 64, earned = true }: { icon: string; size?: number; earned?: boolean }) {
-  const map: Record<string, string> = { stars: 'star', flame2: 'flame', math: 'target', viet: 'book', eng: 'globe', sci: 'sprout', check: 'check', check2: 'check', up: 'up', up2: 'up', gem: 'sparkle', crown: 'trophy' };
+  const map: Record<string, string> = { stars: 'star', flame2: 'flame', math: 'target', viet: 'book', eng: 'globe', sci: 'sprout', check: 'check', check2: 'check', up: 'up', up2: 'up', gem: 'sparkle', crown: 'trophy', calendar2: 'calendar' };
   return (
     <div className={`badge-medal ${earned ? '' : 'off'}`} style={{ width: size, height: size }}>
       <Glyph name={map[icon] ?? icon} size={size * 0.48} />

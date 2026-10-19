@@ -4,9 +4,10 @@ import { go, setChildState, toast, useApp } from '../lib/store';
 import { useT } from '../lib/hooks';
 import type { ChildState, Look, ShopItem } from '../lib/types';
 import { Bar, Btn, Inset, LvPill, Notch, Panel, SideTabs, TopBar } from '../ui/kit';
+import { BadgeGrid } from '../ui/Badges';
 import { Scene, type SceneName } from '../ui/Scene';
 import { Chibi } from '../ui/Chibi';
-import { BadgeMedal, Glyph, LockIcon, SkillTile, StarIcon, TulipIcon } from '../ui/Icons';
+import { Glyph, LockIcon, SkillTile, StarIcon, TulipIcon } from '../ui/Icons';
 import { errText } from './Auth';
 import { sfx } from '../lib/sfx';
 import { burstAt } from '../lib/fx';
@@ -63,7 +64,7 @@ export function Character({ tab = 'info' }: { tab?: string }) {
           </div>
           <div className="col-center"><div className="char-stage"><Chibi look={draft} mood={cur === 'outfit' ? 'happy' : 'idle'} size={420} title={child.nickname} /></div></div>
           <div className="col-right">
-            <Panel className="scroll-y" head={<>
+            <Panel key={cur} className="scroll-y" head={<>
               <TulipIcon size={54} />
               <div className="char-name">
                 <span><span className="grad-text grade-tag">{T.t('gradeN', { n: child.grade })}</span> <span style={{ display: 'inline-flex', verticalAlign: 'middle' }}>{Array.from({ length: 5 }, (_, i) => <StarIcon key={i} size={22} filled={i < levelStars} />)}</span></span>
@@ -85,7 +86,7 @@ export function Character({ tab = 'info' }: { tab?: string }) {
                 </div>
               </>)}
               {cur === 'outfit' && (<>
-                <div className="chips">{SLOTS.map((s) => <button key={s} type="button" className={`chip ${slot === s ? 'on' : ''}`} onClick={() => { sfx.tap(); setSlot(s); }}>{T.t(`slot_${s}` as 'slot_hair')}</button>)}</div>
+                <div className="chips slot-chips">{SLOTS.map((s) => <button key={s} type="button" className={`chip ${slot === s ? 'on' : ''}`} onClick={() => { sfx.tap(); setSlot(s); }}>{T.t(`slot_${s}` as 'slot_hair')}</button>)}</div>
                 <div className="item-grid">
                   {items.map((it) => {
                     const owned = cs.owned.includes(it.id);
@@ -105,11 +106,7 @@ export function Character({ tab = 'info' }: { tab?: string }) {
                 </div>
               </>)}
               {cur === 'achievements' && (
-                <div className="badge-grid">
-                  {catalog.badges.map((b) => { const got = cs.badges.includes(b.id); return (
-                    <div key={b.id} className={`badge-card ${got ? '' : 'off'}`}><BadgeMedal icon={b.icon} size={64} earned={got} /><h4>{T.tx(b.name)}</h4><p>{T.tx(b.desc)}</p></div>
-                  ); })}
-                </div>
+                <BadgeGrid />
               )}
             </Panel>
           </div>

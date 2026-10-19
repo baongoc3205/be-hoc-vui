@@ -42,7 +42,8 @@ Khi có lỗi, server trả `{ "error": "MÃ_LỖI" }`. Các mã thường gặp
 | POST | `/children/:id/sessions` | `{ lessonId }` → `{ sessionId, game, rounds, lesson }`. Trừ 1 năng lượng |
 | POST | `/children/:id/sessions/:sid/finish` | `{ answers: [{ round, given }], durationSec }`. Server tự chấm và trả `{ stars, coins, xp, levelUp, newBadges, next, state }` |
 | POST | `/children/:id/chests/:lessonId` | Mở rương trên bản đồ |
-| POST | `/children/:id/daily-chest` | Mở rương mỗi ngày (xu + 2 năng lượng) |
+| POST | `/children/:id/checkin` | Điểm danh hôm nay. Trả về `{ day, coins, energy, item, newBadges, state }`. Gọi lần 2 trong ngày → 409 `ALREADY_CHECKED_IN` |
+| POST | `/children/:id/daily-chest` | (cũ, vẫn giữ) Mở rương mỗi ngày (xu + 2 năng lượng) |
 | POST | `/children/:id/quests/:qid/claim` | Nhận thưởng nhiệm vụ |
 | POST | `/children/:id/shop/:itemId` | Mua đồ bằng xu ảo |
 | POST | `/children/:id/look` | `{ look }`. Chỉ mặc được đồ đã có |

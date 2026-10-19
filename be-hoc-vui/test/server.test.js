@@ -6,6 +6,7 @@ import { openDb } from '../server/db.js';
 import { fakeTurso } from './fake-turso.js';
 import { createApp } from '../server/index.js';
 import { buildRounds } from '../server/rounds.js';
+import { dayKey } from '../server/game.js';
 import { LESSONS, TOPICS } from '../server/content/index.js';
 import { gradeRound, computeRewards, levelInfo, currentEnergy, ENERGY_MS } from '../shared/logic.js';
 
@@ -127,6 +128,15 @@ async function apiFlow(db) {
     // rương hằng ngày
     assert.equal((await call('POST', `/api/children/${id}/daily-chest`)).status, 200);
     assert.equal((await call('POST', `/api/children/${id}/daily-chest`)).status, 409);
+    // điểm danh: lần đầu là ngày 1, bấm lại trong ngày bị từ chối
+    const st3 = await call('GET', `/api/children/${id}/state`);
+    assert.deepEqual([st3.data.checkin.today, st3.data.checkin.nextSeq, st3.data.checkin.rewards.length], [false, 1, 7]);
+    const ci = await call('POST', `/api/children/${id}/checkin`);
+    assert.equal(ci.status, 200); assert.equal(ci.data.day, 1); assert.equal(ci.data.coins, 10);
+    assert.equal(ci.data.state.coins, st3.data.coins + 10);
+    assert.equal(ci.data.state.checkin.today, true); assert.equal(ci.data.state.checkin.claimed, 1);
+    const twice = await Promise.all([call('POST', `/api/children/${id}/checkin`), call('POST', `/api/children/${id}/checkin`)]);
+    assert.deepEqual(twice.map((x) => x.status), [409, 409]);
     // báo cáo phụ huynh
     const rep = await call('GET', `/api/children/${id}/report`);
     assert.equal(rep.data.week.length, 7);
@@ -141,10 +151,42 @@ async function apiFlow(db) {
     assert.equal((await call('POST', '/api/auth/login', { email: 'me@example.com', password: 'sai' })).status, 401);
     assert.equal((await call('POST', '/api/auth/login', { email: 'ME@example.com', password: 'abc123' })).status, 200);
     assert.equal((await call('GET', '/api/children')).data.children.length, 1);
-    // khách
+    // dữ liệu vẫn còn sau khi đăng nhập lại (điểm danh, xu, đồ đã mua)
+    const after = await call('GET', `/api/children/${id}/state`);
+    assert.equal(after.data.checkin.today, true); assert.equal(after.data.checkin.total, 1);
+    assert.ok(after.data.owned.includes('ears:bunny')); assert.equal(after.data.child.look.ears, 'bunny');
+    // chuỗi 7 ngày: giả lập đã điểm danh 6 ngày liền trước đó → hôm nay là ngày 7, nhận quà thời trang
+    const ch2 = (await call('POST', '/api/children', { nickname: 'Bé Bin', grade: 1 })).data.child.id;
+    const now = Date.now();
+    for (let k = 6; k >= 1; k--) await db.prepare('INSERT INTO checkins (child_id, day, seq, coins, energy) VALUES (?, ?, ?, 0, 0)').run(ch2, dayKey(now - k * 864e5), 7 - k);
+    const pre = (await call('GET', `/api/children/${ch2}/state`)).data.checkin;
+    assert.deepEqual([pre.claimed, pre.nextSeq], [6, 7]);
+    const g7 = await call('POST', `/api/children/${ch2}/checkin`);
+    assert.equal(g7.data.day, 7); assert.ok(g7.data.item, 'ngày 7 phải có quà');
+    assert.ok(g7.data.state.owned.includes(g7.data.item.id));
+    assert.ok(g7.data.state.badges.includes('checkin-7'));
+    // bỏ lỡ 1 ngày → quay về ngày 1
+    const ch3 = (await call('POST', '/api/children', { nickname: 'Bé Su', grade: 1 })).data.child.id;
+    await db.prepare('INSERT INTO checkins (child_id, day, seq, coins, energy) VALUES (?, ?, 4, 0, 0)').run(ch3, dayKey(now - 2 * 864e5));
+    assert.equal((await call('GET', `/api/children/${ch3}/state`)).data.checkin.nextSeq, 1);
+    // xoá hồ sơ xoá luôn lịch sử điểm danh
+    assert.equal((await call('DELETE', `/api/children/${ch3}`, { password: 'abc123' })).status, 200);
+    assert.equal((await db.prepare('SELECT COUNT(*) n FROM checkins WHERE child_id = ?').get(ch3)).n, 0);
+    // khách → chơi → tạo tài khoản → đăng nhập ở máy khác vẫn còn dữ liệu
     cookie = '';
     assert.equal((await call('POST', '/api/auth/guest')).status, 201);
     assert.equal((await call('GET', '/api/children')).data.children.length, 0);
+    const gk = (await call('POST', '/api/children', { nickname: 'Bé Khách', grade: 3 })).data.child.id;
+    assert.equal((await call('POST', `/api/children/${gk}/checkin`)).status, 200);
+    assert.equal((await call('POST', '/api/auth/password', { next: 'abcdef' })).status, 400, 'khách chưa có tài khoản');
+    assert.equal((await call('POST', '/api/auth/upgrade', { name: 'Bố', email: 'me@example.com', password: 'abc123' })).status, 409);
+    const up = await call('POST', '/api/auth/upgrade', { name: 'Bố', email: 'bo@example.com', password: 'xyz789' });
+    assert.equal(up.status, 200); assert.equal(up.data.parent.isGuest, false);
+    cookie = '';
+    assert.equal((await call('POST', '/api/auth/login', { email: 'bo@example.com', password: 'xyz789' })).status, 200);
+    const kids = (await call('GET', '/api/children')).data.children;
+    assert.deepEqual(kids.map((k) => k.nickname), ['Bé Khách']);
+    assert.equal((await call('GET', `/api/children/${gk}/state`)).data.checkin.today, true);
   } finally {
     server.close();
   }
