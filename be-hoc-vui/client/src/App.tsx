@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { boot, go, refreshChild, toast, useApp, useRoute } from './lib/store';
 import { useT } from './lib/hooks';
-import { setMusic, unlockAudio } from './lib/sfx';
+import { installAudioUnlock, setMusic, sfx, unlockAudio } from './lib/sfx';
 import { Toast, Spinner } from './ui/kit';
 import { Scene } from './ui/Scene';
 import { Glyph } from './ui/Icons';
@@ -15,6 +15,9 @@ import { Character } from './screens/Character';
 import { Shop } from './screens/Shop';
 import { Rewards, Ranking } from './screens/Rewards';
 import { SettingsDialog } from './screens/Settings';
+
+// mở khoá âm thanh ở thao tác đầu tiên (chuột / chạm / phím)
+installAudioUnlock();
 import { Parents } from './screens/Parents';
 
 
@@ -43,10 +46,15 @@ export function App() {
   // nhạc nền bật sau lần chạm đầu tiên (chính sách tự phát của trình duyệt)
   useEffect(() => {
     const first = () => { unlockAudio(); setMusic(prefs.music); };
-    addEventListener('pointerdown', first, { once: true });
+    const evs = ['pointerup', 'touchend', 'keydown'];
+    evs.forEach((e) => addEventListener(e, first, { once: true }));
     setMusic(prefs.music);
-    return () => removeEventListener('pointerdown', first);
+    return () => evs.forEach((e) => removeEventListener(e, first));
   }, [prefs.music]);
+  // tiếng lật trang khi chuyển màn hình
+  const pageKey = route.split('/')[0];
+  const firstPage = useRef(true);
+  useEffect(() => { if (firstPage.current) { firstPage.current = false; return; } sfx.page(); }, [pageKey]);
   // nhắc nghỉ mắt mỗi 20 phút đang dùng
   useEffect(() => {
     let active = 0;

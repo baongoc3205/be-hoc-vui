@@ -275,6 +275,8 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
       </defs>
       <ellipse cx="120" cy="290" rx="62" ry="9" fill="#3A2A2A" opacity=".16" className="ch-shadow" />
       <g className="ch-body">
+        {/* tóc sau lưng: vẽ trước thân để nằm phía sau; cùng lớp ch-head nên vẫn lắc theo đầu */}
+        <g className="ch-head ch-head-back">{backHair}</g>
         {/* chân */}
         <g className="ch-legs">
           <rect x="99" y="246" width="17" height="30" rx="8" fill="#ECE3DE" /><rect x="124" y="246" width="17" height="30" rx="8" fill="#ECE3DE" />
@@ -287,7 +289,6 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
         {/* cổ */}
         <rect x="110" y="160" width="20" height="16" rx="6" fill={skinD} />
         <g className="ch-head">
-          {backHair}
           {ears}
           <ellipse cx="120" cy="112" rx="70" ry="64" fill={`url(#${id('skin')})`} />
           <ellipse cx="88" cy="146" rx="13" ry="8" fill="#F29A92" opacity=".45" />
