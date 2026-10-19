@@ -12,13 +12,15 @@ import { sfx } from '../lib/sfx';
 import { burstAt } from '../lib/fx';
 
 interface Report { stats: { lessonsDone: number; bySubject: Record<string, number>; threeStars: number; correctTotal: number; streak: number } }
-export const SLOTS: (keyof Look)[] = ['hair', 'hairColor', 'ears', 'outfit', 'outfitColor', 'acc', 'scene'];
+export const SLOTS: (keyof Look)[] = ['hair', 'hairColor', 'ears', 'outfit', 'outfitColor', 'acc', 'shoes', 'hold', 'scene'];
+const FULL_BODY = new Set(['outfit', 'shoes', 'hold']);
 const COLOR_SLOTS = new Set(['hairColor', 'outfitColor']);
 
 /** Ô xem trước một món đồ: màu → chấm tròn, còn lại → nhân vật mặc thử. */
 export function ItemThumb({ item, look }: { item: ShopItem; look: Look }) {
   if (COLOR_SLOTS.has(item.slot)) return <span className="swatch" style={{ background: item.value, width: 72, height: 72 }} />;
   if (item.slot === 'scene') return <div className="thumb" style={{ position: 'relative' }}><Scene name={item.value as SceneName} blur={false} /></div>;
+  if (FULL_BODY.has(item.slot)) return <div className="thumb full"><Chibi look={{ ...look, [item.slot]: item.value }} size={88} /></div>;
   return <div className="thumb"><Chibi look={{ ...look, [item.slot]: item.value }} size={120} /></div>;
 }
 

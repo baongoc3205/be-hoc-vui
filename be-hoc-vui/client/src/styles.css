@@ -30,8 +30,8 @@ h1, h2, h3, h4 { font-family: var(--font-d); margin: 0; line-height: 1.15; }
 .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 
 /* ---------------- Khung màn hình & cảnh nền ---------------- */
-.screen { position: relative; min-height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
-.screen-content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 18px 28px 22px; gap: 14px; min-height: 0; }
+.screen { position: relative; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+.screen-content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 18px 28px 22px; gap: 14px; min-height: 0; overflow-y: auto; overflow-x: hidden; }
 .scene { position: absolute; inset: -24px; z-index: 0; pointer-events: none; }
 .scene svg { width: 100%; height: 100%; display: block; }
 .scene.blurred svg { filter: blur(6px) saturate(1.04); transform: scale(1.04); }
@@ -89,9 +89,9 @@ h1, h2, h3, h4 { font-family: var(--font-d); margin: 0; line-height: 1.15; }
 .hud.compact .hud-pill { height: 40px; padding-left: 46px; }
 
 /* ---------------- Tab bên ---------------- */
-.side-tabs.vertical { display: flex; flex-direction: column; gap: 30px; padding-top: 34px; }
+.side-tabs.vertical { display: flex; flex-direction: column; gap: clamp(4px, 2.4vh, 30px); padding-top: clamp(8px, 3vh, 34px); }
 .side-tabs.horizontal { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-.side-tab { position: relative; display: flex; align-items: center; gap: 14px; min-height: 60px; max-width: 100%; padding: 6px 44px 6px 22px; border: 0; background: transparent; font-family: var(--font-d); font-weight: 800; font-size: 28px; line-height: 1.1; text-align: left; color: #fff; text-shadow: 0 2px 0 rgba(94, 74, 76, .9), 0 0 2px rgba(94, 74, 76, .9), 0 0 8px rgba(94, 74, 76, .35); }
+.side-tab { position: relative; display: flex; align-items: center; gap: 14px; min-height: clamp(44px, 6.4vh, 60px); max-width: 100%; padding: 6px 44px 6px 22px; border: 0; background: transparent; font-family: var(--font-d); font-weight: 800; font-size: 28px; line-height: 1.1; text-align: left; color: #fff; text-shadow: 0 2px 0 rgba(94, 74, 76, .9), 0 0 2px rgba(94, 74, 76, .9), 0 0 8px rgba(94, 74, 76, .35); }
 .side-tab .side-tab-ico { flex: none; }
 .side-tab .side-tab-ico { color: var(--mauve-600); filter: drop-shadow(0 0 1px #fff); }
 .side-tab.on { color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, .15); background: linear-gradient(90deg, var(--mauve-700) 0 84%, #d68153 84%); clip-path: polygon(0 0, 86% 0, 100% 50%, 86% 100%, 0 100%); border-radius: 8px 0 0 8px; box-shadow: 0 6px 12px rgba(75, 59, 61, .3); }
@@ -218,10 +218,12 @@ h1, h2, h3, h4 { font-family: var(--font-d); margin: 0; line-height: 1.15; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------------- Bố cục 3 cột (tab | nhân vật | panel) ---------------- */
-.layout3 { flex: 1; display: grid; grid-template-columns: minmax(210px, 260px) 1fr minmax(420px, 560px); gap: 18px; min-height: 0; align-items: stretch; }
+.layout3 { flex: 1; min-height: 0; overflow: hidden; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(210px, 260px) 1fr minmax(420px, 560px); gap: 18px; min-height: 0; align-items: stretch; }
 .layout3 .col-left { display: flex; flex-direction: column; }
 .layout3 .col-center { position: relative; display: flex; align-items: flex-end; justify-content: center; min-height: 360px; }
-.layout3 .col-right { display: flex; flex-direction: column; min-height: 0; }
+.layout3 .col-right { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.layout3 .col-right > .panel { max-height: 100%; }
+.panel.scroll-y > .panel-head { position: sticky; top: 0; z-index: 2; }
 .char-stage { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
 .char-stage .chibi { width: min(100%, 420px); height: auto; max-height: 72vh; }
 .char-stage .bubble { position: absolute; top: 4%; left: 50%; transform: translateX(-60%); max-width: 300px; animation: rise .4s ease; }
@@ -456,8 +458,10 @@ h1, h2, h3, h4 { font-family: var(--font-d); margin: 0; line-height: 1.15; }
 .item-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border: 0; border-radius: 22px; background: var(--cream-50); box-shadow: 0 4px 0 var(--cream-300); font-family: var(--font-d); font-weight: 800; font-size: 17px; color: var(--ink); transition: transform .12s; }
 .item-card:hover { transform: translateY(-3px); }
 .item-card.on { box-shadow: 0 4px 0 var(--orange-3), 0 0 0 4px var(--orange-2); }
-.item-card .thumb { width: 96px; height: 96px; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 35%, #fff, var(--cream-300)); display: flex; justify-content: center; align-items: flex-start; }
+.item-card .thumb { width: 108px; height: 108px; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 35%, #fff, var(--cream-300)); display: flex; justify-content: center; align-items: flex-start; }
 .item-card .thumb .chibi { width: 120px; height: auto; margin-top: 12px; }
+.item-card .thumb.full { align-items: center; }
+.item-card .thumb.full .chibi { width: 88px; margin-top: 0; }
 .item-card .price { display: inline-flex; align-items: center; gap: 4px; padding: 2px 12px; border-radius: 999px; background: var(--mauve-600); color: #fff; font-size: 16px; }
 .item-card .owned { padding: 2px 12px; border-radius: 999px; background: var(--lime-2); color: #fff; font-size: 15px; }
 .item-card .new { position: absolute; top: 8px; left: 8px; padding: 0 8px; border-radius: 8px; background: #e86a4a; color: #fff; font-size: 13px; }
@@ -517,7 +521,10 @@ h1, h2, h3, h4 { font-family: var(--font-d); margin: 0; line-height: 1.15; }
 }
 @media (max-width: 900px), (orientation: portrait) and (max-width: 1100px) {
   .screen-content { padding: 12px 14px 92px; }
-  .layout3 { display: flex; flex-direction: column; }
+  .layout3 { display: flex; flex-direction: column; flex: none; overflow: visible; }
+  .layout3 > * { flex: none; }
+  .layout3 .col-right { overflow: visible; }
+  .layout3 .col-right > .panel { max-height: none; }
   .layout3 .col-left { order: 0; }
   .layout3 .col-center { min-height: 0; height: 34vh; }
   .layout3 .col-center .char-stage .chibi { max-height: 34vh; width: auto; }

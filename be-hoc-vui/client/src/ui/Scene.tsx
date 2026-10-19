@@ -2,13 +2,15 @@
 // Toàn bộ vẽ bằng SVG, làm mờ bằng CSS để tạo chiều sâu.
 import { memo } from 'react';
 
-export type SceneName = 'meadow' | 'beach' | 'village' | 'night' | 'math' | 'vietnamese' | 'english' | 'science';
+export type SceneName = 'meadow' | 'beach' | 'village' | 'night' | 'sakura' | 'snow' | 'math' | 'vietnamese' | 'english' | 'science';
 
 const PAL: Record<SceneName, { sky: [string, string, string]; far: string; mid: string; ground: [string, string]; flower: string[]; sea?: string }> = {
   meadow: { sky: ['#E9E2D6', '#F2E7D8', '#F6EADC'], far: '#C9D3C0', mid: '#B7C98A', ground: ['#E4D3CB', '#CDB8AE'], flower: ['#F2B83A', '#F4C64E', '#E9A62B', '#F6D27A'], sea: '#A9C8D6' },
   beach: { sky: ['#D9E6EC', '#EAEDE8', '#F6EADC'], far: '#C3D6DA', mid: '#E8D9BE', ground: ['#EEDFCC', '#D9C3A9'], flower: ['#F3A6A0', '#F7C9B5', '#E98B83'], sea: '#8FBCCD' },
   village: { sky: ['#E3E6D6', '#EEEBD8', '#F4EAD6'], far: '#B9C9A3', mid: '#A9C27A', ground: ['#DCCDB2', '#C2AE8E'], flower: ['#C9D86A', '#B4C957', '#DCE38A'] },
   night: { sky: ['#4B4566', '#6E6283', '#9A8293'], far: '#5F5A78', mid: '#6F7A6A', ground: ['#7A6B73', '#5E5260'], flower: ['#F6E7A8', '#F2D27A', '#FFF2C4'] },
+  sakura: { sky: ['#F1E2E4', '#F5E8E6', '#F8EEE6'], far: '#E6C9D2', mid: '#D9B8C6', ground: ['#EAD9D6', '#D6C1BD'], flower: ['#F4B7C0', '#F8CDD5', '#EFA2B0', '#FFFFFF'], sea: '#B9CCD9' },
+  snow: { sky: ['#DDE5EE', '#E8EDF2', '#F2F4F6'], far: '#D3DCE6', mid: '#E4EAF0', ground: ['#F4F6F8', '#DDE3EA'], flower: ['#FFFFFF', '#E6EEF5', '#F4B7C0'] },
   math: { sky: ['#DCE5EA', '#E8ECEA', '#F3EDE4'], far: '#B9CCD6', mid: '#A7BFCB', ground: ['#DCD6D6', '#C2BABC'], flower: ['#9FC3DD', '#C9DCE8', '#F2D27A'], sea: '#9DBFD1' },
   vietnamese: { sky: ['#EDE3D3', '#F2E8D6', '#F6EBDA'], far: '#C7CFA9', mid: '#B9C77F', ground: ['#E4D3C2', '#CFB9A2'], flower: ['#F0B48E', '#F2C96E', '#E8A07A'] },
   english: { sky: ['#E4DDE8', '#EDE6EA', '#F5ECE6'], far: '#CBBFD6', mid: '#B9B0C9', ground: ['#E2D5D6', '#C9B8BE'], flower: ['#C2A9D6', '#F4B7C0', '#E8C9E0'] },
@@ -43,6 +45,8 @@ function SceneImpl({ name = 'meadow', blur = true }: { name?: SceneName; blur?: 
         {name === 'vietnamese' && <g opacity=".85"><path d="M260 470l90-70 90 70z" fill="#B86F55" /><rect x="285" y="470" width="130" height="60" fill="#E9D7C0" /><path d="M1180 470l70-56 70 56z" fill="#A86650" /><rect x="1200" y="470" width="100" height="50" fill="#E6D2BA" />{[120, 160, 1420, 1460, 1500].map((x) => <path key={x} d={`M${x} 540c-4-80 0-160 10-220`} stroke="#8FA868" strokeWidth="9" fill="none" />)}</g>}
         {name === 'english' && <g opacity=".8">{[[220, 300, 90], [330, 250, 80], [1180, 280, 100], [1300, 230, 70], [1390, 300, 90]].map(([x, y, w], i) => <rect key={i} x={x} y={y} width={w} height={540 - y} rx="16" fill={i % 2 ? '#D7CCE0' : '#E5DCE8'} />)}<g transform="translate(760 170)"><ellipse rx="56" ry="66" fill="#F4B7C0" /><path d="M-24 60h48l-8 34h-32z" fill="#C9A88A" /></g></g>}
         {name === 'science' && <g opacity=".85">{[140, 280, 1260, 1400, 1520].map((x, i) => <g key={x}><rect x={x - 10} y={340 + (i % 2) * 40} width="20" height="200" fill="#9C8468" /><circle cx={x} cy={320 + (i % 2) * 40} r={80 - (i % 3) * 10} fill={i % 2 ? '#9DB88A' : '#B4C79E'} /></g>)}<g transform="translate(420 500)"><rect x="-8" y="-40" width="16" height="40" fill="#F3E6D8" /><ellipse cy="-44" rx="40" ry="22" fill="#E9806A" /><circle cx="-14" cy="-50" r="6" fill="#fff" /></g></g>}
+        {name === 'sakura' && <g opacity=".9">{[180, 1340, 1480].map((x, i) => <g key={x}><path d={`M${x} 560c-6-90 0-170 20-230`} stroke="#9C7468" strokeWidth="16" fill="none" />{[[0, 0, 110], [-70, 40, 80], [70, 30, 90]].map(([dx, dy, r], k) => <circle key={k} cx={x + 20 + dx} cy={300 + dy - i * 10} r={r} fill={k % 2 ? '#F4C6CF' : '#F8D6DC'} />)}</g>)}{Array.from({ length: 40 }, (_, i) => <ellipse key={i} cx={(i * 211) % 1600} cy={(i * 97) % 800} rx="6" ry="4" fill="#F4B7C0" opacity=".8" transform={`rotate(${i * 37} ${(i * 211) % 1600} ${(i * 97) % 800})`} />)}</g>}
+        {name === 'snow' && <g>{[240, 1300, 1450].map((x) => <g key={x}><path d={`M${x} 280l-90 260h180z`} fill="#A9C2B4" /><path d={`M${x} 280l-40 116h80z`} fill="#fff" opacity=".85" /><rect x={x - 12} y="540" width="24" height="40" fill="#9C8468" /></g>)}<g transform="translate(700 560)"><circle r="46" fill="#fff" /><circle cy="-66" r="32" fill="#fff" /><path d="M-4 -66l26 6-26 6z" fill="#E2804F" /><circle cx="-10" cy="-74" r="4" fill="#4B3B3D" /><circle cx="8" cy="-74" r="4" fill="#4B3B3D" /></g>{Array.from({ length: 70 }, (_, i) => <circle key={i} cx={(i * 173) % 1600} cy={(i * 71) % 860} r={2 + (i % 4)} fill="#fff" opacity=".9" />)}</g>}
         {name === 'beach' && <g opacity=".85"><path d="M1320 540c0-120 30-220 60-290" stroke="#9C8468" strokeWidth="14" fill="none" /><g fill="#8FB074">{[-60, -20, 20, 60, 100].map((a) => <ellipse key={a} cx="1380" cy="250" rx="90" ry="20" transform={`rotate(${a} 1380 250)`} />)}</g></g>}
         <path d="M0 530c200-40 420-50 640-20s420 20 620-10 260-10 340 10v60H0z" fill={p.mid} opacity=".9" />
         {/* hàng rào trắng */}

@@ -8,7 +8,7 @@ export type GameType =
   | 'drag-match' | 'memory' | 'sort-order' | 'word-builder' | 'clock' | 'catch-fall' | 'boss' | 'chest';
 
 export interface Look {
-  skin: string; hair: string; hairColor: string; ears: string; outfit: string; outfitColor: string; acc: string; scene: string;
+  skin: string; hair: string; hairColor: string; ears: string; outfit: string; outfitColor: string; acc: string; shoes: string; hold: string; scene: string;
 }
 export interface Parent { id: number; name: string; email: string | null; isGuest: boolean }
 export interface ChildSettings { dailyLimitMin: number; energy: boolean; leaderboard: boolean }

@@ -25,7 +25,7 @@ export async function getChild(db, parentId, childId) {
   return row;
 }
 export function publicChild(row) {
-  return { id: row.id, nickname: row.nickname, grade: row.grade, ageTheme: ageThemeForGrade(row.grade), look: json(row.look, DEFAULT_LOOK), settings: { ...DEFAULT_SETTINGS, ...json(row.settings, {}) } };
+  return { id: row.id, nickname: row.nickname, grade: row.grade, ageTheme: ageThemeForGrade(row.grade), look: { ...DEFAULT_LOOK, ...json(row.look, {}) }, settings: { ...DEFAULT_SETTINGS, ...json(row.settings, {}) } };
 }
 const BLOCK = ['đần', 'ngu', 'chết', 'địt', 'đụ', 'lồn', 'cặc', 'fuck', 'shit', 'bitch', 'damn', 'sex'];
 export function cleanNickname(s) {
@@ -51,7 +51,7 @@ function sanitizeLook(look, owned) {
     for (const [slot, value] of Object.entries(look)) {
       if (slot === 'skin' && /^#[0-9a-fA-F]{6}$/.test(String(value))) { out.skin = value; continue; }
       const item = SHOP.find((s) => s.slot === slot && s.value === value);
-      if (item && owned.includes(item.id)) out[slot] = value;
+      if (item && (item.price === 0 || owned.includes(item.id))) out[slot] = value;
     }
   }
   return out;
@@ -83,7 +83,7 @@ export async function stateOf(db, child) {
     streak, chestAvailable: child.chest_date !== today,
     quests: (await ensureQuests(db, child, today)),
     badges: (await db.prepare('SELECT badge_id FROM badges WHERE child_id = ?').all(child.id)).map((r) => r.badge_id),
-    owned: json(child.owned, FREE_ITEMS),
+    owned: [...new Set([...FREE_ITEMS, ...json(child.owned, [])])],
     today: { minutes: Math.floor(todayStats.seconds / 60), limit: settings.dailyLimitMin },
   };
 }
@@ -287,7 +287,7 @@ export async function buyItem(db, child, itemId) {
   const item = shopById.get(itemId);
   if (!item) throw new HttpError(404, 'ITEM_NOT_FOUND');
   const owned = json(child.owned, FREE_ITEMS);
-  if (owned.includes(itemId)) throw new HttpError(409, 'ALREADY_OWNED');
+  if (owned.includes(itemId) || item.price === 0) throw new HttpError(409, 'ALREADY_OWNED');
   if (child.coins < item.price) throw new HttpError(409, 'NOT_ENOUGH_COINS');
   owned.push(itemId);
   (await db.prepare('UPDATE children SET coins = coins - ?, owned = ? WHERE id = ?').run(item.price, JSON.stringify(owned), child.id));
@@ -322,7 +322,7 @@ export async function leaderboard(db, parentId) {
   return (await db.prepare('SELECT c.id, c.nickname, c.look, c.settings, COALESCE(SUM(s.xp),0) xp, COALESCE(SUM(s.stars),0) stars FROM children c LEFT JOIN play_sessions s ON s.child_id = c.id AND s.finished_at > ? WHERE c.parent_id = ? GROUP BY c.id ORDER BY xp DESC')
     .all(since, parentId))
     .filter((r) => ({ ...DEFAULT_SETTINGS, ...json(r.settings, {}) }).leaderboard)
-    .map((r) => ({ id: r.id, nickname: r.nickname, look: json(r.look, DEFAULT_LOOK), xp: r.xp, stars: r.stars }));
+    .map((r) => ({ id: r.id, nickname: r.nickname, look: { ...DEFAULT_LOOK, ...json(r.look, {}) }, xp: r.xp, stars: r.stars }));
 }
 
 export const catalog = () => ({

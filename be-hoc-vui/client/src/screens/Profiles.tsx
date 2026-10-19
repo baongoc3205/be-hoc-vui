@@ -47,9 +47,11 @@ const STARTER_LOOKS: Partial<Look>[] = [
   { ears: 'cat', hair: 'twin', hairColor: '#2F2A2E', outfit: 'dress', outfitColor: '#F0B48E' },
   { ears: 'none', hair: 'bob', hairColor: '#2F2A2E', outfit: 'overall', outfitColor: '#B8C98A' },
   { ears: 'none', hair: 'twin', hairColor: '#6B4A3A', outfit: 'overall', outfitColor: '#F0B48E' },
+  { ears: 'none', hair: 'bob', hairColor: '#2F2A2E', outfit: 'school', outfitColor: '#B8C98A', shoes: 'sneakers', hold: 'pencil' },
+  { ears: 'cat', hair: 'bob', hairColor: '#6B4A3A', outfit: 'school', outfitColor: '#F0B48E', shoes: 'maryjane', hold: 'pencil' },
 ];
 const SKINS = ['#F7D9C4', '#F1C9A8', '#E2AE88', '#C98D68', '#A8704F'];
-const BASE: Look = { skin: '#F7D9C4', hair: 'bob', hairColor: '#6B4A3A', ears: 'cat', outfit: 'dress', outfitColor: '#B8C98A', acc: 'none', scene: 'meadow' };
+const BASE: Look = { skin: '#F7D9C4', hair: 'bob', hairColor: '#6B4A3A', ears: 'cat', outfit: 'dress', outfitColor: '#B8C98A', acc: 'none', shoes: 'maryjane', hold: 'none', scene: 'meadow' };
 
 export function Onboarding() {
   const T = useT();

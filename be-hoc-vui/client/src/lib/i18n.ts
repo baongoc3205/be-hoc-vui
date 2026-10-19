@@ -35,7 +35,7 @@ const vi = {
   // character
   info: 'Thông tin', outfit: 'Trang phục', achievements: 'Thành tích', exp: 'EXP', skills: 'Kỹ năng môn học', keepLearning: 'Học tiếp', dressUp: 'Trang phục',
   stLessons: 'Màn đã qua', stStars: 'Ngôi sao', stCorrect: 'Câu đúng', stStreak: 'Chuỗi ngày', stBadges: 'Huy hiệu', stCoins: 'Xu',
-  slot_hair: 'Kiểu tóc', slot_hairColor: 'Màu tóc', slot_ears: 'Tai thú', slot_outfit: 'Trang phục', slot_outfitColor: 'Màu áo', slot_acc: 'Phụ kiện', slot_scene: 'Cảnh nền', slot_skin: 'Màu da',
+  slot_hair: 'Kiểu tóc', slot_hairColor: 'Màu tóc', slot_ears: 'Tai thú', slot_outfit: 'Trang phục', slot_outfitColor: 'Màu áo', slot_acc: 'Phụ kiện', slot_shoes: 'Giày dép', slot_hold: 'Đồ cầm tay', slot_scene: 'Cảnh nền', slot_skin: 'Màu da',
   notOwned: 'Chưa có — mua ở Cửa hàng', saved: 'Đã lưu!',
   // shop
   buyAsk: 'Mua "{name}" với giá {price} xu?', notEnough: 'Bé chưa đủ xu. Chơi thêm vài màn nhé!', bought: 'Đã mua!', tryOn: 'Thử đồ',
@@ -85,7 +85,7 @@ const en: Dict = {
   complete: 'Complete!', almost: 'Almost there!', newRecord: 'New record!', coinsEarned: 'Coins', xpEarned: 'Experience', correctCount: '{c}/{t} correct', levelUp: 'Level {n}!', newBadge: 'New badge!',
   info: 'Profile', outfit: 'Outfit', achievements: 'Badges', exp: 'EXP', skills: 'Subject skills', keepLearning: 'Keep learning', dressUp: 'Outfit',
   stLessons: 'Levels passed', stStars: 'Stars', stCorrect: 'Correct answers', stStreak: 'Day streak', stBadges: 'Badges', stCoins: 'Coins',
-  slot_hair: 'Hair style', slot_hairColor: 'Hair colour', slot_ears: 'Ears', slot_outfit: 'Outfit', slot_outfitColor: 'Outfit colour', slot_acc: 'Accessory', slot_scene: 'Scene', slot_skin: 'Skin',
+  slot_hair: 'Hair style', slot_hairColor: 'Hair colour', slot_ears: 'Ears', slot_outfit: 'Outfit', slot_outfitColor: 'Outfit colour', slot_acc: 'Accessory', slot_shoes: 'Shoes', slot_hold: 'In hand', slot_scene: 'Scene', slot_skin: 'Skin',
   notOwned: 'Not owned — get it in the Shop', saved: 'Saved!',
   buyAsk: 'Buy "{name}" for {price} coins?', notEnough: 'Not enough coins yet. Play a few more levels!', bought: 'Bought!', tryOn: 'Try on',
   dailyQuests: 'Today\'s quests', badgesTitle: 'Badge collection', earned: 'Earned', notEarned: 'Not yet', chestTitle: 'Daily chest', chestGot: 'You got {c} coins and {e} energy!',
