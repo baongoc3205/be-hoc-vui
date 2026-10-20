@@ -6,7 +6,7 @@ export type SubjectId = 'math' | 'vietnamese' | 'english' | 'science';
 export type GameType =
   | 'quiz' | 'true-false' | 'balloon-pop' | 'math-race' | 'fill-blank' | 'listen-pick'
   | 'drag-match' | 'memory' | 'sort-order' | 'word-builder' | 'clock' | 'catch-fall' | 'boss' | 'chest'
-  | 'fruit-slice' | 'candy-match' | 'slingshot' | 'draw-trace';
+  | 'fruit-slice' | 'candy-match' | 'slingshot' | 'draw-trace' | 'type-answer' | 'multi-pick' | 'reading';
 
 export interface Look {
   skin: string; hair: string; hairColor: string; ears: string; outfit: string; outfitColor: string; acc: string; shoes: string; hold: string; scene: string;

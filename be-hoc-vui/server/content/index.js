@@ -2,6 +2,12 @@
 import { mathTopics } from './math.js';
 import { mathTopics2 } from './math2.js';
 import { bankTopics } from './bank.js';
+import { viTopics2 } from './bank2-vi.js';
+import { viTopics2b } from './bank2-vi2.js';
+import { enTopics2 } from './bank2-en.js';
+import { enTopics2b } from './bank2-en2.js';
+import { sciTopics2 } from './bank2-sci.js';
+import { sciTopics2b } from './bank2-sci2.js';
 
 const L = (vi, en) => ({ vi, en: en ?? vi });
 
@@ -29,15 +35,31 @@ export const GAME_INFO = {
   'candy-match': { name: L('Xếp kẹo', 'Candy match'), icon: 'candy' },
   slingshot: { name: L('Bắn ná', 'Slingshot'), icon: 'sling' },
   'draw-trace': { name: L('Bé tập vẽ', 'Trace & draw'), icon: 'draw' },
+  'type-answer': { name: L('Tự điền đáp án', 'Type the answer'), icon: 'type' },
+  'multi-pick': { name: L('Chọn nhiều đáp án', 'Pick them all'), icon: 'multi' },
+  reading: { name: L('Đọc hiểu', 'Reading'), icon: 'read' },
   boss: { name: L('Thử thách trùm', 'Boss challenge'), icon: 'boss' },
   chest: { name: L('Rương báu', 'Treasure chest'), icon: 'chest' },
 };
 
-export const TOPICS = [
-  ...mathTopics.map((t) => ({ ...t, subject: 'math' })),
-  ...mathTopics2.map((t) => ({ ...t, subject: 'math' })),
-  ...bankTopics,
-];
+const MATH = [...mathTopics, ...mathTopics2].map((t) => ({ ...t, subject: 'math' }));
+
+/** Chủ đề "Ôn tập tổng hợp" mỗi lớp: trộn đề từ mọi bộ sinh đề Toán của lớp đó, có thêm dạng tự điền và chọn nhiều đáp án. */
+const mathReview = Array.from({ length: 9 }, (_, i) => {
+  const grade = i + 1;
+  const src = MATH.filter((t) => t.grade === grade);
+  return {
+    id: `m${grade}r`, subject: 'math', grade, title: L(`Ôn tập tổng hợp lớp ${grade}`, `Grade ${grade} mixed review`),
+    games: ['type-answer', 'multi-pick', 'quiz', 'type-answer', 'true-false', 'boss'],
+    gen(rnd, kind) {
+      const start = Math.floor(rnd() * src.length);
+      for (let k = 0; k < src.length; k++) { const it = src[(start + k) % src.length].gen(rnd, kind); if (it) return it; }
+      return null;
+    },
+  };
+});
+
+export const TOPICS = [...MATH, ...mathReview, ...bankTopics, ...viTopics2, ...viTopics2b, ...enTopics2, ...enTopics2b, ...sciTopics2, ...sciTopics2b];
 export const topicById = new Map(TOPICS.map((t) => [t.id, t]));
 
 /** Sinh danh sách bài học (màn) cho từng chủ đề. Sau màn thứ 3 có một rương báu. */

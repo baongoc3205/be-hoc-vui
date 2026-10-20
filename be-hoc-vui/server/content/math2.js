@@ -137,7 +137,7 @@ export const mathTopics2 = [
     games: ['quiz', 'slingshot', 'candy-match', 'true-false', 'boss'],
     gen(rnd, kind) {
       const t = randInt(rnd, 0, 2); let q, a, near;
-      if (t === 0) { const x = randInt(rnd, 60, 300), y = randInt(rnd, 10, 50), z = randInt(rnd, 10, 50); a = x - y - z; near = [x - y, x - z, a + 10]; q = L(`Cửa hàng có ${x} kg gạo. Buổi sáng bán ${y} kg, buổi chiều bán ${z} kg. Cửa hàng còn lại bao nhiêu ki-lô-gam gạo?`, `A shop has ${x} kg of rice. It sells ${y} kg in the morning and ${z} kg in the afternoon. How much rice is left?`); }
+      if (t === 0) { const y = randInt(rnd, 10, 50), z = randInt(rnd, 10, 50), x = y + z + randInt(rnd, 5, 200); a = x - y - z; near = [x - y, x - z, a + 10]; q = L(`Cửa hàng có ${x} kg gạo. Buổi sáng bán ${y} kg, buổi chiều bán ${z} kg. Cửa hàng còn lại bao nhiêu ki-lô-gam gạo?`, `A shop has ${x} kg of rice. It sells ${y} kg in the morning and ${z} kg in the afternoon. How much rice is left?`); }
       else if (t === 1) { const x = randInt(rnd, 3, 9), y = randInt(rnd, 3, 9), z = randInt(rnd, 1, x * y - 1); a = x * y - z; near = [x * y, x * y + z, x + y - z]; q = L(`Mỗi hộp có ${x} cái bút, có ${y} hộp. Lớp đã dùng ${z} cái bút. Hỏi còn lại bao nhiêu cái bút?`, `Each box has ${x} pens and there are ${y} boxes. The class used ${z} pens. How many pens are left?`); }
       else { const per = randInt(rnd, 2, 9), k = randInt(rnd, 2, 9), extra = randInt(rnd, 1, 9); const x = per * k; a = per + extra; near = [per, x - extra, per * extra]; q = L(`Có ${x} quyển truyện chia đều cho ${k} bạn. Sau đó mỗi bạn được tặng thêm ${extra} quyển. Hỏi mỗi bạn có bao nhiêu quyển truyện?`, `${x} storybooks are shared equally among ${k} friends. Then each gets ${extra} more. How many does each friend have?`); }
       if (kind === 'mc') return mc(q, nums(rnd, a, near), { title: L('Bài toán hai bước', 'Two steps') });
@@ -190,7 +190,7 @@ export const mathTopics2 = [
       else if (t === 1) { const x = randInt(rnd, 3, 15), y = randInt(rnd, 3, 15), h = 2 * randInt(rnd, 1, 8); a = ((x + y) * h) / 2; wrong = [(x + y) * h, x * y]; q = L(`Hình thang có hai đáy ${x} cm và ${y} cm, chiều cao ${h} cm. Diện tích là?`, `A trapezoid has bases ${x} cm and ${y} cm and height ${h} cm. Its area?`); }
       else if (t === 2) { const r = randInt(rnd, 1, 10); a = r * r * 3.14; wrong = [2 * r * 3.14, r * 3.14, r * r * 3.14 * 2]; q = L(`Hình tròn bán kính ${r} cm. Diện tích là? (π ≈ 3,14)`, `A circle has radius ${r} cm. Its area? (π ≈ 3.14)`); f = (n) => `${dec(n)} cm²`; fEn = true; }
       else if (t === 3) { const d = randInt(rnd, 2, 20); a = d * 3.14; wrong = [d * 3.14 * 2, (d / 2) * (d / 2) * 3.14, d * 3]; q = L(`Hình tròn đường kính ${d} cm. Chu vi là? (π ≈ 3,14)`, `A circle has diameter ${d} cm. Its circumference? (π ≈ 3.14)`); f = (n) => `${dec(n)} cm`; fEn = true; }
-      else { const x = randInt(rnd, 2, 12), y = randInt(rnd, 2, 10), z = randInt(rnd, 2, 10); a = x * y * z; wrong = [x * y + z, 2 * (x * y + y * z + x * z), x + y + z]; q = L(`Hình hộp chữ nhật dài ${x} cm, rộng ${y} cm, cao ${z} cm. Thể tích là?`, `A box is ${x} cm long, ${y} cm wide and ${z} cm high. Its volume?`); f = unit('cm³'); }
+      else { const y = randInt(rnd, 2, 10), x = y + randInt(rnd, 1, 6), z = randInt(rnd, 2, 10); a = x * y * z; wrong = [x * y + z, 2 * (x * y + y * z + x * z), x + y + z]; q = L(`Hình hộp chữ nhật dài ${x} cm, rộng ${y} cm, cao ${z} cm. Thể tích là?`, `A box is ${x} cm long, ${y} cm wide and ${z} cm high. Its volume?`); f = unit('cm³'); }
       if (kind === 'mc') { const o = opts(f(a), wrong.map(f)); for (let k = 7; o.length < 4; k += 7) { const c = f(a + k); if (!o.includes(c)) o.push(c); } return mc(q, fEn ? o.map((s) => L(s, s.replace(/(\d),(\d)/g, '$1.$2'))) : o); }
       if (kind === 'tf') { const ok = rnd() < 0.5; const shown = ok ? f(a) : f(wrong[0]); return tf(L(`${q.vi.replace(/là\?.*$/, 'là')} ${shown}`, `${q.en.replace(/\?.*$/, ' is')} ${fEn ? shown.replace(/(\d),(\d)/g, '$1.$2') : shown}`), ok || shown === f(a)); }
       return null;
@@ -200,15 +200,20 @@ export const mathTopics2 = [
     id: 'm5d', grade: 5, title: L('Toán chuyển động đều', 'Speed, distance & time'),
     games: ['quiz', 'slingshot', 'math-race', 'true-false', 'boss'],
     gen(rnd, kind) {
-      const v = pick(rnd, [4, 5, 12, 15, 20, 30, 36, 40, 45, 50, 60]), tt = randInt(rnd, 2, 6), s = v * tt;
-      const who = pick(rnd, [['Một người đi bộ', 'A walker'], ['Một xe đạp', 'A bike'], ['Một ô tô', 'A car'], ['Một xe máy', 'A motorbike']]);
+      // vận tốc hợp lí theo phương tiện (đi bộ 4–5 km/giờ, xe đạp 10–15, xe máy 30–45, ô tô 40–60)
+      const who = pick(rnd, [['Một người đi bộ', 'A walker', [4, 5]], ['Một xe đạp', 'A bike', [10, 12, 15]], ['Một xe máy', 'A motorbike', [30, 35, 40, 45]], ['Một ô tô', 'A car', [40, 45, 50, 60]]]);
+      const v = pick(rnd, who[2]), tt = randInt(rnd, 2, 6), s = v * tt;
       const k = randInt(rnd, 0, 2); let q, a, f, wrong;
       if (k === 0) { a = s; f = unit('km'); wrong = [v + tt, s + v, Math.round(v / tt)]; q = L(`${who[0]} đi với vận tốc ${v} km/giờ trong ${tt} giờ. Quãng đường đi được là?`, `${who[1]} goes at ${v} km/h for ${tt} hours. How far does it go?`); }
       else if (k === 1) { a = v; f = unit('km/giờ'); wrong = [s - tt, v * 2, s + tt]; q = L(`${who[0]} đi quãng đường ${s} km hết ${tt} giờ. Vận tốc là?`, `${who[1]} covers ${s} km in ${tt} hours. What is its speed?`); }
       else { a = tt; f = unit('giờ'); wrong = [tt + 1, tt * 2, s - v]; q = L(`${who[0]} đi quãng đường ${s} km với vận tốc ${v} km/giờ. Thời gian đi là?`, `${who[1]} covers ${s} km at ${v} km/h. How long does it take?`); }
       const fe = (n) => f(n).replace('km/giờ', 'km/h').replace(' giờ', ' h');
       if (kind === 'mc') { const vals = nums(rnd, a, wrong, Number); return mc(q, vals.map((n) => L(f(n), fe(n))), { title: L('s = v × t', 's = v × t') }); }
-      if (kind === 'tf') { const ok = rnd() < 0.5; const shown = ok ? a : wrong[0]; return tf(L(`${q.vi.replace(/ là\?$/, '')} là ${f(shown)}`, `${q.en.replace(/\?$/, '')}: ${fe(shown)}`), shown === a); }
+      if (kind === 'tf') {
+        const ok = rnd() < 0.5; const shown = ok ? a : wrong[0];
+        const what = k === 0 ? 'The distance covered' : k === 1 ? 'Its speed' : 'The time taken';
+        return tf(L(`${q.vi.replace(/ là\?$/, '')} là ${f(shown)}`, `${q.en.replace(/ (How far does it go|What is its speed|How long does it take)\?$/, '')} ${what} is ${fe(shown)}.`), shown === a);
+      }
       return null;
     },
   },

@@ -12,17 +12,18 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const T = (x) => (x == null ? '' : typeof x === 'string' ? x : x.vi ?? '');
 const E = (x) => (x == null ? '' : typeof x === 'string' ? x : x.en ?? '');
 const subjName = Object.fromEntries(SUBJECTS.map((s) => [s.id, s.name.vi]));
-const KIND = { mc: 'Trắc nghiệm', tf: 'Đúng/Sai', pairs: 'Nối cặp', order: 'Sắp xếp', word: 'Ghép chữ', classify: 'Hứng đồ (chọn đúng)', clock: 'Xem đồng hồ', trace: 'Tô theo nét' };
+const KIND = { mc: 'Trắc nghiệm', tf: 'Đúng/Sai', pairs: 'Nối cặp', order: 'Sắp xếp', word: 'Ghép chữ', classify: 'Hứng đồ (chọn đúng)', clock: 'Xem đồng hồ', trace: 'Tô theo nét', input: 'Tự điền đáp án' };
 
 function describe(it) {
   switch (it.kind) {
-    case 'mc': return { q: T(it.prompt) + (it.say ? ` [đọc: "${it.say.text}"]` : ''), a: T(it.options[0]), other: it.options.slice(1).map(T).join(' | '), qe: E(it.prompt), ae: E(it.options[0]) };
+    case 'mc': return { q: (it.passage ? `[Đoạn văn: ${T(it.passage)}] ` : '') + T(it.prompt) + (it.say ? ` [đọc: "${it.say.text}"]` : ''), a: T(it.options[0]), other: it.options.slice(1).map(T).join(' | '), qe: E(it.prompt), ae: E(it.options[0]) };
     case 'tf': return { q: T(it.prompt), a: it.answer ? 'Đúng' : 'Sai', other: '', qe: E(it.prompt), ae: it.answer ? 'True' : 'False' };
     case 'pairs': return { q: T(it.prompt), a: it.pairs.map(([l, r]) => `${T(l)} ↔ ${T(r)}`).join(' | '), other: '', qe: E(it.prompt), ae: it.pairs.map(([l, r]) => `${E(l)} ↔ ${E(r)}`).join(' | ') };
     case 'order': return { q: T(it.prompt), a: it.items.map(T).join(' → '), other: '', qe: E(it.prompt), ae: it.items.map(E).join(' → ') };
     case 'word': return { q: T(it.prompt), a: it.answer, other: '', qe: E(it.prompt), ae: it.answer };
     case 'classify': return { q: T(it.prompt), a: it.items.filter((x) => x.ok).map((x) => T(x.t)).join(', '), other: 'Sai: ' + it.items.filter((x) => !x.ok).map((x) => T(x.t)).join(', '), qe: E(it.prompt), ae: '' };
     case 'clock': return { q: T(it.prompt), a: `${it.h}:${String(it.m).padStart(2, '0')}`, other: '', qe: E(it.prompt), ae: '' };
+    case 'input': return { q: T(it.prompt), a: it.answer, other: it.accept?.length ? 'Cũng chấp nhận: ' + it.accept.join(' | ') : '', qe: E(it.prompt), ae: it.answer };
     case 'trace': return { q: T(it.prompt), a: `(hình: ${it.shape})`, other: '', qe: E(it.prompt), ae: '' };
     default: return { q: T(it.prompt), a: '', other: '', qe: E(it.prompt), ae: '' };
   }
@@ -32,7 +33,7 @@ const rows = [];
 for (const topic of TOPICS) {
   const base = { mon: subjName[topic.subject], lop: topic.grade, chude: topic.title.vi, id: topic.id };
   if (topic.items) {
-    for (const it of topic.items) rows.push({ ...base, nguon: 'Soạn sẵn', loai: KIND[it.kind] ?? it.kind, ...describe(it) });
+    for (const it of topic.items) rows.push({ ...base, nguon: 'Soạn sẵn', loai: it.passage ? 'Đọc hiểu' : KIND[it.kind] ?? it.kind, ...describe(it) });
   } else {
     // toán tự sinh: 6 ví dụ khác nhau cho mỗi loại câu mà chủ đề có
     const rnd = makeRng(20261020 + topic.id.length);

@@ -8,7 +8,7 @@ import { Bar, Btn, Dialog, Panel, Spinner, SpeechBubble } from '../ui/kit';
 import { Scene, type SceneName } from '../ui/Scene';
 import { Chibi, MASCOTS, type Mood } from '../ui/Chibi';
 import { BadgeMedal, CoinIcon, Glyph, HeartIcon, StarIcon } from '../ui/Icons';
-import { CatchFall, ClockGame, FillBlank, Match, Memory, Quiz, SortOrder, TrueFalse, WordBuilder } from '../games/StepGames';
+import { CatchFall, ClockGame, FillBlank, Match, Memory, MultiPick, Passage, Quiz, SortOrder, TrueFalse, TypeAnswer, WordBuilder } from '../games/StepGames';
 import { BalloonPop, MathRace } from '../games/FlowGames';
 import { CandyMatch, DrawTrace, FruitSlice, Slingshot } from '../games/ArcadeGames';
 import { sfx } from '../lib/sfx';
@@ -71,6 +71,8 @@ export function Play({ lessonId }: { lessonId: string }) {
       case 'tf': return r.answer ? T.t('trueWord') : T.t('falseWord');
       case 'word': return String(r.answer);
       case 'clock': return `${r.h}:${String(r.m).padStart(2, '0')}`;
+      case 'input': return `${String(r.answer)}${r.unit ? ` ${T.tx(r.unit)}` : ''}`;
+      case 'multi': return (r.answer as number[]).map((i) => T.tx(r.options![i])).join(' · ');
       default: return '';
     }
   };
@@ -86,7 +88,8 @@ export function Play({ lessonId }: { lessonId: string }) {
     else { sfx.wrong(); setMood('sad'); if (hearts !== null) setHearts(hearts - 1); }
     const ans = answerText(round);
     const pctText = round.kind === 'pairs' || round.kind === 'classify' || round.kind === 'trace' ? `${Math.round(q * 100)}%` : '';
-    setFb({ ok, title: T.pickOne(ok ? 'correct' : 'wrong'), text: ok ? pctText : ans ? T.t('rightAnswer', { a: ans }) : pctText });
+    const text = round.kind === 'input' && ok && q < 1 ? T.t('typeMarks', { a: ans }) : ok ? pctText : ans ? T.t('rightAnswer', { a: ans }) : pctText;
+    setFb({ ok, title: T.pickOne(ok ? 'correct' : 'wrong'), text });
   };
   const next = () => {
     if (!sess) return;
@@ -96,10 +99,10 @@ export function Play({ lessonId }: { lessonId: string }) {
     else setIdx(idx + 1);
   };
   // phím Enter để tiếp tục
-  useEffect(() => { if (!fb) return; const f = (e: KeyboardEvent) => { if (e.key === 'Enter') next(); }; addEventListener('keydown', f); return () => removeEventListener('keydown', f); });
+  useEffect(() => { if (!fb) return; const f = (e: KeyboardEvent) => { if (e.key === 'Enter' && !e.defaultPrevented && !(e.target instanceof HTMLInputElement)) next(); }; addEventListener('keydown', f); return () => removeEventListener('keydown', f); });
 
   const mascot = MASCOTS[{ math: 'bo', vietnamese: 'mochi', english: 'foxy', science: 'kiwi' }[sess?.lesson.subject ?? 'math'] ?? 'mimi'];
-  const hint = game ? ({ 'drag-match': T.t('matchHint'), memory: T.t('memoryHint'), 'sort-order': T.t('sortHint'), 'word-builder': T.t('wordHint'), clock: T.t('clockHint'), 'catch-fall': T.t('catchHint'), 'true-false': T.t('swipeHint'), 'fruit-slice': T.t('sliceHint'), 'candy-match': T.t('candyShort'), slingshot: T.t('slingHint'), 'draw-trace': T.t('traceHint') } as Record<string, string>)[game] : '';
+  const hint = game ? ({ 'drag-match': T.t('matchHint'), memory: T.t('memoryHint'), 'sort-order': T.t('sortHint'), 'word-builder': T.t('wordHint'), clock: T.t('clockHint'), 'catch-fall': T.t('catchHint'), 'true-false': T.t('swipeHint'), 'fruit-slice': T.t('sliceHint'), 'candy-match': T.t('candyShort'), slingshot: T.t('slingHint'), 'draw-trace': T.t('traceHint'), 'type-answer': T.t('typeHint'), 'multi-pick': T.t('multiHint'), reading: T.t('readHint') } as Record<string, string>)[game] : '';
 
   if (err) return (
     <div className="screen"><Scene name="night" /><div className="screen-content splash">
@@ -130,8 +133,9 @@ export function Play({ lessonId }: { lessonId: string }) {
             <SpeechBubble>{fb ? fb.title : hint || T.tx(sess.lesson.topic)}</SpeechBubble>
             <Chibi look={mascot} mood={mood} size={230} />
           </div>
-          <div className="board">
+          <div className={`board ${round?.passage ? 'with-passage' : ''}`}>
             <span className="sr-only" aria-live="polite">{fb ? `${fb.title} ${fb.text}` : ''}</span>
+            {round?.passage && !FLOW.has(sess.game) && <Passage round={round} T={T} />}
             {showPrompt && round && (
               <Panel className="q-card" head={<h2>{round.title && <span className="q-sub">{T.tx(round.title)}</span>}{round.kind === 'tf' ? T.t('tfAsk') : T.tx(round.prompt)}
                 {!round.say && <button type="button" className="icon-btn icon-btn-mauve q-say" style={{ width: 40, height: 40, verticalAlign: 'middle' }} aria-label={T.t('listen')} onClick={() => { const vs = voiceStatus(T.lang); if (vs === 'missing' || vs === 'none') toast(T.t(vs === 'none' ? 'noSpeech' : 'noVoice'), 'warn'); speak(T.tx(round.prompt).replace(/[^\p{L}\p{N}\s.,?!:×+−=/%()]/gu, ''), T.lang, true); }}><Glyph name="speaker" size={20} /></button>}
@@ -148,6 +152,8 @@ export function Play({ lessonId }: { lessonId: string }) {
               if (round.kind === 'clock') return <ClockGame {...p} />;
               if (round.kind === 'classify') return <CatchFall {...p} />;
               if (round.kind === 'trace') return <DrawTrace {...p} />;
+              if (round.kind === 'input') return <TypeAnswer {...p} />;
+              if (round.kind === 'multi') return <MultiPick {...p} />;
               if (sess.game === 'fruit-slice') return <FruitSlice {...p} />;
               if (sess.game === 'candy-match') return <CandyMatch {...p} />;
               if (sess.game === 'slingshot') return <Slingshot {...p} />;

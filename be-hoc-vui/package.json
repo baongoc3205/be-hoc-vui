@@ -17,6 +17,7 @@
     "test:ui": "node test/ui/run.mjs",
     "backup": "node scripts/backup.mjs",
     "restore": "node scripts/restore.mjs",
+    "audit:content": "node scripts/audit-content.mjs",
     "export:content": "node scripts/export-content.mjs"
   },
   "devDependencies": {

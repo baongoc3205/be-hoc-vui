@@ -4,7 +4,7 @@
 
 **Web game học tập song ngữ Việt – Anh cho học sinh lớp 1 đến lớp 9**
 
-Toán · Tiếng Việt · Tiếng Anh · Khoa học — 63 chủ đề · 353 màn chơi · 16 loại game · Khu vui chơi mini game · 86 món thời trang
+Toán · Tiếng Việt · Tiếng Anh · Khoa học — 99 chủ đề · 569 màn chơi · 19 loại game · Khu vui chơi mini game · 86 món thời trang
 
 ![Bé Học Vui](docs/screenshots/lobby.png)
 
@@ -171,12 +171,14 @@ Bám theo Chương trình GDPT 2018 ở mức khái quát.
 
 | Môn | Chủ đề | Nguồn câu hỏi |
 |---|:---:|---|
-| Toán | 36 (4 chủ đề mỗi lớp): số học, hình học, đại số, toán có lời văn và toán nâng cao | **Sinh tự động theo seed**: mỗi lần chơi ra câu mới, đáp án nhiễu có chủ đích. Đề tự viết theo mẫu chương trình, không chép đề có bản quyền; đáp án được kiểm thử lại độc lập (giải phương trình, định lí Pythagore, phân tích nhân tử…) |
-| Tiếng Việt / Ngữ văn | 9 | Ngân hàng câu hỏi soạn sẵn |
-| Tiếng Anh | 9 | Ngân hàng câu hỏi soạn sẵn |
-| Khoa học | 9 | Ngân hàng câu hỏi soạn sẵn |
+| Toán | 45 (4 chủ đề + 1 bài ôn tập tổng hợp mỗi lớp): số học, hình học, đại số, toán có lời văn và toán nâng cao | **Sinh tự động theo seed**: mỗi lần chơi ra câu mới, đáp án nhiễu có chủ đích. Đề tự viết theo mẫu chương trình, không chép đề có bản quyền; đáp án được kiểm thử lại độc lập (giải phương trình, định lí Pythagore, phân tích nhân tử…) |
+| Tiếng Việt / Ngữ văn | 18 | Ngân hàng câu hỏi soạn sẵn, có đọc hiểu với đoạn văn, đoạn thơ tự viết |
+| Tiếng Anh | 18 | Ngân hàng câu hỏi soạn sẵn, có bài đọc tự viết |
+| Khoa học | 18 | Ngân hàng câu hỏi soạn sẵn (song ngữ), có bài đọc khoa học |
 
-Tổng cộng: 63 chủ đề, 353 màn chơi, 63 rương báu, 526 câu hỏi soạn sẵn (chưa tính câu Toán sinh tự động), cộng 326 ván mini game trong Khu vui chơi.
+Tổng cộng: 99 chủ đề, 569 màn chơi, 99 rương báu, 1274 câu hỏi soạn sẵn (chưa tính câu Toán sinh tự động), cộng các ván mini game trong Khu vui chơi.
+
+Các dạng đề: trắc nghiệm, đúng/sai, điền chỗ trống, nghe và chọn, nối cặp, lật thẻ, sắp xếp, ghép chữ, xem đồng hồ, hứng đồ, tô theo nét, **tự điền đáp án** (gõ chữ hoặc dùng bàn phím số; không phân biệt hoa thường, 0,5 = 0.5; quên dấu tiếng Việt được nửa điểm), **chọn nhiều đáp án** (phải chọn đủ, không thừa) và **đọc hiểu** (đoạn văn kèm câu hỏi). Chạy `npm run audit:content` để rà lỗi bộ đề tự động (lựa chọn trùng, thiếu bản dịch, câu trùng, đáp án không chấm được…); bộ kiểm thử cũng chạy bước này.
 
 Các dạng Toán theo lớp:
 
@@ -210,10 +212,11 @@ npm run dev     # server API cổng 5174 + giao diện hot-reload cổng 5173 �
 | `npm run build` | Build giao diện bằng Vite vào `client/dist` (khi đưa lên Render, giao diện được build tự động) |
 | `npm run build:fast` | Build nhanh bằng esbuild (phương án dự phòng) |
 | `npm run typecheck` | Kiểm tra kiểu TypeScript |
-| `npm test` | Chạy 15 nhóm kiểm thử máy chủ: luồng tài khoản, chấm điểm, nội dung (100 hạt giống mỗi màn), đáp án Toán giải lại độc lập, ca biên giờ Việt Nam, thử tấn công, sao lưu/khôi phục, Turso |
-| `npm run test:ui` | Kiểm thử giao diện bằng Playwright: mọi màn ở 7 cỡ màn hình + chơi thử 17 loại trò chơi (cần `npm i --no-save playwright && npx playwright install chromium`) |
+| `npm test` | Chạy 18 nhóm kiểm thử máy chủ: luồng tài khoản, chấm điểm, nội dung (100 hạt giống mỗi màn), đáp án Toán giải lại độc lập, ca biên giờ Việt Nam, thử tấn công, sao lưu/khôi phục, Turso |
+| `npm run test:ui` | Kiểm thử giao diện bằng Playwright: mọi màn ở 7 cỡ màn hình + chơi thử 20 loại trò chơi (cần `npm i --no-save playwright && npx playwright install chromium`) |
 | `npm run backup` | Sao lưu toàn bộ dữ liệu (Turso hoặc file) ra `backups/*.json` — xem [docs/DEPLOY.md](docs/DEPLOY.md) |
 | `npm run restore -- <file>` | Khôi phục từ file sao lưu (từ chối ghi đè database đã có dữ liệu, trừ khi thêm `--force`) |
+| `npm run audit:content` | Rà soát tự động toàn bộ bộ đề, in danh sách câu lỗi |
 | `npm run export:content` | Xuất mọi câu hỏi ra `docs/duyet-noi-dung.csv` để giáo viên duyệt |
 
 ### Biến môi trường

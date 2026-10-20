@@ -7,6 +7,7 @@ import { hasVoice, speak } from '../lib/speech';
 import { burstAt } from '../lib/fx';
 import { Btn } from '../ui/kit';
 import { Glyph } from '../ui/Icons';
+import { gradeRound } from '../../../shared/logic.js';
 
 export interface StepProps { round: Round; T: T; onSubmit: (given: unknown) => void; revealed: boolean; given?: unknown }
 const shuffleLocal = <X,>(a: X[]) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
@@ -334,5 +335,83 @@ export function CatchFall({ round, T, onSubmit }: StepProps) {
         <svg viewBox="0 0 150 90" width="150" height="90"><ellipse cx="75" cy="84" rx="60" ry="6" fill="#000" opacity=".12" /><path d="M8 18h134l-14 62H22z" fill="#C88A60" /><path d="M8 18h134v10H8z" fill="#B57A52" /><path d="M30 34l8 40M55 34l3 40M80 34v40M105 34l-3 40M128 34l-8 40" stroke="#A86F48" strokeWidth="4" /></svg>
       </div>
     </div>
+  );
+}
+
+// ---------------- Đoạn văn đọc hiểu ----------------
+export function Passage({ round, T }: { round: Round; T: T }) {
+  if (!round.passage) return null;
+  return (
+    <div className="passage" tabIndex={0} aria-label={T.t('passage')}>
+      <div className="passage-tag"><Glyph name="book" size={18} /> {T.t('passage')}</div>
+      {T.tx(round.passage).split(' / ').map((line, i, all) => <p key={i} className={all.length > 1 ? 'verse' : ''}>{line}</p>)}
+    </div>
+  );
+}
+
+// ---------------- Tự điền đáp án ----------------
+const PAD = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0', ','];
+export function TypeAnswer({ round, T, onSubmit, revealed, given }: StepProps) {
+  const [val, setVal] = useState('');
+  const input = useRef<HTMLInputElement>(null);
+  const numeric = !!round.numeric;
+  const touch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
+  useEffect(() => { setVal(''); const id = setTimeout(() => input.current?.focus({ preventScroll: true }), 120); return () => clearTimeout(id); }, [round.id]);
+  const send = () => { if (!revealed && val.trim()) { sfx.tap(); onSubmit(val); } };
+  const key = (k: string) => { if (revealed) return; sfx.tap(); setVal((v) => (k === '⌫' ? v.slice(0, -1) : (v + k).slice(0, 24))); };
+  const q = revealed ? gradeRound(round, given) : 0;
+  const unit = round.unit ? T.tx(round.unit) : '';
+  return (
+    <div className="type-wrap">
+      <form className={`type-row ${revealed ? (q >= 1 ? 'good' : q >= 0.5 ? 'half' : 'bad') : ''}`} onSubmit={(e) => { e.preventDefault(); send(); }}>
+        <input ref={input} className="type-input" value={revealed && typeof given === 'string' ? given : val} disabled={revealed} maxLength={24}
+          inputMode={numeric && touch ? 'none' : numeric ? 'decimal' : 'text'} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} enterKeyHint="done"
+          placeholder={T.t('typePlaceholder')} aria-label={T.t('typePlaceholder')} onChange={(e) => setVal(e.target.value.slice(0, 24))} />
+        {unit && <span className="type-unit">{unit}</span>}
+        {!revealed && <Btn tone="lime" type="submit" disabled={!val.trim()}>{T.t('check')}</Btn>}
+      </form>
+      {String(round.answer).includes('/') && !revealed && <p className="muted type-note">{T.t('typeFraction')}</p>}
+      {numeric && !revealed && (
+        <div className="keypad" role="group">
+          {PAD.map((k) => <button key={k} type="button" className="key-btn" onClick={() => key(k)}>{k === '-' ? '−' : k}</button>)}
+          <button type="button" className="key-btn wide" onClick={() => key('/')}>/</button>
+          <button type="button" className="key-btn wide" aria-label="xoá" onClick={() => key('⌫')}>⌫</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------- Chọn nhiều đáp án ----------------
+export function MultiPick({ round, T, onSubmit, revealed, given }: StepProps) {
+  const opts = round.options ?? [];
+  const [sel, setSel] = useState<number[]>([]);
+  useEffect(() => setSel([]), [round.id]);
+  const right = new Set(Array.isArray(round.answer) ? round.answer : []);
+  const picked = revealed && Array.isArray(given) ? new Set(given as number[]) : new Set(sel);
+  const toggle = (i: number) => { if (revealed) return; sfx.tap(); setSel((s) => (s.includes(i) ? s.filter((x) => x !== i) : [...s, i])); };
+  useEffect(() => {
+    if (revealed) return;
+    const f = (e: KeyboardEvent) => { const i = Number(e.key) - 1; if (Number.isInteger(i) && i >= 0 && i < opts.length) toggle(i); if (e.key === 'Enter' && sel.length) { e.preventDefault(); onSubmit(sel); } };
+    addEventListener('keydown', f); return () => removeEventListener('keydown', f);
+  });
+  const long = opts.some((o) => T.tx(o).length > 22);
+  return (
+    <>
+      <p className="muted" style={{ textAlign: 'center', margin: 0, fontWeight: 800 }}>{T.t('multiHint')} · {T.t('multiPicked', { n: picked.size })}</p>
+      <div className={`opts multi ${long ? 'one-col' : opts.length > 4 ? 'three-col' : ''}`}>
+        {opts.map((o, i) => {
+          const on = picked.has(i);
+          const cls = revealed ? (right.has(i) ? (on ? 'good' : 'missed') : on ? 'bad' : 'dim') : on ? 'on' : '';
+          return (
+            <button key={i} type="button" role="checkbox" aria-checked={on} disabled={revealed} className={`opt ${cls}`} onClick={() => toggle(i)}>
+              <span className="key box">{on || (revealed && right.has(i)) ? <Glyph name={revealed && !right.has(i) ? 'close' : 'check'} size={20} /> : i + 1}</span>
+              <span>{T.tx(o)}</span>
+            </button>
+          );
+        })}
+      </div>
+      {!revealed && <div style={{ textAlign: 'center' }}><Btn tone="lime" disabled={!sel.length} onClick={() => onSubmit(sel)}>{T.t('check')}</Btn></div>}
+    </>
   );
 }

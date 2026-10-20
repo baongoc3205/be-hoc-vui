@@ -28,6 +28,29 @@ export function norm(s) {
   return String(s ?? '').normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('vi');
 }
 
+/** Bỏ dấu tiếng Việt (để nhận ra bé gõ đúng chữ nhưng quên dấu). */
+export function stripMarks(s) {
+  return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').normalize('NFC');
+}
+
+/**
+ * Chuẩn hoá đáp án bé tự gõ: không phân biệt hoa thường, bỏ mọi khoảng trắng và dấu chấm câu ở cuối,
+ * coi dấu trừ "−" như "-", dấu thập phân "." như "," (0.5 = 0,5), bỏ số 0 thừa (2,50 = 2,5),
+ * bỏ dấu chấm ngăn hàng nghìn (21.587 = 21587).
+ */
+export function normAnswer(s) {
+  let t = norm(s).replace(/[−–]/g, '-').replace(/\s+/g, '').replace(/[.!?;:]+$/, '');
+  // 21.587 (cách viết số của Việt Nam, dấu chấm ngăn hàng nghìn) = 21587
+  if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+  if (/^-?\d+([.,]\d+)?$/.test(t)) {
+    t = t.replace('.', ',');
+    if (t.includes(',')) t = t.replace(/0+$/, '').replace(/,$/, '');
+    t = t.replace(/^(-?)0+(?=\d)/, '$1');
+    if (t === '-0') t = '0';
+  }
+  return t;
+}
+
 /**
  * Chấm một vòng chơi. Trả về chất lượng q ∈ [0, 1].
  * Các dạng vòng (round.kind):
@@ -38,6 +61,8 @@ export function norm(s) {
  *  - word:     given = chuỗi từ ghép được
  *  - clock:    given = [giờ, phút]
  *  - classify: given = { hits, wrong }
+ *  - input:    given = chuỗi bé tự gõ (đúng hết = 1; đúng chữ nhưng thiếu dấu thanh = 0,6)
+ *  - multi:    given = mảng chỉ số các lựa chọn bé chọn (phải chọn đủ và không chọn thừa mới được 1)
  */
 export function gradeRound(round, given) {
   switch (round.kind) {
@@ -67,6 +92,25 @@ export function gradeRound(round, given) {
       const hits = Math.max(0, Number(given?.hits) || 0);
       const wrong = Math.max(0, Number(given?.wrong) || 0);
       return Math.max(0, Math.min(1, hits / okCount - wrong * 0.15));
+    }
+    case 'input': {
+      const g = normAnswer(given);
+      if (!g) return 0;
+      const ok = [round.answer, ...(round.accept ?? [])].map(normAnswer);
+      if (ok.includes(g)) return 1;
+      // tiếng Việt: đúng chữ nhưng quên dấu vẫn tính là đúng, chỉ được 0,6 điểm
+      if (ok.map(stripMarks).includes(stripMarks(g))) return 0.6;
+      return 0;
+    }
+    case 'multi': {
+      if (!Array.isArray(given) || !Array.isArray(round.answer)) return 0;
+      const n = round.options?.length ?? 0;
+      const want = new Set(round.answer);
+      const picked = new Set(given.map(Number).filter((i) => Number.isInteger(i) && i >= 0 && i < n));
+      let hit = 0, wrong = 0;
+      for (const i of picked) (want.has(i) ? hit++ : wrong++);
+      if (hit === want.size && wrong === 0) return 1;
+      return Math.max(0, Math.min(0.45, ((hit - wrong) / want.size) * 0.45));
     }
     case 'trace': {
       // Bé tô theo nét: trình duyệt đo độ phủ (cover) và tỉ lệ nét vẽ lệch ra ngoài (stray), đều trong khoảng 0..1.
@@ -154,6 +198,9 @@ export const GAME_ROUNDS = {
   'candy-match': 5,
   slingshot: 5,
   'draw-trace': 4,
+  'type-answer': 6,
+  'multi-pick': 5,
+  reading: 5,
   boss: 10,
 };
 
@@ -175,5 +222,8 @@ export const GAME_KIND = {
   'candy-match': 'mc',
   slingshot: 'mc',
   'draw-trace': 'trace',
+  'type-answer': 'input',
+  'multi-pick': 'multi',
+  reading: 'mc',
   boss: 'mc',
 };

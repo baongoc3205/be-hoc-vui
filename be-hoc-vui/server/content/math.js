@@ -22,6 +22,8 @@ function numOptions(rnd, correct, extra = [], count = 4, fmt = String) {
 const mc = (prompt, options, extra = {}) => ({ kind: 'mc', prompt, options, ...extra });
 const tf = (prompt, answer) => ({ kind: 'tf', prompt, answer });
 const fmtDec = (x) => String(Math.round(x * 100) / 100).replace('.', ',');
+/** Viết hàm số bậc nhất gọn: y = −x + 3, y = 2x, y = −5x − 1. */
+const lin = (a, b) => `y = ${a === 1 ? '' : a === -1 ? '−' : a < 0 ? '−' + -a : a}x${b === 0 ? '' : b < 0 ? ' − ' + -b : ' + ' + b}`;
 const gcd = (a, b) => (b === 0 ? Math.abs(a) : gcd(b, a % b));
 const isPrime = (n) => { if (n < 2) return false; for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; };
 
@@ -136,7 +138,7 @@ export const mathTopics = [
     games: ['quiz', 'memory', 'true-false', 'quiz', 'boss'],
     gen(rnd, kind) {
       if (kind === 'mc') {
-        if (rnd() < 0.5) { const a = randInt(rnd, 2, 12), b = randInt(rnd, 2, 12); return mc(L(`Hình chữ nhật dài ${a} cm, rộng ${b} cm. Chu vi là?`, `Rectangle ${a} cm by ${b} cm. Perimeter?`), numOptions(rnd, 2 * (a + b), [a * b, a + b]).map((x) => `${x} cm`)); }
+        if (rnd() < 0.5) { const x1 = randInt(rnd, 2, 12), x2 = randInt(rnd, 2, 12), a = Math.max(x1, x2) + (x1 === x2 ? 1 : 0), b = Math.min(x1, x2); return mc(L(`Hình chữ nhật dài ${a} cm, rộng ${b} cm. Chu vi là?`, `Rectangle ${a} cm by ${b} cm. Perimeter?`), numOptions(rnd, 2 * (a + b), [a * b, a + b]).map((x) => `${x} cm`)); }
         const n = pick(rnd, [2, 3, 4, 5]), k = n * randInt(rnd, 2, 6);
         return mc(L(`1/${n} của ${k} là bao nhiêu?`, `What is 1/${n} of ${k}?`), numOptions(rnd, k / n, [k - n, n]));
       }
@@ -299,13 +301,13 @@ export const mathTopics = [
     games: ['quiz', 'true-false', 'drag-match', 'quiz', 'boss'],
     gen(rnd, kind) {
       const a = randInt(rnd, -5, 6) || 2, b = randInt(rnd, -9, 9);
-      const fx = `y = ${a}x ${b < 0 ? '− ' + -b : '+ ' + b}`;
+      const fx = lin(a, b);
       if (kind === 'mc') {
         if (rnd() < 0.5) { const x = randInt(rnd, -4, 5); return mc(L(`Với ${fx}, khi x = ${x} thì y = ?`, `For ${fx}, if x = ${x}, y = ?`), numOptions(rnd, a * x + b, [a + x + b, a * x - b]).map(String)); }
-        const x = randInt(rnd, -5, 5), y = randInt(rnd, -5, 5); return mc(L(`Giải hệ: x + y = ${x + y}; x − y = ${x - y}`, `Solve: x + y = ${x + y}; x − y = ${x - y}`), [...new Set([`(${x}; ${y})`, `(${y}; ${x})`, `(${x + 1}; ${y - 1})`, `(${-x}; ${y})`])]);
+        const x = randInt(rnd, 1, 5) * pick(rnd, [1, -1]), y0 = randInt(rnd, -5, 5), y = y0 === x || y0 === -x ? (y0 === 0 ? 1 : 0) : y0; return mc(L(`Giải hệ: x + y = ${x + y}; x − y = ${x - y}`, `Solve: x + y = ${x + y}; x − y = ${x - y}`), [...new Set([`(${x}; ${y})`, `(${y}; ${x})`, `(${x + 1}; ${y - 1})`, `(${-x}; ${y})`])]);
       }
       if (kind === 'tf') { return tf(L(`Hàm số ${fx} đồng biến`, `The function ${fx} is increasing`), a > 0); }
-      if (kind === 'pairs') { const fs = shuffle(rnd, [1, 2, 3, -1, -2, 4]).slice(0, 4); return { kind: 'pairs', prompt: L('Ghép hàm số với hệ số góc', 'Match function to slope'), pairs: fs.map((k, i) => [L(`y = ${k}x + ${i + 1}`), L(`a = ${k}`)]) }; }
+      if (kind === 'pairs') { const fs = shuffle(rnd, [1, 2, 3, -1, -2, 4]).slice(0, 4); return { kind: 'pairs', prompt: L('Ghép hàm số với hệ số góc', 'Match function to slope'), pairs: fs.map((k, i) => [L(lin(k, i + 1)), L(`a = ${k}`)]) }; }
       return null;
     },
   },

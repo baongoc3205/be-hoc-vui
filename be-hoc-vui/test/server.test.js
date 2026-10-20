@@ -8,12 +8,14 @@ import { createApp, cleanup } from '../server/index.js';
 import { buildRounds } from '../server/rounds.js';
 import { dayKey } from '../server/game.js';
 import { LESSONS, TOPICS } from '../server/content/index.js';
-import { gradeRound, computeRewards, levelInfo, currentEnergy, ENERGY_MS } from '../shared/logic.js';
+import { gradeRound, computeRewards, levelInfo, currentEnergy, ENERGY_MS, normAnswer } from '../shared/logic.js';
+import { auditContent } from '../scripts/audit-content.mjs';
+import { mcToInput } from '../server/rounds.js';
 
 /** Đáp án đúng cho một vòng (để mô phỏng bé chơi giỏi). */
 function perfect(r) {
   switch (r.kind) {
-    case 'mc': case 'tf': case 'word': return r.answer;
+    case 'mc': case 'tf': case 'word': case 'input': case 'multi': return r.answer;
     case 'pairs': return 0;
     case 'order': return r.items.map((_, i) => i);
     case 'clock': return [r.h, r.m];
@@ -107,13 +109,63 @@ test('dạng Toán mới: đáp án kiểm tra lại độc lập', () => {
   assert.ok(checked > 2000, `chỉ kiểm được ${checked} câu`);
 });
 
+test('rà soát bộ đề tự động: không có câu hỏi lỗi', () => {
+  const errs = auditContent({ seeds: 25 });
+  assert.deepEqual(errs, [], errs.slice(0, 20).join('\n'));
+});
+
+test('dạng tự điền đáp án: chấm linh hoạt nhưng chặt chẽ', () => {
+  const R = (answer, accept = []) => ({ kind: 'input', answer, accept });
+  assert.equal(gradeRound(R('12,5'), '12.5'), 1);
+  assert.equal(gradeRound(R('12,5'), ' 12,50 '), 1);
+  assert.equal(gradeRound(R('-3'), '−3'), 1);
+  assert.equal(gradeRound(R('21587'), '21.587'), 1, 'dấu chấm ngăn hàng nghìn');
+  assert.equal(gradeRound(R('went'), 'Went.'), 1);
+  assert.equal(gradeRound(R('quyển sách này'), 'Quyển  sách này'), 1);
+  assert.equal(gradeRound(R('mèo'), 'meo'), 0.6, 'quên dấu được 0,6');
+  assert.equal(gradeRound(R('mèo'), 'mẹo'), 0.6);
+  assert.equal(gradeRound(R('can\'t', ['cannot']), 'cannot'), 1);
+  assert.equal(gradeRound(R('12'), '13'), 0);
+  assert.equal(gradeRound(R('12'), ''), 0);
+  assert.equal(gradeRound(R('12'), { x: 1 }), 0);
+  assert.equal(normAnswer('007'), '7');
+  // đổi trắc nghiệm Toán sang tự điền: tách đơn vị, bỏ câu cần nhìn lựa chọn
+  const L = (vi) => ({ vi, en: vi });
+  assert.deepEqual(mcToInput({ kind: 'mc', prompt: L('Chu vi là?'), options: ['28 cm', '30 cm'] }).unit, { vi: 'cm', en: 'cm' });
+  assert.equal(mcToInput({ kind: 'mc', prompt: L('Chu vi là?'), options: ['28 cm', '30 cm'] }).answer, '28');
+  assert.equal(mcToInput({ kind: 'mc', prompt: L('Số nào chia hết cho 5?'), options: ['60', '61'] }), null);
+  assert.equal(mcToInput({ kind: 'mc', prompt: L('Hình nào là hình tròn?'), options: ['●', '■'] }), null);
+  assert.equal(mcToInput({ kind: 'mc', prompt: L('x² − 4 = ?'), options: ['(x − 2)(x + 2)', 'x'] }), null);
+});
+
+test('dạng chọn nhiều đáp án: phải chọn đủ và không thừa', () => {
+  const r = { kind: 'multi', options: [1, 2, 3, 4, 5], answer: [0, 3] };
+  assert.equal(gradeRound(r, [3, 0]), 1);
+  assert.ok(gradeRound(r, [0]) < 0.5, 'thiếu một đáp án là sai');
+  assert.ok(gradeRound(r, [0, 3, 4]) < 0.5, 'chọn thừa là sai');
+  assert.equal(gradeRound(r, [1, 2]), 0);
+  assert.equal(gradeRound(r, [0, 0, 3, 3]), 1, 'chọn trùng không ăn gian được');
+  assert.equal(gradeRound(r, [0, 3, 99]), 1, 'chỉ số ngoài phạm vi bị bỏ qua');
+  assert.equal(gradeRound(r, 'x'), 0);
+  // mọi màn chọn nhiều / tự điền / đọc hiểu dựng đủ vòng chơi
+  for (const l of LESSONS.filter((x) => ['multi-pick', 'type-answer', 'reading'].includes(x.game))) {
+    for (let seed = 1; seed <= 10; seed++) {
+      const { game, rounds } = buildRounds(l, seed);
+      assert.equal(game, l.game, l.id);
+      assert.ok(rounds.length >= (game === 'reading' ? 3 : 4), `${l.id}: chỉ có ${rounds.length} vòng`);
+      if (game === 'reading') assert.ok(rounds.every((x) => x.passage?.vi && x.passage?.en), `${l.id}: thiếu đoạn văn`);
+      if (game === 'multi-pick') assert.ok(rounds.every((x) => x.answer.length >= 1 && x.answer.length < x.options.length), `${l.id}: chọn nhiều sai cấu trúc`);
+    }
+  }
+});
+
 test('logic điểm, cấp độ, năng lượng', () => {
   const r = computeRewards({ qualities: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], maxCombo: 10, baseCoins: 15, baseXp: 60, prevStars: 0 });
   assert.equal(r.stars, 3); assert.equal(r.coins, 15 + 3 + 10); assert.equal(r.xp, 60);
   assert.equal(computeRewards({ qualities: [0, 0, 1], maxCombo: 1, baseCoins: 15, baseXp: 60, prevStars: 0 }).stars, 0);
   assert.equal(levelInfo(0).level, 1); assert.equal(levelInfo(50).level, 2);
   const e = currentEnergy(3, 0, ENERGY_MS * 2 + 5); assert.equal(e.value, 5);
-  assert.equal(TOPICS.length, 63);
+  assert.equal(TOPICS.length, 99);
 });
 
 async function apiFlow(db) {
