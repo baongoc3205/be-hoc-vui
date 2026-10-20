@@ -148,6 +148,13 @@ async function syncMusic() {
   src.start(t);
   playing = { url: theme.music, src, gain };
 }
+/** Trạng thái nhạc nền (để hiện trong Cài đặt và để kiểm tra lỗi). */
+export function musicStatus(): { on: boolean; mode: 'file' | 'synth' | 'off'; theme: string; audio: string } {
+  return { on: wantOn, mode: playing ? 'file' : bgmTimer ? 'synth' : 'off', theme: wantTheme.id, audio: ctx?.state ?? 'none' };
+}
+/** Bản nhạc của chủ đề có tải được không (null = chưa biết). */
+export async function themeHasFile(id: string) { const c = ac(); if (!c) return false; return !!(await loadBuffer(c, themeById(id).music)); }
+if (typeof window !== 'undefined') (window as unknown as { bhvMusic: typeof musicStatus }).bhvMusic = musicStatus;
 /** Bật / tắt nhạc nền. */
 export function setMusic(enabled: boolean) { wantOn = enabled; void syncMusic(); }
 /** Đổi bản nhạc theo chủ đề (nếu nhạc đang bật thì chuyển mượt sang bản mới). */

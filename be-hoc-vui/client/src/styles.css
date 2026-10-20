@@ -1042,3 +1042,4 @@ h1, h2, h3, h4 { font-family: var(--font-d); margin: 0; line-height: 1.15; }
   .dialog-actions .btn .btn-label { white-space: normal; line-height: 1.1; }
   .theme-txt small { display: none; }
 }
+.theme-missing { font-family: var(--font-b); font-weight: 700; font-size: 13px; color: #a84c45; }

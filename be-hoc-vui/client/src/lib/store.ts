@@ -19,7 +19,12 @@ const PREFS_KEY = 'bhv_prefs';
 const CHILD_KEY = 'bhv_child';
 function loadPrefs(): Prefs {
   const def: Prefs = { lang: navigator.language?.startsWith('en') ? 'en' : 'vi', sound: true, music: true, voice: true, autoRead: true, theme: 'fairy', reduceMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false };
-  try { return { ...def, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; } catch { return def; }
+  try {
+    const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+    // bản cũ mặc định TẮT nhạc nền; khi lên bản có chủ đề + nhạc thì bật lại một lần
+    if (saved && typeof saved === 'object' && !('theme' in saved)) saved.music = true;
+    return { ...def, ...saved };
+  } catch { return def; }
 }
 const readChild = () => { try { return Number(localStorage.getItem(CHILD_KEY)) || null; } catch { return null; } };
 

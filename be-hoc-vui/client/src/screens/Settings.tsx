@@ -1,6 +1,7 @@
 import { go, selectChild, setPrefs, useApp } from '../lib/store';
 import { useT } from '../lib/hooks';
-import { previewTheme, setMusic, setMusicTheme } from '../lib/sfx';
+import { previewTheme, setMusic, setMusicTheme, themeHasFile } from '../lib/sfx';
+import { useEffect, useState } from 'react';
 import { THEMES, themeById } from '../lib/themes';
 import { toast } from '../lib/store';
 import { Btn, Dialog, Segmented, Toggle } from '../ui/kit';
@@ -9,6 +10,8 @@ import { Glyph } from '../ui/Icons';
 export function SettingsDialog({ onClose }: { onClose: () => void }) {
   const T = useT();
   const p = useApp((s) => s.prefs);
+  const [hasFile, setHasFile] = useState<boolean | null>(null);
+  useEffect(() => { setHasFile(null); void themeHasFile(p.theme).then(setHasFile); }, [p.theme]);
   const rows: [string, boolean, (v: boolean) => void][] = [
     [T.t('sound'), p.sound, (v) => setPrefs({ sound: v })],
     [T.t('music'), p.music, (v) => { setPrefs({ music: v }); setMusic(v); }],
@@ -38,6 +41,8 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
               );
             })}
           </div>
+          {hasFile === false && <small className="theme-missing">{T.t('musicMissing')}</small>}
+          {!p.music && <small className="theme-missing">{T.t('musicOff')}</small>}
           <small className="muted theme-credit">{T.t('musicCredit')}: {themeById(p.theme).credit} · Pixabay</small>
         </div>
       </div>
