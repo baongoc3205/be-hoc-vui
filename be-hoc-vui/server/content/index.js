@@ -8,6 +8,7 @@ import { enTopics2 } from './bank2-en.js';
 import { enTopics2b } from './bank2-en2.js';
 import { sciTopics2 } from './bank2-sci.js';
 import { sciTopics2b } from './bank2-sci2.js';
+import { buildPracticeTopics } from './practice/campaign.js';
 
 const L = (vi, en) => ({ vi, en: en ?? vi });
 
@@ -59,7 +60,9 @@ const mathReview = Array.from({ length: 9 }, (_, i) => {
   };
 });
 
-export const TOPICS = [...MATH, ...mathReview, ...bankTopics, ...viTopics2, ...viTopics2b, ...enTopics2, ...enTopics2b, ...sciTopics2, ...sciTopics2b];
+// Chặng luyện tập sinh theo mẫu: luôn đặt SAU các chủ đề cũ để mã màn và tiến độ cũ không đổi.
+export const PRACTICE_TOPICS = buildPracticeTopics();
+export const TOPICS = [...MATH, ...mathReview, ...bankTopics, ...viTopics2, ...viTopics2b, ...enTopics2, ...enTopics2b, ...sciTopics2, ...sciTopics2b, ...PRACTICE_TOPICS];
 export const topicById = new Map(TOPICS.map((t) => [t.id, t]));
 
 /** Sinh danh sách bài học (màn) cho từng chủ đề. Sau màn thứ 3 có một rương báu. */
@@ -74,8 +77,8 @@ function buildLessons() {
           const boss = game === 'boss';
           lessons.push({
             id: `${topic.id}-${i + 1}`, topicId: topic.id, subject: subject.id, grade, order: order++,
-            game, kind: boss ? 'boss' : 'normal',
-            coins: boss ? 30 : 15 + Math.min(grade, 5), xp: boss ? 120 : 50 + grade * 5,
+            game, kind: boss ? 'boss' : 'normal', tier: topic.tiers?.[i] ?? null,
+            coins: (boss ? 30 : 15 + Math.min(grade, 5)) + (topic.tiers ? (topic.tiers[i] - 1) * 2 : 0), xp: boss ? 120 : 50 + grade * 5,
             hearts: boss ? 3 : null,
           });
           if (i === 2) lessons.push({ id: `${topic.id}-chest`, topicId: topic.id, subject: subject.id, grade, order: order++, game: 'chest', kind: 'chest', coins: 25, xp: 0, hearts: null });

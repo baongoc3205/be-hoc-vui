@@ -11,7 +11,7 @@ import { errText } from './Auth';
 import { burstAt, flyCoins } from '../lib/fx';
 import { sfx } from '../lib/sfx';
 
-interface WorldInfo { subject: SubjectId; done: number; total: number; stars: number; maxStars: number; topics: { id: string; title: { vi: string; en: string } }[] }
+interface WorldInfo { subject: SubjectId; done: number; total: number; stars: number; maxStars: number; topics: { id: string; title: { vi: string; en: string }; practice?: boolean }[] }
 
 function GradeBar({ grade, onPick }: { grade: number; onPick: (g: number) => void }) {
   const T = useT();
@@ -45,7 +45,7 @@ export function Worlds({ grade }: { grade: number }) {
                   <Panel head={<h3>{T.tx(s.name)}</h3>}>
                     <div className="art"><SkillTile kind={s.id} size={76} /><Chibi look={MASCOTS[s.mascot]} mood="happy" size={160} /></div>
                     <div className="section-title">{T.tx(s.world)}</div>
-                    <div className="topics">{w?.topics.map((t) => T.tx(t.title)).join(' · ')}</div>
+                    <div className="topics">{w?.topics.filter((t) => !t.practice).map((t) => T.tx(t.title)).join(' · ')}{w && w.topics.some((t) => t.practice) ? ` · ${T.t('practiceCount', { n: w.topics.filter((t) => t.practice).length })}` : ''}</div>
                     <Bar label={<span style={{ fontSize: 18 }}>{T.t('progress')}</span>} right={<span style={{ fontSize: 18 }}>{w?.done ?? 0}/{w?.total ?? 0}</span>} value={w?.done ?? 0} max={w?.total ?? 1} />
                     <div className="stat-line"><Stars n={1} of={1} size={24} /> {w?.stars ?? 0}/{w?.maxStars ?? 0}</div>
                   </Panel>
@@ -76,6 +76,8 @@ export function MapScreen({ subject, grade }: { subject: string; grade: number }
     if (!map || !scroller.current) return;
     const el = scroller.current.querySelector<HTMLElement>('.map-node.current');
     if (el) scroller.current.scrollLeft = el.offsetLeft - scroller.current.clientWidth / 2;
+    const chip = document.querySelector<HTMLElement>('.chapter-chip.here'); const bar = chip?.parentElement;
+    if (chip && bar) bar.scrollLeft = chip.offsetLeft - bar.clientWidth / 2 + chip.clientWidth / 2;
   }, [map]);
 
   const STEP = 168, PAD = 130;
@@ -111,6 +113,22 @@ export function MapScreen({ subject, grade }: { subject: string; grade: number }
       <Scene name={(subject as SceneName) ?? 'meadow'} />
       <div className="screen-content">
         <TopBar title={`${T.tx(subj?.world)} · ${T.t('gradeN', { n: grade })}`} to={`worlds/${grade}`} />
+        {map && map.topics.length > 1 && (
+          <div className="chapter-bar" role="tablist" aria-label={T.t('chapters')}>
+            {map.topics.map((t, k) => {
+              const i = topicStart.get(t.id) ?? 0;
+              const nodes = map.nodes.filter((n) => n.topicId === t.id);
+              const done = nodes.length > 0 && nodes.every((n) => n.done);
+              const here = nodes.some((n) => n.id === map.current);
+              return (
+                <button key={t.id} type="button" role="tab" aria-selected={here} className={`chapter-chip ${done ? 'done' : ''} ${here ? 'here' : ''} ${t.practice ? 'practice' : ''}`}
+                  onClick={() => { sfx.tap(); const el = scroller.current; if (el) el.scrollLeft = pos(i).x - 150; }}>
+                  <span className="n">{k + 1}</span>{T.tx(t.title)}
+                </button>
+              );
+            })}
+          </div>
+        )}
         {!map ? <Spinner /> : (
           <div className="map-scroll" ref={scroller}>
             <div className="map-track" style={{ width }}>
@@ -147,6 +165,7 @@ export function MapScreen({ subject, grade }: { subject: string; grade: number }
             <GameTile game={pick.game} tone={subject} size={110} />
             <div>{T.tx(map?.topics.find((t) => t.id === pick.topicId)?.title)}</div>
             <Stars n={pick.stars} size={36} />
+            {pick.tier ? <div className="tier-line">{T.t('difficulty')}: <span aria-label={`${pick.tier}/4`}>{'●'.repeat(pick.tier)}<span className="off">{'●'.repeat(4 - pick.tier)}</span></span></div> : null}
             <div className="goals"><span>{T.t('goal1')}</span><span>{T.t('goal2')}</span><span>{T.t('goal3')}</span></div>
             <div className="stat-line" style={{ justifyContent: 'center' }}>{T.t('reward')}: <CoinIcon size={28} /> ~{pick.coins}{cs.energy.enabled && <> · <span className="muted">{T.t('energyCost')}</span></>}</div>
           </div>

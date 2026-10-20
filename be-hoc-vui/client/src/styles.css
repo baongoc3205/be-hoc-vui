@@ -968,3 +968,17 @@ h1, h2, h3, h4 { font-family: var(--font-d); margin: 0; line-height: 1.15; }
   .key-btn.wide { grid-column: span 6; }
   .key-btn { min-height: 38px; }
 }
+
+/* ---------- Thanh chọn chặng trên bản đồ ---------- */
+.chapter-bar { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 2px 4px 8px; flex: none; scrollbar-width: thin; scrollbar-color: var(--mauve-300) transparent; }
+.chapter-chip { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border: 0; border-radius: 999px; background: rgba(255, 250, 243, .92); color: var(--ink); font-family: var(--font-d); font-weight: 800; font-size: 15px; white-space: nowrap; box-shadow: 0 3px 0 var(--cream-400); }
+.chapter-chip .n { display: grid; place-items: center; min-width: 28px; height: 28px; border-radius: 50%; background: var(--cream-300); color: var(--mauve-600); font-size: 14px; }
+.chapter-chip.practice .n { background: #e7dcef; }
+.chapter-chip.done .n { background: var(--lime-2); color: #fff; }
+.chapter-chip.here { background: var(--mauve-600); color: #fff; }
+.chapter-chip.here .n { background: #fff; color: var(--mauve-600); }
+@media (max-width: 900px) { .chapter-chip { font-size: 13px; padding: 4px 10px 4px 4px; } .chapter-chip .n { min-width: 24px; height: 24px; } }
+@media (max-height: 500px) { .chapter-bar { padding-bottom: 4px; } .chapter-chip { padding: 2px 10px 2px 2px; font-size: 12px; } }
+.tier-line { font-family: var(--font-d); font-weight: 800; color: var(--ink-soft); letter-spacing: .5px; }
+.tier-line span { color: #e2804f; letter-spacing: 3px; }
+.tier-line .off { color: var(--cream-400); }

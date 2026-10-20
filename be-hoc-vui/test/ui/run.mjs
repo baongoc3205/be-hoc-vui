@@ -26,9 +26,9 @@ const SIZES = [[1366, 768, 'laptop'], [1920, 1080, 'fullhd'], [1024, 768, 'table
 const PAGES = ['lobby', 'worlds', 'map/math/3', 'character', 'character/outfit', 'shop', 'rewards', 'rewards/checkin', 'rewards/badges', 'ranking', 'arcade'];
 // màn được phép cuộn cả trang (dành cho người lớn, nhiều chữ)
 const SCROLL_OK = new Set(['privacy', 'parents']);
-const GAMES = { quiz: 'm1a-1', 'balloon-pop': 'm1a-2', 'drag-match': 'm1a-3', 'true-false': 'm1a-4', 'math-race': 'm1a-5', boss: 'm1a-6', 'sort-order': 'm1b-2', 'catch-fall': 'm1b-3', memory: 'm1b-5', 'draw-trace': 'm1c-2', 'fruit-slice': 'm1c-3', 'candy-match': 'm1c-4', slingshot: 'm1d-3', clock: 'm2b-1', 'listen-pick': 'v1-1', 'word-builder': 'v1-2', 'fill-blank': 'v2-4', 'type-answer': 'm3r-1', 'multi-pick': 'm3r-2', reading: 'v3b-1', 'reading-en': 'e9b-1', 'type-text': 'e5b-3', 'multi-text': 's8b-4' };
+const GAMES = { quiz: 'm1a-1', 'balloon-pop': 'm1a-2', 'drag-match': 'm1a-3', 'true-false': 'm1a-4', 'math-race': 'm1a-5', boss: 'm1a-6', 'sort-order': 'm1b-2', 'catch-fall': 'm1b-3', memory: 'm1b-5', 'draw-trace': 'm1c-2', 'fruit-slice': 'm1c-3', 'candy-match': 'm1c-4', slingshot: 'm1d-3', clock: 'm2b-1', 'listen-pick': 'v1-1', 'word-builder': 'v1-2', 'fill-blank': 'v2-4', 'type-answer': 'm3r-1', 'multi-pick': 'm3r-2', reading: 'v3b-1', 'reading-en': 'e9b-1', 'type-text': 'e5b-3', 'multi-text': 's8b-4', 'practice-quiz': 'e3p-jobs-1', 'practice-boss': 'm3p-word-2-9' };
 // trò chọn đáp án bằng phím số 1–4
-const KEY_GAMES = new Set(['quiz', 'boss', 'fill-blank', 'listen-pick', 'fruit-slice', 'candy-match', 'slingshot', 'reading', 'reading-en']);
+const KEY_GAMES = new Set(['quiz', 'boss', 'practice-quiz', 'practice-boss', 'fill-blank', 'listen-pick', 'fruit-slice', 'candy-match', 'slingshot', 'reading', 'reading-en']);
 // trò phải chọn/gõ rồi bấm Enter để nộp
 const ENTER_GAMES = new Set(['type-answer', 'multi-pick', 'type-text', 'multi-text']);
 

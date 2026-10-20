@@ -143,11 +143,11 @@ export async function mapOf(db, child, subject, grade) {
   const nodes = lessons.map((l, i) => {
     const p = prog.get(l.id);
     const done = !!p && (l.kind === 'chest' ? p.attempts > 0 : p.stars >= 1);
-    const node = { id: l.id, index: i + 1, topicId: l.topicId, game: l.game, kind: l.kind, name: GAME_INFO[l.game].name, stars: p?.stars ?? 0, done, unlocked: prevDone || DEMO_UNLOCK, coins: l.coins };
+    const node = { id: l.id, index: i + 1, topicId: l.topicId, game: l.game, kind: l.kind, name: GAME_INFO[l.game].name, stars: p?.stars ?? 0, done, unlocked: prevDone || DEMO_UNLOCK, coins: l.coins, tier: l.tier ?? null };
     prevDone = done;
     return node;
   });
-  const topics = TOPICS.filter((t) => t.subject === subject && t.grade === g).map((t) => ({ id: t.id, title: t.title }));
+  const topics = TOPICS.filter((t) => t.subject === subject && t.grade === g).map((t) => ({ id: t.id, title: t.title, practice: !!t.practice }));
   const current = nodes.find((n) => n.unlocked && !n.done)?.id ?? null;
   return { subject, grade: g, topics, nodes, current };
 }

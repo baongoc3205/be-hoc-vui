@@ -1,45 +1,9 @@
 // Tạo các vòng chơi cho một màn từ ngân hàng câu hỏi / bộ sinh câu hỏi.
 import { makeRng, shuffle, GAME_KIND, GAME_ROUNDS } from '../shared/logic.js';
 import { topicById } from './content/index.js';
+import { fits, mcToInput, T, NUMERIC } from './fits.js';
 
 const keyOf = (item) => JSON.stringify(item.prompt) + JSON.stringify(item.options ?? item.pairs ?? item.items ?? item.answer ?? '');
-
-/** Chọn bộ lọc item phù hợp từng loại game. */
-function fits(game, item) {
-  const kind = GAME_KIND[game];
-  // câu đọc hiểu (có đoạn văn) dùng trong game Đọc hiểu và Đố vui (kèm đoạn văn)
-  if (game === 'reading') return item.kind === 'mc' && !!item.passage;
-  if (item.passage) return game === 'quiz';
-  if (game === 'type-answer') return item.kind === 'input' || item.kind === 'word';
-  if (game === 'multi-pick') return item.kind === 'classify';
-  if (item.kind === 'input') return false;
-  if (game === 'boss') return (item.kind === 'mc' && !item.listen) || item.kind === 'tf';
-  if (item.kind !== kind) return false;
-  if (game === 'listen-pick') return !!item.listen;
-  if (game === 'fill-blank') return !!item.blank;
-  if (kind === 'mc' && item.listen) return false;
-  // mini game hành động: chữ trên trái cây / kẹo / bia phải ngắn
-  if (['fruit-slice', 'candy-match', 'slingshot'].includes(game)) return item.options.every((o) => (typeof o === 'string' ? o : o.vi).length <= 26);
-  return true;
-}
-
-const T = (x) => (typeof x === 'string' ? { vi: x, en: x } : x);
-const NUMERIC = /^-?[\d.,/]+$/;
-const UNIT = /^(-?[\d.,]+(?:\/\d+)?)\s?(cm|cm²|cm³|dm|dm²|m|m²|m³|km|km²|kg|g|l|ml|giờ|phút|giây|km\/giờ|°|°C|%)$/;
-
-/** Đổi câu trắc nghiệm Toán (đáp án là số) thành câu tự điền. Trả về null nếu đề cần nhìn các lựa chọn mới làm được. */
-export function mcToInput(it) {
-  if (!it || it.kind !== 'mc' || it.listen || it.passage) return null;
-  const right = T(it.options[0]);
-  const vi = it.prompt.vi;
-  if (/\bnào\b/.test(vi) && !/là số nào\?$/.test(vi) && !/ hay /.test(vi)) return null;
-  let answer = right.vi.replace(/−/g, '-'), unit = null;
-  const m = answer.match(UNIT);
-  if (m) { answer = m[1]; unit = m[2]; }
-  if (!NUMERIC.test(answer)) return null;
-  const unitEn = unit && T(right).en.match(UNIT)?.[2];
-  return { kind: 'input', prompt: it.prompt, title: it.title ?? null, answer, unit: unit ? { vi: unit, en: unitEn ?? unit } : null };
-}
 
 /** "Hứng các số CHẴN!" → "Chọn TẤT CẢ các số CHẴN". */
 function multiPrompt(p) {
@@ -106,17 +70,20 @@ function toRound(rnd, item, idx, game) {
   }
 }
 
-export { fits };
+export { fits, mcToInput };
 
 /** Trả về { game, rounds } — game có thể bị đổi sang 'quiz' nếu chủ đề thiếu dạng câu. */
 export function buildRounds(lesson, seed) {
   const topic = topicById.get(lesson.topicId);
   const rnd = makeRng(seed);
   let game = lesson.game;
-  const want = GAME_ROUNDS[game] ?? 6;
+  // bậc khó càng cao thì càng nhiều vòng (chỉ với game nhiều vòng)
+  const base = GAME_ROUNDS[game] ?? 6;
+  const want = lesson.tier && base >= 4 ? Math.round(base * [1, 0.75, 1, 1.15, 1.3][lesson.tier]) : base;
+  const ctx = { tier: lesson.tier ?? 1, game, grade: lesson.grade };
   let items = [];
 
-  if (game === 'multi-pick') return { game, rounds: buildMulti(topic, rnd, want) };
+  if (game === 'multi-pick') return { game, rounds: buildMulti(topic, rnd, want, ctx) };
   if (game === 'reading' && topic.items) {
     // đọc hiểu: lấy trọn từng đoạn văn với các câu hỏi của nó
     const groups = new Map();
@@ -130,9 +97,10 @@ export function buildRounds(lesson, seed) {
     const seen = new Set();
     const kinds = game === 'boss' ? ['mc', 'mc', 'tf'] : game === 'type-answer' ? ['mc'] : [GAME_KIND[game]];
     for (let tries = 0; items.length < want && tries < want * 25; tries++) {
-      let it = topic.gen(rnd, kinds[tries % kinds.length]);
-      if (game === 'type-answer') it = mcToInput(it);
-      if (!it) continue;
+      let it;
+      if (game === 'type-answer') it = (topic.practice ? topic.gen(rnd, 'input', ctx) : null) ?? mcToInput(topic.gen(rnd, 'mc', ctx));
+      else it = topic.gen(rnd, kinds[tries % kinds.length], ctx);
+      if (!it || (topic.practice && !fits(game, it))) continue;
       const k = keyOf(it);
       if (seen.has(k) && tries < want * 20) continue;
       seen.add(k);
@@ -150,12 +118,12 @@ export function buildRounds(lesson, seed) {
 }
 
 /** Game "Chọn nhiều đáp án": xen kẽ vòng từ câu hứng đồ và vòng "chọn các câu đúng". */
-function buildMulti(topic, rnd, want) {
+function buildMulti(topic, rnd, want, ctx = {}) {
   let cls = [], tfs = [];
   if (topic.gen) {
     const seen = new Set();
-    for (let i = 0; i < 12; i++) { const it = topic.gen(rnd, 'classify'); if (it) { cls.push(it); break; } }
-    for (let i = 0; i < 80 && tfs.length < want * 5; i++) { const it = topic.gen(rnd, 'tf'); if (it && !seen.has(keyOf(it))) { seen.add(keyOf(it)); tfs.push(it); } }
+    for (let i = 0; i < 12; i++) { const it = topic.gen(rnd, 'classify', ctx); if (it?.kind === 'classify') { cls.push(it); if (cls.length >= 3) break; } }
+    for (let i = 0; i < 80 && tfs.length < want * 5; i++) { const it = topic.gen(rnd, 'tf', ctx); if (it?.kind === 'tf' && !seen.has(keyOf(it))) { seen.add(keyOf(it)); tfs.push(it); } }
   } else {
     cls = shuffle(rnd, topic.items.filter((x) => x.kind === 'classify'));
     tfs = topic.items.filter((x) => x.kind === 'tf');

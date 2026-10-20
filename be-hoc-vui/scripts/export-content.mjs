@@ -34,6 +34,18 @@ for (const topic of TOPICS) {
   const base = { mon: subjName[topic.subject], lop: topic.grade, chude: topic.title.vi, id: topic.id };
   if (topic.items) {
     for (const it of topic.items) rows.push({ ...base, nguon: 'Soạn sẵn', loai: it.passage ? 'Đọc hiểu' : KIND[it.kind] ?? it.kind, ...describe(it) });
+  } else if (topic.practice) {
+    // chặng luyện tập sinh theo mẫu: chỉ xuất chặng cơ bản (mỗi khái niệm một lần), 3 ví dụ cho mỗi dạng
+    if (/-(2|on1|on2)$/.test(topic.id)) continue;
+    const rnd = makeRng(20261020 + topic.id.length);
+    for (const kind of ['mc', 'tf', 'pairs', 'order', 'classify', 'input', 'word']) {
+      const seen = new Set();
+      for (let tries = 0; seen.size < 3 && tries < 60; tries++) {
+        const it = topic.gen(rnd, kind, { tier: 2 }); if (!it || it.kind !== kind) continue;
+        const d = describe(it); const k = d.q + d.a; if (seen.has(k)) continue; seen.add(k);
+        rows.push({ ...base, nguon: 'Sinh theo mẫu (ví dụ)', loai: KIND[kind] ?? kind, ...d });
+      }
+    }
   } else {
     // toán tự sinh: 6 ví dụ khác nhau cho mỗi loại câu mà chủ đề có
     const rnd = makeRng(20261020 + topic.id.length);

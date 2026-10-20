@@ -31,8 +31,8 @@ export interface Subject { id: SubjectId; name: LText; world: LText; mascot: str
 export interface ShopItem { id: string; slot: keyof Look; value: string; price: number; name: LText }
 export interface Badge { id: string; icon: string; name: LText; desc: LText }
 export interface Catalog { subjects: Subject[]; topics: { id: string; subject: SubjectId; grade: number; title: LText }[]; games: Record<GameType, { name: LText; icon: string }>; shop: ShopItem[]; badges: Badge[]; lessonCount: number }
-export interface MapNode { id: string; index: number; topicId: string; game: GameType; kind: 'normal' | 'boss' | 'chest'; name: LText; stars: number; done: boolean; unlocked: boolean; coins: number }
-export interface MapData { subject: SubjectId; grade: number; topics: { id: string; title: LText }[]; nodes: MapNode[]; current: string | null }
+export interface MapNode { id: string; index: number; topicId: string; game: GameType; kind: 'normal' | 'boss' | 'chest'; name: LText; stars: number; done: boolean; unlocked: boolean; coins: number; tier?: number | null }
+export interface MapData { subject: SubjectId; grade: number; topics: { id: string; title: LText; practice?: boolean }[]; nodes: MapNode[]; current: string | null }
 export interface SessionStart {
   sessionId: string; game: GameType; rounds: Round[];
   lesson: { id: string; index: number; subject: SubjectId; grade: number; kind: string; hearts: number | null; name: LText; topic: LText; coins: number; prevStars: number };

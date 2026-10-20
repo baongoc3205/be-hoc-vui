@@ -75,7 +75,7 @@ export function auditContent({ seeds = 60 } = {}) {
       for (let s = 1; s <= seeds; s++) {
         const rnd = makeRng(s * 7919 + t.id.length);
         for (const k of KINDS) {
-          const it = t.gen(rnd, k);
+          const it = t.gen(rnd, k, { tier: (s % 4) + 1, grade: t.grade });
           if (it) checkItem(`${t.id}(seed ${s}, ${k})`, it, out);
         }
       }
@@ -88,6 +88,7 @@ export function auditContent({ seeds = 60 } = {}) {
       const { game, rounds } = buildRounds(l, s * 101);
       if (!rounds.length) { out.push(`${l.id}: không dựng được vòng chơi nào`); break; }
       if (game !== l.game) out.push(`${l.id}: game ${l.game} thiếu câu phù hợp, bị đổi sang ${game}`);
+      if (rounds.length < (['drag-match', 'memory', 'catch-fall'].includes(game) ? 1 : 3)) out.push(`${l.id}: chỉ dựng được ${rounds.length} vòng ${game}`);
       for (const r of rounds) {
         const want = GAME_KIND[game];
         if (game !== 'boss' && r.kind !== want) out.push(`${l.id}: vòng ${r.kind} không khớp game ${game}`);
@@ -103,7 +104,7 @@ export function auditContent({ seeds = 60 } = {}) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const errs = auditContent();
   const n = TOPICS.reduce((a, t) => a + (t.items?.length ?? 0), 0);
-  console.log(`Đã rà ${TOPICS.length} chủ đề, ${n} câu soạn sẵn, ${TOPICS.filter((t) => t.gen).length} bộ sinh đề Toán, ${LESSONS.length} màn chơi.`);
+  console.log(`Đã rà ${TOPICS.length} chủ đề, ${n} câu soạn sẵn, ${TOPICS.filter((t) => t.gen).length} bộ sinh đề tự động, ${LESSONS.length} màn chơi.`);
   if (errs.length) { console.log(`✗ ${errs.length} lỗi:\n - ${errs.slice(0, 200).join('\n - ')}`); process.exit(1); }
   console.log('✓ Không thấy lỗi.');
 }

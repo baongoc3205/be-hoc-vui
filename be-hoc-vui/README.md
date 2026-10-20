@@ -4,7 +4,7 @@
 
 **Web game học tập song ngữ Việt – Anh cho học sinh lớp 1 đến lớp 9**
 
-Toán · Tiếng Việt · Tiếng Anh · Khoa học — 99 chủ đề · 569 màn chơi · 19 loại game · Khu vui chơi mini game · 86 món thời trang
+Toán · Tiếng Việt · Tiếng Anh · Khoa học — 609 chủ đề & chặng · hơn 5.100 màn chơi (trên 120 màn mỗi môn, mỗi lớp) · 19 loại game · Khu vui chơi mini game · 86 món thời trang
 
 ![Bé Học Vui](docs/screenshots/lobby.png)
 
@@ -176,7 +176,18 @@ Bám theo Chương trình GDPT 2018 ở mức khái quát.
 | Tiếng Anh | 18 | Ngân hàng câu hỏi soạn sẵn, có bài đọc tự viết |
 | Khoa học | 18 | Ngân hàng câu hỏi soạn sẵn (song ngữ), có bài đọc khoa học |
 
-Tổng cộng: 99 chủ đề, 569 màn chơi, 99 rương báu, 1274 câu hỏi soạn sẵn (chưa tính câu Toán sinh tự động), cộng các ván mini game trong Khu vui chơi.
+Tổng cộng: 99 chủ đề soạn sẵn (1289 câu) + 510 chặng luyện tập sinh theo mẫu, hơn 5.100 màn chơi và 609 rương báu, cộng các ván mini game trong Khu vui chơi.
+
+### Chặng luyện tập sinh theo mẫu (`server/content/practice/`)
+
+Để mỗi môn, mỗi lớp có trên 100 màn mà không phải soạn tay từng câu, câu hỏi được sinh từ **bảng dữ liệu + mẫu đề**:
+
+- `engine.js` — bộ máy chung. Một *khái niệm* là một bảng (từ vựng, con vật, chất, tác phẩm…) cùng các mẫu câu: hỏi xuôi ("‘teacher’ nghĩa là gì?"), hỏi ngược ("Con vật nào đẻ trứng?"), đúng/sai, nối cặp, hứng đồ, sắp xếp, nghe chọn, ghép chữ, tự điền, điền chỗ trống. Cùng một mẫu được lặp lại ở nhiều màn với **đối tượng khác** (con vật, đồ vật, từ khác) và **số lượng khác** (3 hay 4 lựa chọn, 3–5 cặp, 4–7 mục hứng, số lớn dần).
+- `en.js`, `vi.js`, `sci.js`, `math.js` — dữ liệu và mẫu đề từng môn, chia theo lớp 1–9 (khoảng 6 khái niệm mỗi lớp).
+- `campaign.js` — dựng chặng: với mỗi lớp, mỗi môn có chặng cơ bản (bậc 1–2) cho từng khái niệm → Ôn tập 1 → chặng nâng cao (bậc 3–4) → Ôn tập 2. Mỗi chặng 9 màn (8 màn + màn trùm), game được chọn tự động trong số game mà khái niệm hỗ trợ và xoay vòng để các chặng liền nhau khác nhau.
+- **Bậc khó** (1–4) đổi số lựa chọn, số cặp, độ lớn của số, và số vòng mỗi màn (bậc 4 nhiều hơn bậc 1 khoảng 70%). Mỗi lần chơi, máy sinh đề mới theo một hạt giống ngẫu nhiên.
+- Các chặng luôn đứng **sau** các chủ đề cũ trên bản đồ, nên mã màn và tiến độ cũ của bé không đổi. Bản đồ có thanh chọn chặng để nhảy nhanh.
+- Thêm một khái niệm mới chỉ cần thêm một bảng vào file của môn đó; bộ dựng chặng và bước rà lỗi tự động lo phần còn lại.
 
 Các dạng đề: trắc nghiệm, đúng/sai, điền chỗ trống, nghe và chọn, nối cặp, lật thẻ, sắp xếp, ghép chữ, xem đồng hồ, hứng đồ, tô theo nét, **tự điền đáp án** (gõ chữ hoặc dùng bàn phím số; không phân biệt hoa thường, 0,5 = 0.5; quên dấu tiếng Việt được nửa điểm), **chọn nhiều đáp án** (phải chọn đủ, không thừa) và **đọc hiểu** (đoạn văn kèm câu hỏi). Chạy `npm run audit:content` để rà lỗi bộ đề tự động (lựa chọn trùng, thiếu bản dịch, câu trùng, đáp án không chấm được…); bộ kiểm thử cũng chạy bước này.
 
@@ -212,8 +223,8 @@ npm run dev     # server API cổng 5174 + giao diện hot-reload cổng 5173 �
 | `npm run build` | Build giao diện bằng Vite vào `client/dist` (khi đưa lên Render, giao diện được build tự động) |
 | `npm run build:fast` | Build nhanh bằng esbuild (phương án dự phòng) |
 | `npm run typecheck` | Kiểm tra kiểu TypeScript |
-| `npm test` | Chạy 18 nhóm kiểm thử máy chủ: luồng tài khoản, chấm điểm, nội dung (100 hạt giống mỗi màn), đáp án Toán giải lại độc lập, ca biên giờ Việt Nam, thử tấn công, sao lưu/khôi phục, Turso |
-| `npm run test:ui` | Kiểm thử giao diện bằng Playwright: mọi màn ở 7 cỡ màn hình + chơi thử 20 loại trò chơi (cần `npm i --no-save playwright && npx playwright install chromium`) |
+| `npm test` | Chạy 19 nhóm kiểm thử máy chủ: luồng tài khoản, chấm điểm, nội dung (100 hạt giống mỗi màn), đáp án Toán giải lại độc lập, ca biên giờ Việt Nam, thử tấn công, sao lưu/khôi phục, Turso |
+| `npm run test:ui` | Kiểm thử giao diện bằng Playwright: mọi màn ở 7 cỡ màn hình + chơi thử 22 loại trò chơi (cần `npm i --no-save playwright && npx playwright install chromium`) |
 | `npm run backup` | Sao lưu toàn bộ dữ liệu (Turso hoặc file) ra `backups/*.json` — xem [docs/DEPLOY.md](docs/DEPLOY.md) |
 | `npm run restore -- <file>` | Khôi phục từ file sao lưu (từ chối ghi đè database đã có dữ liệu, trừ khi thêm `--force`) |
 | `npm run audit:content` | Rà soát tự động toàn bộ bộ đề, in danh sách câu lỗi |

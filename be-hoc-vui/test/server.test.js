@@ -27,7 +27,7 @@ function perfect(r) {
 test('mọi màn đều tạo được vòng chơi hợp lệ (nhiều seed)', () => {
   let count = 0;
   for (const l of LESSONS.filter((x) => x.kind !== 'chest')) {
-    for (let seed = 1; seed <= 25; seed++) {
+    for (let seed = 1; seed <= (l.tier != null ? 4 : 25); seed++) {
       const { game, rounds } = buildRounds(l, seed * 7919);
       assert.ok(rounds.length >= 1, `${l.id} (${game}) không có vòng nào`);
       for (const r of rounds) {
@@ -59,7 +59,7 @@ test('đáp án Toán chính xác (kiểm tra lại bằng tính toán)', () => 
         if (!m) continue;
         const expr = m[1].replace(/−/g, '-').replace(/×/g, '*').replace(/:/g, '/');
         const val = Function(`return (${expr})`)();
-        assert.equal(Number(r.options[r.answer].vi), val, `${l.id}: ${r.prompt.vi}`);
+        assert.equal(Number(r.options[r.answer].vi.replace('−', '-')), val, `${l.id}: ${r.prompt.vi}`);
       }
     }
   }
@@ -159,13 +159,36 @@ test('dạng chọn nhiều đáp án: phải chọn đủ và không thừa', (
   }
 });
 
+test('chặng luyện tập: mỗi môn mỗi lớp trên 100 màn, bậc khó tăng dần, sinh đề ổn định theo seed', () => {
+  for (const subject of ['math', 'vietnamese', 'english', 'science']) {
+    for (let grade = 1; grade <= 9; grade++) {
+      const ls = LESSONS.filter((l) => l.subject === subject && l.grade === grade && l.kind !== 'chest');
+      assert.ok(ls.length > 100, `${subject} lớp ${grade}: chỉ có ${ls.length} màn`);
+      const tiers = ls.filter((l) => l.tier != null).map((l) => l.tier);
+      assert.ok(tiers.includes(1) && tiers.includes(4), `${subject} lớp ${grade}: thiếu bậc khó`);
+    }
+  }
+  const quiz = LESSONS.filter((l) => l.game === 'quiz' && l.tier != null);
+  const easy = quiz.find((l) => l.tier === 1), hard = quiz.find((l) => l.tier === 4 && l.subject === easy.subject);
+  assert.ok(buildRounds(hard, 3).rounds.length > buildRounds(easy, 3).rounds.length, 'bậc 4 phải nhiều vòng hơn bậc 1');
+  assert.ok(buildRounds(easy, 3).rounds.every((r) => r.options.length <= 3), 'bậc 1: 3 lựa chọn');
+  assert.deepEqual(buildRounds(hard, 99), buildRounds(hard, 99), 'cùng seed phải ra cùng đề');
+  assert.notDeepEqual(buildRounds(hard, 99).rounds.map((r) => r.prompt), buildRounds(hard, 100).rounds.map((r) => r.prompt), 'khác seed phải ra đề khác');
+  // mã màn cũ không đổi: các chủ đề cũ vẫn đứng trước chặng luyện tập trên bản đồ
+  for (const subject of ['math', 'vietnamese', 'english', 'science']) {
+    const ls = LESSONS.filter((l) => l.subject === subject && l.grade === 3);
+    const firstP = ls.findIndex((l) => l.tier != null);
+    assert.ok(ls.slice(firstP).every((l) => l.tier != null || l.kind === 'chest'), `${subject}: chặng luyện tập phải nằm cuối bản đồ`);
+  }
+});
+
 test('logic điểm, cấp độ, năng lượng', () => {
   const r = computeRewards({ qualities: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], maxCombo: 10, baseCoins: 15, baseXp: 60, prevStars: 0 });
   assert.equal(r.stars, 3); assert.equal(r.coins, 15 + 3 + 10); assert.equal(r.xp, 60);
   assert.equal(computeRewards({ qualities: [0, 0, 1], maxCombo: 1, baseCoins: 15, baseXp: 60, prevStars: 0 }).stars, 0);
   assert.equal(levelInfo(0).level, 1); assert.equal(levelInfo(50).level, 2);
   const e = currentEnergy(3, 0, ENERGY_MS * 2 + 5); assert.equal(e.value, 5);
-  assert.equal(TOPICS.length, 99);
+  assert.equal(TOPICS.filter((t) => !t.practice).length, 99);
 });
 
 async function apiFlow(db) {
