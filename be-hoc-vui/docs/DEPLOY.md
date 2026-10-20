@@ -54,6 +54,40 @@ Bảng dữ liệu sẽ được máy chủ tự tạo ở lần chạy đầu t
 
 Kiểm tra máy chủ: mở `https://<địa-chỉ-của-bạn>/api/health`, trang sẽ hiện `{"ok":true,...}`.
 
+## Bước 4 (nên làm). Kiểm tra tự động trước khi lên web
+
+Repo đã có sẵn `.github/workflows/ci.yml`. Mỗi lần đẩy code, GitHub tự chạy kiểm thử và build; xem kết quả ở tab **Actions** của repo (dấu ✓ xanh là đạt).
+
+- Nếu repo chỉ chứa dự án (khuyên dùng), không phải làm gì thêm.
+- Nếu dự án nằm trong thư mục con `be-hoc-vui`, chép file sang `.github/workflows/ci.yml` ở gốc repo và bỏ dấu `#` ở dòng `defaults` theo hướng dẫn trong file.
+- Trên Render → Settings → **Auto-Deploy**, nếu có lựa chọn **After CI Checks Pass** thì chọn nó: bản lỗi sẽ không bao giờ lên web.
+
+## Sao lưu dữ liệu (nên làm mỗi tuần và trước mỗi lần cập nhật lớn)
+
+Trên máy tính có cài Node.js, mở PowerShell trong thư mục `be-hoc-vui`:
+
+```powershell
+$env:TURSO_DATABASE_URL = "libsql://...turso.io"     # giống trên Render
+$env:TURSO_AUTH_TOKEN   = "token-của-bạn"
+npm run backup
+```
+
+File sao lưu nằm trong thư mục `backups/`, ví dụ `backups/behocvui-2026-10-20-08-30.json`.
+
+⚠ File này chứa email phụ huynh và tiến độ của các bé: cất ở nơi an toàn (ổ đĩa riêng, Google Drive cá nhân), **không** đưa lên GitHub. Thư mục `backups/` đã có trong `.gitignore`.
+
+**Khôi phục** (ví dụ khi lỡ xoá nhầm dữ liệu):
+
+1. Tạo một database Turso mới, lấy URL và token của nó.
+2. Đặt 2 biến `$env:TURSO_...` như trên nhưng trỏ vào database mới, rồi chạy:
+   ```powershell
+   npm run restore -- backups/behocvui-2026-10-20-08-30.json
+   ```
+   Lệnh báo `Số dòng mọi bảng khớp với bản sao lưu` là thành công.
+3. Đổi `TURSO_DATABASE_URL` và `TURSO_AUTH_TOKEN` trên Render sang database mới.
+
+Lệnh khôi phục từ chối ghi vào database đã có dữ liệu. Chỉ thêm `--force` khi chắc chắn muốn **xoá sạch** dữ liệu hiện có và thay bằng bản sao lưu.
+
 ## Gặp lỗi?
 
 | Lỗi | Cách sửa |

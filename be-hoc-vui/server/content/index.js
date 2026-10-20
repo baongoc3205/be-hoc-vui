@@ -1,5 +1,6 @@
 // Danh mục nội dung: môn học, chủ đề, bài học (màn chơi), cửa hàng, huy hiệu, nhiệm vụ.
 import { mathTopics } from './math.js';
+import { mathTopics2 } from './math2.js';
 import { bankTopics } from './bank.js';
 
 const L = (vi, en) => ({ vi, en: en ?? vi });
@@ -24,12 +25,17 @@ export const GAME_INFO = {
   'word-builder': { name: L('Ghép chữ', 'Word builder'), icon: 'word' },
   clock: { name: L('Xem đồng hồ', 'Clock'), icon: 'clock' },
   'catch-fall': { name: L('Hứng đồ', 'Catch it'), icon: 'catch' },
+  'fruit-slice': { name: L('Chém trái cây', 'Fruit slice'), icon: 'slice' },
+  'candy-match': { name: L('Xếp kẹo', 'Candy match'), icon: 'candy' },
+  slingshot: { name: L('Bắn ná', 'Slingshot'), icon: 'sling' },
+  'draw-trace': { name: L('Bé tập vẽ', 'Trace & draw'), icon: 'draw' },
   boss: { name: L('Thử thách trùm', 'Boss challenge'), icon: 'boss' },
   chest: { name: L('Rương báu', 'Treasure chest'), icon: 'chest' },
 };
 
 export const TOPICS = [
   ...mathTopics.map((t) => ({ ...t, subject: 'math' })),
+  ...mathTopics2.map((t) => ({ ...t, subject: 'math' })),
   ...bankTopics,
 ];
 export const topicById = new Map(TOPICS.map((t) => [t.id, t]));

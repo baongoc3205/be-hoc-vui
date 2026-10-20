@@ -5,12 +5,13 @@ export type Lang = 'vi' | 'en';
 export type SubjectId = 'math' | 'vietnamese' | 'english' | 'science';
 export type GameType =
   | 'quiz' | 'true-false' | 'balloon-pop' | 'math-race' | 'fill-blank' | 'listen-pick'
-  | 'drag-match' | 'memory' | 'sort-order' | 'word-builder' | 'clock' | 'catch-fall' | 'boss' | 'chest';
+  | 'drag-match' | 'memory' | 'sort-order' | 'word-builder' | 'clock' | 'catch-fall' | 'boss' | 'chest'
+  | 'fruit-slice' | 'candy-match' | 'slingshot' | 'draw-trace';
 
 export interface Look {
   skin: string; hair: string; hairColor: string; ears: string; outfit: string; outfitColor: string; acc: string; shoes: string; hold: string; scene: string;
 }
-export interface Parent { id: number; name: string; email: string | null; isGuest: boolean }
+export interface Parent { id: number; name: string; email: string | null; isGuest: boolean; hasRecovery?: boolean }
 export interface ChildSettings { dailyLimitMin: number; energy: boolean; leaderboard: boolean }
 export interface Child { id: number; nickname: string; grade: number; ageTheme: 'sprout' | 'bud' | 'wing'; look: Look; settings: ChildSettings }
 export interface Quest { id: string; name: LText; target: number; coins: number; progress: number; done: boolean; claimed: boolean }

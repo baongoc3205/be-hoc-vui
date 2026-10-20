@@ -42,6 +42,13 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS checkins (
     child_id INTEGER NOT NULL REFERENCES children(id) ON DELETE CASCADE, day TEXT NOT NULL, seq INTEGER NOT NULL,
     coins INTEGER NOT NULL DEFAULT 0, energy INTEGER NOT NULL DEFAULT 0, item TEXT, PRIMARY KEY (child_id, day))`,
+  // giới hạn đăng nhập sai / gửi email (lưu DB để không mất khi máy chủ khởi động lại)
+  `CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, n INTEGER NOT NULL, t INTEGER NOT NULL)`,
+  // mã khôi phục: thay cho email quên mật khẩu (chỉ lưu dạng băm, phụ huynh tự cất mã)
+  `CREATE TABLE IF NOT EXISTS recovery_codes (parent_id INTEGER PRIMARY KEY, code_hash TEXT NOT NULL, created_at INTEGER NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS consents (parent_id INTEGER PRIMARY KEY, version TEXT NOT NULL, at INTEGER NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS client_errors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL, message TEXT, stack TEXT, route TEXT, ua TEXT)`,
 ];
 
 /** Bảng phụ thuộc vào children — xoá thủ công để chạy đúng cả khi foreign key không bật (Turso). */

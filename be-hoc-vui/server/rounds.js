@@ -11,7 +11,9 @@ function fits(game, item) {
   if (item.kind !== kind) return false;
   if (game === 'listen-pick') return !!item.listen;
   if (game === 'fill-blank') return !!item.blank;
-  if (kind === 'mc') return !item.listen;
+  if (kind === 'mc' && item.listen) return false;
+  // mini game hành động: chữ trên trái cây / kẹo / bia phải ngắn
+  if (['fruit-slice', 'candy-match', 'slingshot'].includes(game)) return item.options.every((o) => (typeof o === 'string' ? o : o.vi).length <= 26);
   return true;
 }
 
@@ -41,10 +43,14 @@ function toRound(rnd, item, idx, game) {
       return { ...base, h: item.h, m: item.m };
     case 'classify':
       return { ...base, items: shuffle(rnd, item.items) };
+    case 'trace':
+      return { ...base, shape: item.shape };
     default:
       return base;
   }
 }
+
+export { fits };
 
 /** Trả về { game, rounds } — game có thể bị đổi sang 'quiz' nếu chủ đề thiếu dạng câu. */
 export function buildRounds(lesson, seed) {

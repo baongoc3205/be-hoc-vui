@@ -6,7 +6,7 @@ import type { Child, Parent } from '../lib/types';
 import { Btn, Dialog, Field, Inset, Panel, Segmented, Toggle, TopBar } from '../ui/kit';
 import { Chibi } from '../ui/Chibi';
 import { Glyph } from '../ui/Icons';
-import { errText } from './Auth';
+import { Consent, errText, RecoveryCodeDialog } from './Auth';
 import { sfx } from '../lib/sfx';
 
 let gateUntil = 0; // mở khoá cổng phụ huynh trong 10 phút
@@ -65,6 +65,10 @@ export function Parents() {
   const [del, setDel] = useState<Child | null>(null);
   const [pw, setPw] = useState(''); const [err, setErr] = useState('');
   const [acct, setAcct] = useState<'upgrade' | 'password' | null>(null);
+  const [delAcct, setDelAcct] = useState(false);
+  const [codeAsk, setCodeAsk] = useState(false);
+  const [code, setCode] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', current: '' });
 
   const load = () => { if (sel) api.get<Report>(`/children/${sel}/report`).then(setRep).catch(() => setRep(null)); };
@@ -83,11 +87,30 @@ export function Parents() {
     try { await api.post('/auth/verify', { password: pw }); await api.del(`/children/${del.id}`); if (activeChild === del.id) selectChild(null); const ks = await loadChildren(); setSel(ks[0]?.id ?? null); setDel(null); setPw(''); }
     catch (e) { setErr(errText(T, e)); }
   };
+  const exportData = async () => {
+    try {
+      const res = await fetch('/api/account/export', { credentials: 'same-origin' });
+      if (!res.ok) throw new Error(String(res.status));
+      const blob = new Blob([JSON.stringify(await res.json(), null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `be-hoc-vui-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    } catch { toast(T.t('err_SERVER_ERROR'), 'warn'); }
+  };
+  const deleteAccount = async () => {
+    setErr('');
+    try { await api.post('/account/delete', { password: pw }); selectChild(null); setState({ parent: null, children: [], cs: null }); setDelAcct(false); toast(T.t('accountDeleted')); go('auth'); }
+    catch (e) { setErr(errText(T, e)); }
+  };
+  const makeCode = async () => {
+    setErr('');
+    try { const r = await api.post<{ recoveryCode: string }>('/auth/recovery-code', { password: pw }); setCodeAsk(false); setPw(''); setState({ parent: { ...parent, hasRecovery: true } }); setCode(r.recoveryCode); }
+    catch (e) { setErr(errText(T, e)); }
+  };
   const logout = async () => { await api.post('/auth/logout'); selectChild(null); setState({ parent: null, children: [], cs: null }); go('auth'); };
   const saveAcct = async () => {
     setErr('');
     try {
-      if (acct === 'upgrade') { const r = await api.post<{ parent: Parent }>('/auth/upgrade', form); setState({ parent: r.parent }); }
+      if (acct === 'upgrade') { if (!consent) { setErr(T.t('err_CONSENT_REQUIRED')); return; } const r = await api.post<{ parent: Parent; recoveryCode: string }>('/auth/upgrade', { ...form, consent }); setState({ parent: { ...r.parent, hasRecovery: true } }); setCode(r.recoveryCode); }
       else await api.post('/auth/password', { current: form.current, next: form.password });
       setAcct(null); setForm({ name: '', email: '', password: '', current: '' }); toast(T.t('saved'));
     } catch (e) { setErr(errText(T, e)); }
@@ -98,6 +121,7 @@ export function Parents() {
     <div className="screen parents">
       <div className="screen-content">
         <TopBar title={T.t('parentsArea')} onBack={() => go(activeChild ? 'lobby' : 'profiles')} hideHud right={<Btn tone="gray" size="sm" icon={<Glyph name="logout" size={18} />} onClick={logout}>{T.t('logout')}</Btn>} />
+        {!parent.isGuest && parent.hasRecovery === false && <Inset className="row"><div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}><b style={{ flex: 1 }}>{T.t('noRecoveryYet')}</b><Btn tone="orange" size="sm" onClick={() => { setErr(''); setPw(''); setCodeAsk(true); }}>{T.t('newRecovery')}</Btn></div></Inset>}
         {parent.isGuest && <Inset className="row"><div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}><b style={{ flex: 1 }}>{T.t('guestAccount')}</b><Btn tone="orange" size="sm" onClick={() => { setErr(''); setAcct('upgrade'); }}>{T.t('createAccount')}</Btn></div></Inset>}
         <div className="p-grid">
           <div className="p-kids">
@@ -109,6 +133,13 @@ export function Parents() {
             ))}
             {kids.length < 4 && <Btn tone="cream" size="sm" icon={<Glyph name="plus" size={18} />} onClick={() => go('onboarding')}>{T.t('addChild')}</Btn>}
             {!parent.isGuest && <button type="button" className="link-btn" onClick={() => { setErr(''); setAcct('password'); }}>{T.t('changePassword')}</button>}
+            <div className="family-data">
+              <b>{T.t('familyData')}</b>
+              <button type="button" className="link-btn" onClick={exportData}>{T.t('exportData')}</button>
+              {!parent.isGuest && <button type="button" className="link-btn" onClick={() => { setErr(''); setPw(''); setCodeAsk(true); }}>{T.t('newRecovery')}</button>}
+              <button type="button" className="link-btn danger" onClick={() => { setErr(''); setPw(''); setDelAcct(true); }}>{T.t('deleteAccount')}</button>
+              <a className="link-btn" href="#/privacy">{T.t('privacyPolicy')}</a>
+            </div>
           </div>
           {child && rep ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -163,6 +194,20 @@ export function Parents() {
           <div className="form-error">{err}</div>
         </Dialog>
       )}
+      {codeAsk && (
+        <Dialog title={T.t('newRecovery')} icon="shield" onClose={() => setCodeAsk(false)} actions={<><Btn tone="gray" onClick={() => setCodeAsk(false)}>{T.t('cancel')}</Btn><Btn tone="lime" onClick={makeCode}>{T.t('goOn')}</Btn></>}>
+          <Field label={T.t('enterPassword')} type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" />
+          <div className="form-error">{err}</div>
+        </Dialog>
+      )}
+      {code && <RecoveryCodeDialog code={code} email={parent.email} onDone={() => setCode(null)} />}
+      {delAcct && (
+        <Dialog title={T.t('deleteAccount')} onClose={() => setDelAcct(false)} actions={<><Btn tone="gray" onClick={() => setDelAcct(false)}>{T.t('cancel')}</Btn><Btn tone="orange" onClick={deleteAccount}>{T.t('confirm')}</Btn></>}>
+          <p style={{ marginTop: 0 }}>{T.t('deleteAccountAsk')}</p>
+          {!parent.isGuest && <Field label={T.t('enterPassword')} type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" />}
+          <div className="form-error">{err}</div>
+        </Dialog>
+      )}
       {acct && (
         <Dialog title={acct === 'upgrade' ? T.t('createAccount') : T.t('changePassword')} icon="user" onClose={() => setAcct(null)} actions={<><Btn tone="gray" onClick={() => setAcct(null)}>{T.t('cancel')}</Btn><Btn tone="lime" onClick={saveAcct}>{T.t('save')}</Btn></>}>
           <div className="dialog-body left" style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -170,6 +215,7 @@ export function Parents() {
               <Field label={T.t('parentName')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               <Field label={T.t('email')} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" />
               <Field label={T.t('password')} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete="new-password" />
+              <Consent on={consent} onChange={setConsent} />
             </>) : (<>
               <Field label={T.t('currentPassword')} type="password" value={form.current} onChange={(e) => setForm({ ...form, current: e.target.value })} autoComplete="current-password" />
               <Field label={T.t('newPassword')} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete="new-password" />

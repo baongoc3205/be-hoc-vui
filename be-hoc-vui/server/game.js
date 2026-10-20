@@ -2,6 +2,7 @@
 import { randomBytes } from 'node:crypto';
 import { HttpError } from './http.js';
 import { buildRounds } from './rounds.js';
+import './arcade.js'; // đăng ký các bài Khu vui chơi vào lessonById
 import { computeRewards, currentEnergy, gradeRound, levelInfo, makeRng, shuffle, ageThemeForGrade, MAX_ENERGY } from '../shared/logic.js';
 import { BADGES, CHECKIN_REWARDS, DEFAULT_LOOK, FREE_ITEMS, GAME_INFO, LESSONS, QUEST_POOL, SHOP, SUBJECTS, TOPICS, lessonById, lessonsFor, shopById, topicById } from './content/index.js';
 
@@ -168,9 +169,16 @@ export async function nextUp(db, child) {
 export async function startSession(db, child, lessonId) {
   const lesson = lessonById.get(lessonId);
   if (!lesson || lesson.kind === 'chest') throw new HttpError(404, 'LESSON_NOT_FOUND');
-  const map = (await mapOf(db, child, lesson.subject, lesson.grade));
-  const node = map.nodes.find((n) => n.id === lessonId);
-  if (!node.unlocked) throw new HttpError(403, 'LESSON_LOCKED');
+  let node;
+  if (lesson.kind === 'arcade') {
+    // Khu vui chơi: luôn mở, không cần qua màn trước
+    const p = await db.prepare('SELECT stars FROM lesson_progress WHERE child_id = ? AND lesson_id = ?').get(child.id, lesson.id);
+    node = { index: 1, stars: p?.stars ?? 0 };
+  } else {
+    const map = (await mapOf(db, child, lesson.subject, lesson.grade));
+    node = map.nodes.find((n) => n.id === lessonId);
+    if (!node.unlocked) throw new HttpError(403, 'LESSON_LOCKED');
+  }
   const st = (await stateOf(db, child));
   if (st.today.limit > 0 && st.today.minutes >= st.today.limit) throw new HttpError(423, 'DAILY_LIMIT');
   if (st.energy.enabled) {
@@ -215,7 +223,7 @@ export async function statsFor(db, child) {
   const bySubject = { math: 0, vietnamese: 0, english: 0, science: 0 };
   let threeStars = 0, bossDone = 0, perfectBoss = 0;
   for (const r of rows) {
-    const l = lessonById.get(r.lesson_id); if (!l || l.kind === 'chest') continue;
+    const l = lessonById.get(r.lesson_id); if (!l || l.kind === 'chest' || l.kind === 'arcade') continue;
     bySubject[l.subject]++;
     if (r.stars === 3) threeStars++;
     if (l.kind === 'boss') { bossDone++; if (r.stars === 3) perfectBoss++; }
@@ -277,9 +285,12 @@ export async function finishSession(db, child, sessionId, body) {
   const newBadges = (await awardBadges(db, child.id));
   const fresh = (await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id));
   const after = levelInfo(fresh.xp).level;
-  const map = (await mapOf(db, fresh, lesson.subject, lesson.grade));
-  const idx = map.nodes.findIndex((n) => n.id === lesson.id);
-  const next = map.nodes.slice(idx + 1).find((n) => n.unlocked && !n.done) ?? null;
+  let next = null;
+  if (lesson.kind !== 'arcade') {
+    const map = (await mapOf(db, fresh, lesson.subject, lesson.grade));
+    const idx = map.nodes.findIndex((n) => n.id === lesson.id);
+    next = map.nodes.slice(idx + 1).find((n) => n.unlocked && !n.done) ?? null;
+  }
   return {
     ...rw, prevStars, maxCombo, durationSec, levelUp: after > before ? after : null, newBadges,
     review: rounds.map((r, i) => ({ id: r.id, q: qualities[i] })),
@@ -300,17 +311,6 @@ export async function openMapChest(db, child, lessonId) {
   (await db.prepare('UPDATE children SET coins = coins + ? WHERE id = ?').run(coins, child.id));
   const fresh = (await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id));
   return { coins, state: (await stateOf(db, fresh)) };
-}
-
-export async function openDailyChest(db, child) {
-  const today = dayKey();
-  if (child.chest_date === today) throw new HttpError(409, 'ALREADY_OPENED');
-  const coins = 10 + Math.floor(Math.random() * 21);
-  const en = currentEnergy(child.energy, child.energy_at, Date.now());
-  const energy = Math.min(MAX_ENERGY, en.value + 2);
-  (await db.prepare('UPDATE children SET coins = coins + ?, chest_date = ?, energy = ?, energy_at = ? WHERE id = ?').run(coins, today, energy, energy >= MAX_ENERGY ? Date.now() : en.updatedAt, child.id));
-  const fresh = (await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id));
-  return { coins, energy: 2, state: (await stateOf(db, fresh)) };
 }
 
 export async function claimQuest(db, child, questId) {

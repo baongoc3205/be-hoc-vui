@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../lib/api';
-import { go, setChildState, useApp } from '../lib/store';
+import { go, setChildState, toast, useApp } from '../lib/store';
 import { useT } from '../lib/hooks';
 import { gradeRound } from '../../../shared/logic.js';
 import type { FinishResult, Round, SessionStart } from '../lib/types';
@@ -10,10 +10,12 @@ import { Chibi, MASCOTS, type Mood } from '../ui/Chibi';
 import { BadgeMedal, CoinIcon, Glyph, HeartIcon, StarIcon } from '../ui/Icons';
 import { CatchFall, ClockGame, FillBlank, Match, Memory, Quiz, SortOrder, TrueFalse, WordBuilder } from '../games/StepGames';
 import { BalloonPop, MathRace } from '../games/FlowGames';
+import { CandyMatch, DrawTrace, FruitSlice, Slingshot } from '../games/ArcadeGames';
 import { sfx } from '../lib/sfx';
-import { speak, stopSpeak } from '../lib/speech';
+import { speak, stopSpeak, voiceStatus } from '../lib/speech';
 import { burstAt, confettiRain, flyCoins } from '../lib/fx';
 import { errText } from './Auth';
+import { playArcade } from './Arcade';
 
 type Answer = { round: string; given: unknown };
 const FLOW = new Set(['math-race', 'balloon-pop']);
@@ -83,7 +85,7 @@ export function Play({ lessonId }: { lessonId: string }) {
     if (ok) { sfx.correct(); setMood('cheer'); burstAt(document.querySelector('.opt.good, .q-card'), 'stars', 12); if (nc >= 3 && nc % 3 === 0) { setComboShow(nc); setTimeout(() => setComboShow(0), 1100); } }
     else { sfx.wrong(); setMood('sad'); if (hearts !== null) setHearts(hearts - 1); }
     const ans = answerText(round);
-    const pctText = round.kind === 'pairs' || round.kind === 'classify' ? `${Math.round(q * 100)}%` : '';
+    const pctText = round.kind === 'pairs' || round.kind === 'classify' || round.kind === 'trace' ? `${Math.round(q * 100)}%` : '';
     setFb({ ok, title: T.pickOne(ok ? 'correct' : 'wrong'), text: ok ? pctText : ans ? T.t('rightAnswer', { a: ans }) : pctText });
   };
   const next = () => {
@@ -97,7 +99,7 @@ export function Play({ lessonId }: { lessonId: string }) {
   useEffect(() => { if (!fb) return; const f = (e: KeyboardEvent) => { if (e.key === 'Enter') next(); }; addEventListener('keydown', f); return () => removeEventListener('keydown', f); });
 
   const mascot = MASCOTS[{ math: 'bo', vietnamese: 'mochi', english: 'foxy', science: 'kiwi' }[sess?.lesson.subject ?? 'math'] ?? 'mimi'];
-  const hint = game ? ({ 'drag-match': T.t('matchHint'), memory: T.t('memoryHint'), 'sort-order': T.t('sortHint'), 'word-builder': T.t('wordHint'), clock: T.t('clockHint'), 'catch-fall': T.t('catchHint'), 'true-false': T.t('swipeHint') } as Record<string, string>)[game] : '';
+  const hint = game ? ({ 'drag-match': T.t('matchHint'), memory: T.t('memoryHint'), 'sort-order': T.t('sortHint'), 'word-builder': T.t('wordHint'), clock: T.t('clockHint'), 'catch-fall': T.t('catchHint'), 'true-false': T.t('swipeHint'), 'fruit-slice': T.t('sliceHint'), 'candy-match': T.t('candyShort'), slingshot: T.t('slingHint'), 'draw-trace': T.t('traceHint') } as Record<string, string>)[game] : '';
 
   if (err) return (
     <div className="screen"><Scene name="night" /><div className="screen-content splash">
@@ -118,7 +120,7 @@ export function Play({ lessonId }: { lessonId: string }) {
         <div className="play-top">
           <button type="button" className="back-pill" onClick={() => { sfx.tap(); setQuit(true); }}>
             <span className="back-circle"><Glyph name="pause" size={20} /></span>
-            <span className="back-title">{T.t('levelN', { n: sess.lesson.index })} · {T.tx(sess.lesson.name)}</span>
+            <span className="back-title">{sess.lesson.kind === 'arcade' ? '' : `${T.t('levelN', { n: sess.lesson.index })} · `}{T.tx(sess.lesson.name)}</span>
           </button>
           <Bar value={progress} max={sess.rounds.length} />
           {hearts !== null && <div className="hearts">{Array.from({ length: sess.lesson.hearts ?? 0 }, (_, i) => <HeartIcon key={i} size={36} filled={i < hearts} />)}</div>}
@@ -132,7 +134,7 @@ export function Play({ lessonId }: { lessonId: string }) {
             <span className="sr-only" aria-live="polite">{fb ? `${fb.title} ${fb.text}` : ''}</span>
             {showPrompt && round && (
               <Panel className="q-card" head={<h2>{round.title && <span className="q-sub">{T.tx(round.title)}</span>}{round.kind === 'tf' ? T.t('tfAsk') : T.tx(round.prompt)}
-                {!round.say && <button type="button" className="icon-btn icon-btn-mauve q-say" style={{ width: 40, height: 40, verticalAlign: 'middle' }} aria-label={T.t('listen')} onClick={() => speak(T.tx(round.prompt).replace(/[^\p{L}\p{N}\s.,?!:×+−=/%()]/gu, ''), T.lang, true)}><Glyph name="speaker" size={20} /></button>}
+                {!round.say && <button type="button" className="icon-btn icon-btn-mauve q-say" style={{ width: 40, height: 40, verticalAlign: 'middle' }} aria-label={T.t('listen')} onClick={() => { const vs = voiceStatus(T.lang); if (vs === 'missing' || vs === 'none') toast(T.t(vs === 'none' ? 'noSpeech' : 'noVoice'), 'warn'); speak(T.tx(round.prompt).replace(/[^\p{L}\p{N}\s.,?!:×+−=/%()]/gu, ''), T.lang, true); }}><Glyph name="speaker" size={20} /></button>}
               </h2>} />
             )}
             {sess.game === 'math-race' && <MathRace rounds={sess.rounds} T={T} look={cs.child.look} onRound={(r, g) => setAnswers((a) => [...a, { round: r.id, given: g }])} onDone={() => setAnswers((a) => { finish(a); return a; })} />}
@@ -145,6 +147,10 @@ export function Play({ lessonId }: { lessonId: string }) {
               if (round.kind === 'word') return <WordBuilder {...p} />;
               if (round.kind === 'clock') return <ClockGame {...p} />;
               if (round.kind === 'classify') return <CatchFall {...p} />;
+              if (round.kind === 'trace') return <DrawTrace {...p} />;
+              if (sess.game === 'fruit-slice') return <FruitSlice {...p} />;
+              if (sess.game === 'candy-match') return <CandyMatch {...p} />;
+              if (sess.game === 'slingshot') return <Slingshot {...p} />;
               if (round.blank) return <Panel className="q-card" head={<h2>{T.t('fillHint')}</h2>}><FillBlank {...p} /></Panel>;
               return <Quiz {...p} listen={!!round.say} />;
             })()}
@@ -163,16 +169,16 @@ export function Play({ lessonId }: { lessonId: string }) {
 
       {quit && (
         <Dialog title={T.t('pause')} onClose={() => setQuit(false)}
-          actions={<><Btn tone="gray" icon={<Glyph name="close" size={20} />} onClick={() => go(`map/${sess.lesson.subject}/${sess.lesson.grade}`)}>{T.t('quit')}</Btn><Btn tone="orange" icon={<Glyph name="ring" size={20} />} onClick={() => setQuit(false)}>{T.t('keepPlaying')}</Btn></>}>
+          actions={<><Btn tone="gray" icon={<Glyph name="close" size={20} />} onClick={() => go(sess.lesson.kind === 'arcade' ? 'arcade' : `map/${sess.lesson.subject}/${sess.lesson.grade}`)}>{T.t('quit')}</Btn><Btn tone="orange" icon={<Glyph name="ring" size={20} />} onClick={() => setQuit(false)}>{T.t('keepPlaying')}</Btn></>}>
           {T.t('quitAsk')}
         </Dialog>
       )}
-      {result && <ResultDialog r={result} subject={sess.lesson.subject} grade={sess.lesson.grade} lessonId={sess.lesson.id} />}
+      {result && <ResultDialog r={result} subject={sess.lesson.subject} grade={sess.lesson.grade} lessonId={sess.lesson.id} arcade={sess.lesson.kind === 'arcade' ? sess.game : null} />}
     </div>
   );
 }
 
-function ResultDialog({ r, subject, grade, lessonId }: { r: FinishResult; subject: string; grade: number; lessonId: string }) {
+function ResultDialog({ r, subject, grade, lessonId, arcade }: { r: FinishResult; subject: string; grade: number; lessonId: string; arcade: string | null }) {
   const T = useT();
   const cs = useApp((s) => s.cs)!;
   const coinRef = useRef<HTMLDivElement>(null);
@@ -185,8 +191,13 @@ function ResultDialog({ r, subject, grade, lessonId }: { r: FinishResult; subjec
   return (
     <Dialog title={won ? T.t('complete') : T.t('almost')} icon="star"
       actions={<>
-        <Btn tone="gray" icon={<Glyph name="refresh" size={20} />} onClick={() => { location.hash = `/play/${lessonId}?r=${Date.now()}`; }}>{T.t('retry')}</Btn>
-        <Btn tone="lime" onClick={() => go(r.next && r.next.kind !== 'chest' && won ? `play/${r.next.id}` : `map/${subject}/${grade}`)}>{T.t('next')}</Btn>
+        {arcade ? <>
+          <Btn tone="gray" onClick={() => go('arcade')}>{T.t('arcade')}</Btn>
+          <Btn tone="lime" icon={<Glyph name="refresh" size={20} />} onClick={() => playArcade(arcade, subject)}>{T.t('playAgain')}</Btn>
+        </> : <>
+          <Btn tone="gray" icon={<Glyph name="refresh" size={20} />} onClick={() => { location.hash = `/play/${lessonId}?r=${Date.now()}`; }}>{T.t('retry')}</Btn>
+          <Btn tone="lime" onClick={() => go(r.next && r.next.kind !== 'chest' && won ? `play/${r.next.id}` : `map/${subject}/${grade}`)}>{T.t('next')}</Btn>
+        </>}
       </>}>
       <div className="result">
         <div className="big-stars">

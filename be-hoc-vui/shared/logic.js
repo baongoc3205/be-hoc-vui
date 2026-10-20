@@ -68,6 +68,13 @@ export function gradeRound(round, given) {
       const wrong = Math.max(0, Number(given?.wrong) || 0);
       return Math.max(0, Math.min(1, hits / okCount - wrong * 0.15));
     }
+    case 'trace': {
+      // Bé tô theo nét: trình duyệt đo độ phủ (cover) và tỉ lệ nét vẽ lệch ra ngoài (stray), đều trong khoảng 0..1.
+      const cover = Math.max(0, Math.min(1, Number(given?.cover) || 0));
+      const stray = Math.max(0, Math.min(1, Number(given?.stray) || 0));
+      if (cover >= 0.75 && stray <= 0.35) return 1;
+      return Math.max(0, Math.min(0.49, cover * 0.6 - stray * 0.3));
+    }
     default:
       return 0;
   }
@@ -143,6 +150,10 @@ export const GAME_ROUNDS = {
   'word-builder': 5,
   clock: 6,
   'catch-fall': 1,
+  'fruit-slice': 6,
+  'candy-match': 5,
+  slingshot: 5,
+  'draw-trace': 4,
   boss: 10,
 };
 
@@ -160,5 +171,9 @@ export const GAME_KIND = {
   'word-builder': 'word',
   clock: 'clock',
   'catch-fall': 'classify',
+  'fruit-slice': 'mc',
+  'candy-match': 'mc',
+  slingshot: 'mc',
+  'draw-trace': 'trace',
   boss: 'mc',
 };

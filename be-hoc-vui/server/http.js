@@ -27,7 +27,8 @@ export function createRouter() {
 export async function readJson(req, limit = 256 * 1024) {
   return new Promise((resolve, reject) => {
     let size = 0; const chunks = [];
-    req.on('data', (c) => { size += c.length; if (size > limit) { reject(new HttpError(413, 'TOO_LARGE')); req.destroy(); } else chunks.push(c); });
+    // quá giới hạn: ngừng gom dữ liệu nhưng vẫn đọc hết để còn trả lời 413 (không cắt ngang kết nối)
+    req.on('data', (c) => { size += c.length; if (size > limit) { if (chunks.length || size - c.length <= limit) { chunks.length = 0; reject(new HttpError(413, 'TOO_LARGE')); } } else chunks.push(c); });
     req.on('end', () => {
       if (!chunks.length) return resolve({});
       try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); } catch { reject(new HttpError(400, 'BAD_JSON')); }
@@ -45,9 +46,27 @@ export function parseCookies(header = '') {
   return out;
 }
 
+/** Header bảo mật cho mọi phản hồi. CSP chỉ cho tải mã từ chính trang web và phông chữ Google Fonts. */
+export function securityHeaders() {
+  const h = {
+    'Content-Security-Policy': [
+      "default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com", "img-src 'self' data: blob:", "media-src 'self' data: blob:",
+      "connect-src 'self'", "worker-src 'self'", "manifest-src 'self'", "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self'", "object-src 'none'",
+    ].join('; '),
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'X-Frame-Options': 'DENY',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+    'Cross-Origin-Opener-Policy': 'same-origin',
+  };
+  if (process.env.COOKIE_SECURE === '1') h['Strict-Transport-Security'] = 'max-age=15552000';
+  return h;
+}
+
 export function sendJson(res, status, data, headers = {}) {
   const body = JSON.stringify(data);
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers });
+  res.writeHead(status, { ...securityHeaders(), 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers });
   res.end(body);
 }
 
@@ -62,6 +81,8 @@ export function serveStatic(req, res, root) {
   if (!existsSync(file) || statSync(file).isDirectory()) file = join(root, 'index.html');
   if (!existsSync(file)) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Chưa build giao diện. Chạy: npm run build'); }
   const ext = extname(file);
-  res.writeHead(200, { 'Content-Type': MIME[ext] ?? 'application/octet-stream', 'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=3600' });
+  // file có mã phiên bản (?v=…) được giữ lâu; index.html và sw.js luôn hỏi lại máy chủ
+  const versioned = url.searchParams.has('v');
+  res.writeHead(200, { ...securityHeaders(), 'Content-Type': MIME[ext] ?? 'application/octet-stream', 'Cache-Control': ext === '.html' || file.endsWith('sw.js') ? 'no-cache' : versioned ? 'public, max-age=31536000, immutable' : 'public, max-age=3600' });
   createReadStream(file).pipe(res);
 }

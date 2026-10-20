@@ -4,7 +4,7 @@
 
 **Web game học tập song ngữ Việt – Anh cho học sinh lớp 1 đến lớp 9**
 
-Toán · Tiếng Việt · Tiếng Anh · Khoa học — 45 chủ đề · 256 màn chơi · 12 loại game · 86 món thời trang
+Toán · Tiếng Việt · Tiếng Anh · Khoa học — 63 chủ đề · 353 màn chơi · 16 loại game · Khu vui chơi mini game · 86 món thời trang
 
 ![Bé Học Vui](docs/screenshots/lobby.png)
 
@@ -97,13 +97,15 @@ Hướng dẫn chi tiết từng bước: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
   - Các màn mở khoá lần lượt.
   - Giữa mỗi chủ đề có **rương báu**, cuối chủ đề là **màn trùm** (3 tim).
   - Mỗi màn được chấm 1–3 sao.
-- 🎮 **12 loại game**:
+- 🎮 **16 loại game**:
 
   | Nhóm | Game |
   |---|---|
   | Chọn đáp án | Đố vui, Đúng/Sai (vuốt thẻ), Điền chỗ trống, Nghe và chọn |
   | Kéo, ghép, xếp | Nối cặp, Lật thẻ trí nhớ, Sắp xếp, Ghép chữ, Xem đồng hồ |
   | Hành động | Hứng đồ, Đua xe Toán, Bắn bóng bay |
+  | Mini game (mới) | Chém trái cây (vuốt chém trái mang đáp án đúng), Xếp kẹo (ghép 3 viên cùng màu đáp án), Bắn ná (kéo ná bắn trúng thùng đáp án, có đường ngắm), Bé tập vẽ (tô theo nét để vẽ hình, viết số; máy đo độ phủ nét) |
+- 🎡 **Khu vui chơi**: chơi tự do 7 mini game hành động. Bé chọn môn học, máy chủ lấy câu hỏi đúng lớp của bé. Không ảnh hưởng thứ tự mở màn trên bản đồ; vẫn tính xu, EXP, năng lượng và giới hạn thời gian mỗi ngày. Hình vẽ trong các mini game đều tự thiết kế, không dùng nhân vật của trò chơi khác.
 - 🏆 **Phần thưởng**: xu, EXP và cấp độ, 24 huy hiệu, 3 nhiệm vụ mỗi ngày, chuỗi ngày học, bảng thi đua gia đình.
 - 📅 **Điểm danh 7 ngày**: mỗi ngày vào sảnh sẽ hiện lịch điểm danh. Quà tăng dần từ 10 đến 60 xu kèm năng lượng, ngày thứ 7 tặng thêm một món đồ thời trang ngẫu nhiên. Bỏ lỡ một ngày thì chuỗi quay về ngày 1. Có huy hiệu cho 7 và 30 ngày điểm danh. Lịch sử điểm danh lưu trên máy chủ, nên đăng nhập ở máy khác vẫn giữ nguyên.
 - 📱 **Giao diện điện thoại**: trên màn hình dọc, trang không cuộn. Nhân vật nằm trong khung cố định phía trên, chỉ phần nội dung bên dưới cuộn, nút chính luôn dính ở đáy. Bóng thoại đặt bên cạnh để không che nhân vật. Điện thoại xoay ngang dùng bố cục 2 cột.
@@ -120,7 +122,7 @@ Hướng dẫn chi tiết từng bước: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
 - ⌨️ Điều khiển được bằng bàn phím (phím 1–4, mũi tên, Enter), có chế độ giảm chuyển động.
 
 ### Cho phụ huynh (vào qua cổng phép nhân)
-- 👨‍👩‍👧 **Tài khoản**: tối đa 4 hồ sơ bé, đổi mật khẩu, nâng cấp tài khoản khách (sảnh hiện nhắc "Lưu tiến độ" khi đang dùng tài khoản khách). Phiên đăng nhập giữ 60 ngày.
+- 👨‍👩‍👧 **Tài khoản**: tối đa 4 hồ sơ bé, đổi mật khẩu, **mã khôi phục** để tự đặt lại mật khẩu khi quên (không cần email; mã hiện một lần khi đăng ký, tạo lại được trong Góc phụ huynh), nâng cấp tài khoản khách (sảnh hiện nhắc "Lưu tiến độ" khi đang dùng tài khoản khách). Phiên đăng nhập giữ 60 ngày.
 - 📊 **Báo cáo**: biểu đồ số phút học trong 7 ngày, độ chính xác theo từng môn, hoạt động gần đây.
 - ⏱️ **Giới hạn**:
   - Thời gian học mỗi ngày (15–120 phút, hoặc không giới hạn).
@@ -169,12 +171,26 @@ Bám theo Chương trình GDPT 2018 ở mức khái quát.
 
 | Môn | Chủ đề | Nguồn câu hỏi |
 |---|:---:|---|
-| Toán | 18 (2 chủ đề mỗi lớp) | **Sinh tự động theo seed**: mỗi lần chơi ra câu mới, đáp án nhiễu có chủ đích |
+| Toán | 36 (4 chủ đề mỗi lớp): số học, hình học, đại số, toán có lời văn và toán nâng cao | **Sinh tự động theo seed**: mỗi lần chơi ra câu mới, đáp án nhiễu có chủ đích. Đề tự viết theo mẫu chương trình, không chép đề có bản quyền; đáp án được kiểm thử lại độc lập (giải phương trình, định lí Pythagore, phân tích nhân tử…) |
 | Tiếng Việt / Ngữ văn | 9 | Ngân hàng câu hỏi soạn sẵn |
 | Tiếng Anh | 9 | Ngân hàng câu hỏi soạn sẵn |
 | Khoa học | 9 | Ngân hàng câu hỏi soạn sẵn |
 
-Tổng cộng: 45 chủ đề, 256 màn chơi, 45 rương báu, 526 câu hỏi soạn sẵn (chưa tính câu Toán sinh tự động).
+Tổng cộng: 63 chủ đề, 353 màn chơi, 63 rương báu, 526 câu hỏi soạn sẵn (chưa tính câu Toán sinh tự động), cộng 326 ván mini game trong Khu vui chơi.
+
+Các dạng Toán theo lớp:
+
+| Lớp | Chủ đề |
+|---|---|
+| 1 | Cộng trừ trong phạm vi 10 · Đếm, so sánh số đến 100 · Hình vuông, tròn, tam giác (tô hình) · Tập viết số, tìm số còn thiếu |
+| 2 | Bảng nhân 2 và 5 · Xem đồng hồ · Cộng trừ có nhớ trong phạm vi 100 · Bài toán có lời văn |
+| 3 | Nhân chia trong bảng · Chu vi, phân số đơn giản · Diện tích hình chữ nhật, hình vuông · Nâng cao: bài toán hai bước tính |
+| 4 | Số nhiều chữ số · Phân số · Góc nhọn/tù/bẹt, trung bình cộng · Nâng cao: tìm hai số khi biết tổng và hiệu |
+| 5 | Số thập phân · Tỉ số phần trăm · Diện tích tam giác, hình thang, hình tròn, thể tích · Toán chuyển động đều |
+| 6 | Số nguyên · Số nguyên tố, ƯCLN, BCNN · Luỹ thừa, thứ tự phép tính · Nâng cao: dãy số quy luật, dấu hiệu chia hết |
+| 7 | Số hữu tỉ · Tỉ lệ thức · Biểu thức đại số, đa thức · Tổng ba góc của tam giác |
+| 8 | Hằng đẳng thức · Phương trình bậc nhất · Định lí Pythagore · Phân tích đa thức thành nhân tử |
+| 9 | Căn bậc hai · Hàm số bậc nhất, hệ phương trình · Phương trình bậc hai, định lí Viète · Tỉ số lượng giác, đường tròn |
 
 Cách thêm hoặc sửa câu hỏi: **[docs/NOI_DUNG.md](docs/NOI_DUNG.md)**.
 
@@ -194,7 +210,11 @@ npm run dev     # server API cổng 5174 + giao diện hot-reload cổng 5173 �
 | `npm run build` | Build giao diện bằng Vite vào `client/dist` (khi đưa lên Render, giao diện được build tự động) |
 | `npm run build:fast` | Build nhanh bằng esbuild (phương án dự phòng) |
 | `npm run typecheck` | Kiểm tra kiểu TypeScript |
-| `npm test` | Chạy 5 nhóm test (xem bên dưới) |
+| `npm test` | Chạy 15 nhóm kiểm thử máy chủ: luồng tài khoản, chấm điểm, nội dung (100 hạt giống mỗi màn), đáp án Toán giải lại độc lập, ca biên giờ Việt Nam, thử tấn công, sao lưu/khôi phục, Turso |
+| `npm run test:ui` | Kiểm thử giao diện bằng Playwright: mọi màn ở 7 cỡ màn hình + chơi thử 17 loại trò chơi (cần `npm i --no-save playwright && npx playwright install chromium`) |
+| `npm run backup` | Sao lưu toàn bộ dữ liệu (Turso hoặc file) ra `backups/*.json` — xem [docs/DEPLOY.md](docs/DEPLOY.md) |
+| `npm run restore -- <file>` | Khôi phục từ file sao lưu (từ chối ghi đè database đã có dữ liệu, trừ khi thêm `--force`) |
+| `npm run export:content` | Xuất mọi câu hỏi ra `docs/duyet-noi-dung.csv` để giáo viên duyệt |
 
 ### Biến môi trường
 
@@ -208,6 +228,7 @@ npm run dev     # server API cổng 5174 + giao diện hot-reload cổng 5173 �
 | `TRUST_PROXY` | — | Đặt `1` khi chạy sau proxy (Render), để giới hạn đăng nhập sai tính đúng theo IP người dùng |
 | `TZ_GAME` | `Asia/Ho_Chi_Minh` | Múi giờ dùng để tính "ngày học", chuỗi ngày và nhiệm vụ |
 | `DEMO_UNLOCK` | — | Đặt `1` để mở khoá mọi màn (dùng khi trình diễn hoặc khi giáo viên xem trước) |
+| `ADMIN_TOKEN` | — | Đặt một chuỗi bí mật để xem lỗi trình duyệt: gọi `GET /api/admin/errors` với header `x-admin-token` |
 
 ### Kiểm thử (`npm test`)
 1. Mọi màn đều tạo được vòng chơi hợp lệ: thử 25 seed cho mỗi màn, tổng hơn 10.000 vòng. Kiểm tra không có đáp án trùng, đủ bản dịch Việt/Anh.

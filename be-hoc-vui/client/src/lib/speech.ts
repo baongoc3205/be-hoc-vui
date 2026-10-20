@@ -7,6 +7,12 @@ if (typeof speechSynthesis !== 'undefined') {
   load();
   speechSynthesis.addEventListener?.('voiceschanged', load);
 }
+/** 'ok' có giọng; 'missing' máy đã liệt kê giọng nhưng không có giọng của ngôn ngữ này; 'unknown' chưa biết (một số máy không liệt kê). */
+export function voiceStatus(lang: 'vi' | 'en'): 'ok' | 'missing' | 'unknown' | 'none' {
+  if (typeof speechSynthesis === 'undefined') return 'none';
+  if (!voices.length) return 'unknown';
+  return hasVoice(lang) ? 'ok' : 'missing';
+}
 export function hasVoice(lang: 'vi' | 'en') {
   if (typeof speechSynthesis === 'undefined') return false;
   return voices.some((v) => v.lang.toLowerCase().startsWith(lang));

@@ -224,6 +224,10 @@ const GAME_GLYPH: Record<string, ReactNode> = {
   'word-builder': <g fill="#fff"><rect x="10" y="32" width="22" height="26" rx="5" /><rect x="35" y="32" width="22" height="26" rx="5" /><rect x="60" y="32" width="22" height="26" rx="5" opacity=".75" /><text x="21" y="52" textAnchor="middle" fontWeight="800" fontSize="18" fill="#0004">A</text><text x="46" y="52" textAnchor="middle" fontWeight="800" fontSize="18" fill="#0004">B</text></g>,
   clock: <g><circle cx="46" cy="46" r="28" fill="#fff" /><path d="M46 28v18l12 8" stroke="#0004" strokeWidth="5" strokeLinecap="round" fill="none" /></g>,
   'catch-fall': <g fill="#fff"><path d="M16 50h60l-6 22H22z" /><circle cx="34" cy="26" r="7" /><circle cx="56" cy="18" r="6" opacity=".8" /><circle cx="48" cy="38" r="5" /></g>,
+  'fruit-slice': <g><circle cx="40" cy="50" r="22" fill="#fff" /><path d="M40 28a22 22 0 0122 22H40z" fill="#fff" opacity=".6" /><path d="M14 74L78 16" stroke="#fff" strokeWidth="6" strokeLinecap="round" opacity=".9" /></g>,
+  'candy-match': <g fill="#fff"><circle cx="24" cy="46" r="11" /><circle cx="46" cy="46" r="11" /><circle cx="68" cy="46" r="11" /><path d="M10 46l-6-6v12zM82 46l6-6v12z" opacity=".8" /><rect x="14" y="64" width="64" height="6" rx="3" opacity=".7" /></g>,
+  slingshot: <g fill="none" stroke="#fff" strokeWidth="7" strokeLinecap="round"><path d="M30 76V48M30 48l-12-22M30 48l12-22" /><circle cx="66" cy="32" r="9" fill="#fff" stroke="none" /><path d="M46 30q10 -18 30 -6" strokeDasharray="3 7" strokeWidth="4" /></g>,
+  'draw-trace': <g><path d="M16 66c10-26 22-30 30-16s22 10 30-14" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeDasharray="2 9" /><path d="M58 22l14 14-30 30H28V52z" fill="#fff" /></g>,
   boss: <g><path d="M18 64l-4-32 16 12 16-22 16 22 16-12-4 32z" fill="#fff" /><circle cx="46" cy="52" r="5" fill="#0003" /></g>,
   chest: <g fill="#fff"><rect x="16" y="40" width="60" height="32" rx="6" /><path d="M16 40c0-16 60-16 60 0z" opacity=".85" /><rect x="40" y="36" width="12" height="18" rx="3" fill="#0003" /></g>,
 };

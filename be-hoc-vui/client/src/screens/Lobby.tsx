@@ -10,16 +10,16 @@ import { CheckinDialog } from '../ui/Checkin';
 /** Hộp thoại điểm danh chỉ tự bật 1 lần mỗi ngày cho mỗi bé (trong phiên mở trang). */
 const autoShown = new Set<string>();
 
-export type MenuKey = 'learn' | 'quests' | 'treasure' | 'shop' | 'character' | 'ranking';
+export type MenuKey = 'learn' | 'arcade' | 'quests' | 'treasure' | 'shop' | 'character' | 'ranking';
 export function MainMenu({ value }: { value: MenuKey | 'lobby' }) {
   const T = useT();
   const cs = useApp((s) => s.cs);
   const questReady = cs?.quests.some((q) => q.done && !q.claimed) || (cs ? !cs.checkin.today : false);
   const tabs: { key: MenuKey | 'lobby'; label: string; badge?: boolean }[] = [
-    { key: 'lobby', label: T.t('lobby') }, { key: 'learn', label: T.t('learn') }, { key: 'quests', label: T.t('quests'), badge: !!questReady },
+    { key: 'lobby', label: T.t('lobby') }, { key: 'learn', label: T.t('learn') }, { key: 'arcade', label: T.t('arcadeShort') }, { key: 'quests', label: T.t('quests'), badge: !!questReady },
     { key: 'shop', label: T.t('shop') }, { key: 'character', label: T.t('character') }, { key: 'ranking', label: T.t('ranking') },
   ];
-  const to: Record<string, string> = { lobby: 'lobby', learn: 'worlds', quests: 'rewards', treasure: 'rewards/badges', shop: 'shop', character: 'character', ranking: 'ranking' };
+  const to: Record<string, string> = { lobby: 'lobby', learn: 'worlds', arcade: 'arcade', quests: 'rewards', treasure: 'rewards/badges', shop: 'shop', character: 'character', ranking: 'ranking' };
   return <SideTabs tabs={tabs} value={value} onChange={(k) => go(to[k])} />;
 }
 
@@ -101,8 +101,11 @@ export function Lobby() {
                   <span className="ico"><Glyph name="scroll" size={30} /></span>{T.t('quests')}
                   {claimable > 0 && <i className="dot" />}
                 </button>
+                <button type="button" className="quick hot2" onClick={() => go('arcade')}>
+                  <span className="ico"><Glyph name="sparkle" size={30} /></span>{T.t('arcadeShort')}
+                </button>
                 <div className="quick">
-                  <span className="ico" style={{ color: '#E2804F' }}><Glyph name="flame" size={30} /></span>{T.t('streakDays', { n: cs.streak })}
+                  <span className="ico" style={{ color: '#E2804F' }}><Glyph name="flame" size={30} /></span>{T.t('streakShort', { n: cs.streak })}
                 </div>
               </div>
               {cs.today.limit > 0 && <Bar label={<span style={{ fontSize: 18 }}>{T.t('todayMinutes', { m: cs.today.minutes })}</span>} right={<span style={{ fontSize: 18 }}>{cs.today.limit} {T.t('minutes')}</span>} value={cs.today.minutes} max={cs.today.limit} tone="lime" />}

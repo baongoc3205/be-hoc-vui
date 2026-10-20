@@ -1,6 +1,6 @@
 // Khai báo kiểu cho shared/logic.js (dùng ở client TypeScript).
 export type LText = { vi: string; en: string };
-export type RoundKind = 'mc' | 'tf' | 'pairs' | 'order' | 'word' | 'clock' | 'classify';
+export type RoundKind = 'mc' | 'tf' | 'pairs' | 'order' | 'word' | 'clock' | 'classify' | 'trace';
 export interface Round {
   id: string;
   kind: RoundKind;
@@ -16,6 +16,7 @@ export interface Round {
   tiles?: { id: string; ch: string }[];
   h?: number;
   m?: number;
+  shape?: string;
 }
 export function makeRng(seed: number): () => number;
 export function shuffle<T>(rnd: () => number, arr: T[]): T[];

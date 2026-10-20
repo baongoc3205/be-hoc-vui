@@ -1,0 +1,34 @@
+# Kiểm tra tự động mỗi lần đẩy code hoặc mở pull request.
+# File này dành cho repo mà package.json nằm ngay ở thư mục gốc (repo chỉ chứa dự án be-hoc-vui).
+# Nếu dự án nằm trong thư mục con (vd. repo "learn" có thư mục be-hoc-vui), chép file này sang
+# <gốc repo>/.github/workflows/ci.yml và bỏ dấu # ở 2 dòng "defaults" bên dưới.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+defaults:
+  run: { working-directory: be-hoc-vui }
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Cài gói
+        run: npm install --include=dev --no-audit --no-fund
+      - name: Kiểm tra kiểu TypeScript
+        run: npm run typecheck
+      - name: Kiểm thử máy chủ, nội dung và đáp án
+        run: npm test
+      - name: Build giao diện bằng Vite (bản chính thức)
+        run: npm run build
+      - name: Build giao diện bằng esbuild (bản Render dùng)
+        run: npm run build:fast
+      - name: Kiểm tra lỗ hổng bảo mật của gói (mức cao trở lên)
+        run: npm audit --omit=dev --audit-level=high

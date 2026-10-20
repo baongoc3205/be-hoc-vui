@@ -20,6 +20,8 @@ Khi có lỗi, server trả `{ "error": "MÃ_LỖI" }`. Các mã thường gặp
 | POST | `/auth/login` | `{ email, password }` | Tối đa 10 lần sai trong 15 phút |
 | POST | `/auth/guest` | – | Tạo tài khoản khách |
 | POST | `/auth/upgrade` | `{ name, email, password }` | Chuyển tài khoản khách thành tài khoản email |
+| POST | `/auth/recover` | `{ email, code, password }` | Quên mật khẩu: đặt mật khẩu mới bằng mã khôi phục → `{ parent, recoveryCode }` (mã mới; mã cũ hết hiệu lực) |
+| POST | `/auth/recovery-code` | `{ password }` | Tạo mã khôi phục mới (đăng ký và nâng cấp khách cũng trả về `recoveryCode`) |
 | POST | `/auth/logout` | – | |
 | GET | `/auth/me` | – | Trả `{ parent }`, hoặc `null` nếu chưa đăng nhập |
 | POST | `/auth/verify` | `{ password }` | Xác nhận lại trước thao tác nhạy cảm |
@@ -42,6 +44,8 @@ Khi có lỗi, server trả `{ "error": "MÃ_LỖI" }`. Các mã thường gặp
 | POST | `/children/:id/sessions` | `{ lessonId }` → `{ sessionId, game, rounds, lesson }`. Trừ 1 năng lượng |
 | POST | `/children/:id/sessions/:sid/finish` | `{ answers: [{ round, given }], durationSec }`. Server tự chấm và trả `{ stars, coins, xp, levelUp, newBadges, next, state }` |
 | POST | `/children/:id/chests/:lessonId` | Mở rương trên bản đồ |
+| GET | `/children/:id/arcade` | Danh sách mini game của Khu vui chơi và các môn chơi được: `{ games: [{ game, subjects, total }] }` |
+| POST | `/children/:id/arcade` | `{ game, subject }` (subject = `any` để trộn) → `{ lessonId }`, rồi gọi `/sessions` như màn thường |
 | POST | `/children/:id/checkin` | Điểm danh hôm nay. Trả về `{ day, coins, energy, item, newBadges, state }`. Gọi lần 2 trong ngày → 409 `ALREADY_CHECKED_IN` |
 | POST | `/children/:id/daily-chest` | (cũ, vẫn giữ) Mở rương mỗi ngày (xu + 2 năng lượng) |
 | POST | `/children/:id/quests/:qid/claim` | Nhận thưởng nhiệm vụ |

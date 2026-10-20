@@ -7,6 +7,10 @@ import { Scene } from './ui/Scene';
 import { Glyph } from './ui/Icons';
 import { Splash } from './screens/Splash';
 import { Auth } from './screens/Auth';
+import { Privacy } from './screens/Privacy';
+import { ApiError } from './lib/api';
+import { Chibi, MASCOTS } from './ui/Chibi';
+import { Btn } from './ui/kit';
 import { Profiles, Onboarding } from './screens/Profiles';
 import { Lobby } from './screens/Lobby';
 import { Worlds, MapScreen } from './screens/Worlds';
@@ -19,6 +23,7 @@ import { SettingsDialog } from './screens/Settings';
 // mở khoá âm thanh ở thao tác đầu tiên (chuột / chạm / phím)
 installAudioUnlock();
 import { Parents } from './screens/Parents';
+import { Arcade } from './screens/Arcade';
 
 
 export function App() {
@@ -30,9 +35,22 @@ export function App() {
   const prefs = useApp((s) => s.prefs);
   const [settings, setSettings] = useState(false);
   const [bootErr, setBootErr] = useState(false);
+  const [waking, setWaking] = useState(0); // số giây đã chờ máy chủ thức dậy
   const T = useT();
 
-  useEffect(() => { boot().catch(() => setBootErr(true)); }, []);
+  // Render gói miễn phí cho máy chủ ngủ sau 15 phút: lần mở đầu có thể lỗi 502/503 hoặc mất mạng
+  // trong 30–60 giây. Tự thử lại mỗi 3 giây (tối đa ~90 giây) và hiện màn chờ thân thiện.
+  const startBoot = () => {
+    setBootErr(false); setWaking(0);
+    const t0 = Date.now();
+    const attempt = () => boot().then(() => setWaking(0)).catch((e) => {
+      const retriable = !(e instanceof ApiError) || e.code === 'OFFLINE' || e.status >= 500;
+      const secs = Math.round((Date.now() - t0) / 1000);
+      if (retriable && secs < 90) { setWaking(Math.max(1, secs)); setTimeout(attempt, 3000); } else { setWaking(0); setBootErr(true); }
+    });
+    attempt();
+  };
+  useEffect(startBoot, []); // eslint-disable-line
   useEffect(() => { const f = () => setSettings(true); addEventListener('bhv:settings', f); return () => removeEventListener('bhv:settings', f); }, []);
   useEffect(() => { if (childId && !cs) refreshChild().catch(() => undefined); }, [childId, cs]);
   // giao diện theo tuổi, ngôn ngữ, giảm chuyển động
@@ -63,13 +81,22 @@ export function App() {
   }, [T]);
 
   if (bootErr) return (
-    <div className="screen splash"><Scene name="meadow" /><div className="screen-content splash"><div className="logo">{T.t('appName')}</div><div className="bubble">{T.t('err_OFFLINE')}</div></div></div>
+    <div className="screen splash"><Scene name="meadow" /><div className="screen-content splash"><div className="logo">{T.t('appName')}</div><div className="bubble">{T.t('err_OFFLINE')}</div><Btn tone="lime" onClick={startBoot}>{T.t('tryAgain')}</Btn></div></div>
+  );
+  if (!booted && waking > 0) return (
+    <div className="screen splash"><Scene name="night" /><div className="screen-content splash waking">
+      <Chibi look={MASCOTS.mimi} mood="sleep" size={220} />
+      <div className="bubble">{T.t('waking')}</div>
+      <Spinner />
+      <p className="title-out" style={{ fontSize: 18, margin: 0 }}>{T.t('wakingHint')} ({waking}s)</p>
+    </div></div>
   );
   if (!booted) return <div className="screen"><Scene name="meadow" /><div className="screen-content splash"><Spinner /></div></div>;
 
   const [head, ...rest] = route.split('/');
   let view;
   if (head === '' || head === 'splash') view = <Splash />;
+  else if (head === 'privacy') view = <Privacy />;
   else if (!parent) view = <Auth />;
   else if (head === 'parents') view = <Parents />;
   else if (head === 'onboarding') view = <Onboarding />;
@@ -84,9 +111,10 @@ export function App() {
     case 'shop': view = <Shop />; break;
     case 'rewards': view = <Rewards tab={rest[0]} />; break;
     case 'ranking': view = <Ranking />; break;
+    case 'arcade': view = <Arcade />; break;
     default: view = <Lobby />;
   }
-  const showDock = parent && cs && ['lobby', 'worlds', 'character', 'shop', 'rewards', 'ranking', 'map'].includes(head);
+  const showDock = parent && cs && ['lobby', 'worlds', 'character', 'shop', 'rewards', 'ranking', 'map', 'arcade'].includes(head);
 
   return (
     <>
@@ -104,7 +132,7 @@ function Dock({ active }: { active: string }) {
   return (
     <nav className="dock" aria-label="menu">
       {items.map(([k, ico, label]) => (
-        <button key={k} type="button" className={active === k || (k === 'worlds' && active === 'map') ? 'on' : ''} onClick={() => go(k)}>
+        <button key={k} type="button" className={active === k || (k === 'worlds' && active === 'map') || (k === 'lobby' && active === 'arcade') ? 'on' : ''} onClick={() => go(k)}>
           <Glyph name={ico} size={24} />{label}
         </button>
       ))}
