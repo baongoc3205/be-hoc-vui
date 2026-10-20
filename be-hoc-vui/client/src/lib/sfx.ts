@@ -1,6 +1,7 @@
-// Âm thanh tự tổng hợp bằng Web Audio API (không cần file âm thanh).
+// Hiệu ứng âm thanh tự tổng hợp bằng Web Audio API; nhạc nền phát từ file theo chủ đề.
 // Mỗi hiệu ứng là vài nốt ngắn có bao âm (ADSR) + bộ nén để to, rõ mà không rè.
 import { getState } from './store';
+import { THEMES, themeById, type Theme } from './themes';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -84,10 +85,37 @@ export const sfx = {
 };
 function on() { return getState().prefs.sound; }
 
-// ---------- Nhạc nền nhẹ (ngũ cung, tự sinh) ----------
+// ---------- Nhạc nền theo chủ đề ----------
+// Phát file nhạc của chủ đề bằng Web Audio (lặp liền mạch, chuyển chủ đề thì nhạc cũ nhỏ dần, nhạc mới to dần).
+// Nếu chưa có file nhạc (hoặc tải lỗi) thì phát nhạc ngũ cung tự tổng hợp thay thế.
+const buffers = new Map<string, Promise<AudioBuffer | null>>();
+let wantOn = false;
+let wantTheme: Theme = THEMES[0];
+let playing: { url: string; src: AudioBufferSourceNode; gain: GainNode } | null = null;
 let bgmTimer: number | null = null;
-export function setMusic(enabled: boolean) {
-  if (!enabled) { if (bgmTimer) clearInterval(bgmTimer); bgmTimer = null; return; }
+
+function loadBuffer(c: AudioContext, url: string) {
+  let p = buffers.get(url);
+  if (!p) {
+    p = fetch(url).then(async (r) => {
+      const type = r.headers.get('content-type') ?? '';
+      if (!r.ok || !/audio|octet-stream/.test(type)) return null;
+      const data = await r.arrayBuffer();
+      return await new Promise<AudioBuffer | null>((ok) => { c.decodeAudioData(data, (b) => ok(b), () => ok(null)); });
+    }).catch(() => null);
+    buffers.set(url, p);
+  }
+  return p;
+}
+function stopTrack(fade = 0.9) {
+  if (!playing || !ctx) return;
+  const { src, gain } = playing; playing = null;
+  const t = ctx.currentTime;
+  gain.gain.cancelScheduledValues(t); gain.gain.setValueAtTime(gain.gain.value, t); gain.gain.linearRampToValueAtTime(0.0001, t + fade);
+  try { src.stop(t + fade + 0.05); } catch { /* bỏ qua */ }
+}
+function stopSynth() { if (bgmTimer) clearInterval(bgmTimer); bgmTimer = null; }
+function startSynth() {
   if (bgmTimer || !ac()) return;
   const scale = [72, 74, 76, 79, 81, 84, 86, 88];
   const chords = [[48, 55, 64], [45, 52, 60], [41, 48, 57], [43, 50, 59]];
@@ -102,6 +130,48 @@ export function setMusic(enabled: boolean) {
     step++;
   }, beat * 1000);
 }
+async function syncMusic() {
+  const c = ac();
+  if (!c || !musicBus) return;
+  if (!wantOn) { stopTrack(); stopSynth(); return; }
+  const theme = wantTheme;
+  if (playing?.url === theme.music) return;
+  const buf = await loadBuffer(c, theme.music);
+  if (!wantOn || wantTheme !== theme) return; // người dùng đã đổi ý trong lúc tải
+  if (!buf) { stopTrack(); startSynth(); return; }
+  stopSynth(); stopTrack();
+  const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+  const gain = c.createGain(); gain.gain.value = 0.0001;
+  src.connect(gain); gain.connect(musicBus);
+  const t = c.currentTime;
+  gain.gain.linearRampToValueAtTime(theme.volume, t + 1.4);
+  src.start(t);
+  playing = { url: theme.music, src, gain };
+}
+/** Bật / tắt nhạc nền. */
+export function setMusic(enabled: boolean) { wantOn = enabled; void syncMusic(); }
+/** Đổi bản nhạc theo chủ đề (nếu nhạc đang bật thì chuyển mượt sang bản mới). */
+export function setMusicTheme(id: string) { wantTheme = themeById(id); void syncMusic(); }
+/** Nghe thử nhạc của một chủ đề trong cài đặt (kể cả khi nhạc nền đang tắt, phát 8 giây). */
+export async function previewTheme(id: string) {
+  const c = ac(); if (!c || !musicBus) return false;
+  const th = themeById(id);
+  const buf = await loadBuffer(c, th.music);
+  if (!buf) return false;
+  if (wantOn) { setMusicTheme(id); return true; }
+  const src = c.createBufferSource(); src.buffer = buf;
+  const g = c.createGain(); g.gain.value = 0.0001; src.connect(g); g.connect(musicBus);
+  const t = c.currentTime;
+  g.gain.linearRampToValueAtTime(th.volume, t + 0.4); g.gain.setValueAtTime(th.volume, t + 7); g.gain.linearRampToValueAtTime(0.0001, t + 8);
+  src.start(t); src.stop(t + 8.1);
+  return true;
+}
+// tạm im nhạc khi chuyển sang tab / ứng dụng khác
+if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => {
+  if (!ctx || !musicBus) return;
+  const t = ctx.currentTime, v = document.visibilityState === 'visible' ? 0.55 : 0.0001;
+  musicBus.gain.cancelScheduledValues(t); musicBus.gain.setValueAtTime(musicBus.gain.value, t); musicBus.gain.linearRampToValueAtTime(v, t + 0.5);
+});
 
 // ---------- Mở khoá âm thanh ----------
 // Trình duyệt chỉ cho phát âm thanh sau một thao tác của người dùng. iPhone còn tắt tiếng Web Audio

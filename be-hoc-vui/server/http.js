@@ -70,7 +70,7 @@ export function sendJson(res, status, data, headers = {}) {
   res.end(body);
 }
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4' };
 
 /** Phục vụ file tĩnh của client đã build; đường dẫn không có thì trả index.html (SPA). */
 export function serveStatic(req, res, root) {
@@ -78,7 +78,11 @@ export function serveStatic(req, res, root) {
   let p = normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, '');
   let file = join(root, p);
   if (!file.startsWith(root)) { res.writeHead(403); return res.end(); }
-  if (!existsSync(file) || statSync(file).isDirectory()) file = join(root, 'index.html');
+  if (!existsSync(file) || statSync(file).isDirectory()) {
+    // file tĩnh có đuôi (ví dụ /music/x.mp3) mà không có thì báo 404, không trả trang chủ
+    if (/\.[a-z0-9]{2,5}$/i.test(p) && !p.endsWith('.html')) { res.writeHead(404, { ...securityHeaders(), 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Not found'); }
+    file = join(root, 'index.html');
+  }
   if (!existsSync(file)) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Chưa build giao diện. Chạy: npm run build'); }
   const ext = extname(file);
   // file có mã phiên bản (?v=…) được giữ lâu; index.html và sw.js luôn hỏi lại máy chủ

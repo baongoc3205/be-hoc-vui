@@ -203,6 +203,8 @@ async function apiFlow(db) {
   };
   try {
     assert.equal((await call('GET', '/api/children')).status, 401);
+    // file tĩnh thiếu (ví dụ nhạc nền chưa thêm) phải trả 404 chứ không trả trang chủ, để app tự dùng nhạc thay thế
+    assert.equal((await fetch(base + '/music/khong-co.mp3')).status, 404);
     assert.equal((await call('POST', '/api/auth/register', { name: 'Mẹ Lan', email: 'me@example.com', password: 'abc123' })).data.error, 'CONSENT_REQUIRED');
     const reg = await call('POST', '/api/auth/register', { name: 'Mẹ Lan', email: 'me@example.com', password: 'abc123', consent: true });
     assert.match(reg.data.recoveryCode, /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/, 'đăng ký nhận mã khôi phục');

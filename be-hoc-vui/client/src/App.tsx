@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { boot, go, refreshChild, toast, useApp, useRoute } from './lib/store';
 import { useT } from './lib/hooks';
-import { installAudioUnlock, setMusic, sfx, unlockAudio } from './lib/sfx';
+import { installAudioUnlock, setMusic, setMusicTheme, sfx, unlockAudio } from './lib/sfx';
+import { themeById } from './lib/themes';
 import { Toast, Spinner } from './ui/kit';
 import { Scene } from './ui/Scene';
 import { Glyph } from './ui/Icons';
@@ -59,11 +60,14 @@ export function App() {
     el.lang = prefs.lang;
     el.dataset.age = cs?.child.ageTheme ?? 'bud';
     el.classList.toggle('reduce-motion', prefs.reduceMotion);
+    el.dataset.theme = prefs.theme || 'fairy';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeById(prefs.theme).swatch[0]);
     document.title = T.t('appName');
-  }, [prefs.lang, prefs.reduceMotion, cs?.child.ageTheme, T]);
+  }, [prefs.lang, prefs.reduceMotion, prefs.theme, cs?.child.ageTheme, T]);
+  useEffect(() => { setMusicTheme(prefs.theme); }, [prefs.theme]);
   // nhạc nền bật sau lần chạm đầu tiên (chính sách tự phát của trình duyệt)
   useEffect(() => {
-    const first = () => { unlockAudio(); setMusic(prefs.music); };
+    const first = () => { unlockAudio(); setMusicTheme(prefs.theme); setMusic(prefs.music); };
     const evs = ['pointerup', 'touchend', 'keydown'];
     evs.forEach((e) => addEventListener(e, first, { once: true }));
     setMusic(prefs.music);

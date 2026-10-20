@@ -178,6 +178,20 @@ Bám theo Chương trình GDPT 2018 ở mức khái quát.
 
 Tổng cộng: 99 chủ đề soạn sẵn (1289 câu) + 510 chặng luyện tập sinh theo mẫu, hơn 5.100 màn chơi và 609 rương báu, cộng các ván mini game trong Khu vui chơi.
 
+### Chủ đề giao diện và nhạc nền
+
+Cài đặt → **Chủ đề giao diện & nhạc nền** có 5 chủ đề, mỗi chủ đề đổi bảng màu toàn app (biến CSS `[data-theme]`), phủ màu cảnh nền và phát một bản nhạc lặp liền mạch:
+
+| Chủ đề | Nhạc (Pixabay) | File cần đặt trong `client/public/music/` |
+|---|---|---|
+| Xứ cổ tích (mặc định) | Fairy Tale Loop — SergeQuadrado | `fairy-tale-loop.mp3` |
+| Lâu đài đêm | The Forgotten Keep (Night Version) — kaazoom | `forgotten-keep-night.mp3` |
+| Đêm bí ngô | Halloween Horror Atmosphere — AlesiaDavina | `halloween-atmosphere.mp3` |
+| Đảo thiên đường | Welcome To Paradise — SergeQuadrado | `welcome-to-paradise.mp3` |
+| Suối rừng xanh | Water Streaming — Liecio | `water-streaming.mp3` |
+
+Nhạc phát bằng Web Audio (tải một lần, trình duyệt lưu lại), chuyển chủ đề thì nhạc cũ nhỏ dần, nhạc mới to dần; ẩn tab thì tạm im. Thiếu file nào thì chủ đề đó dùng nhạc nhẹ tự tổng hợp. Giấy phép Pixabay Content License cho dùng miễn phí trong ứng dụng; không phát tán riêng các file nhạc.
+
 ### Chặng luyện tập sinh theo mẫu (`server/content/practice/`)
 
 Để mỗi môn, mỗi lớp có trên 100 màn mà không phải soạn tay từng câu, câu hỏi được sinh từ **bảng dữ liệu + mẫu đề**:

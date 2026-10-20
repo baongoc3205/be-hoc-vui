@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react';
 import { api } from './api';
 import type { Catalog, Child, ChildState, Lang, Parent } from './types';
 
-export interface Prefs { lang: Lang; sound: boolean; music: boolean; voice: boolean; autoRead: boolean; reduceMotion: boolean }
+export interface Prefs { lang: Lang; sound: boolean; music: boolean; voice: boolean; autoRead: boolean; reduceMotion: boolean; theme: string }
 export interface AppState {
   booted: boolean;
   parent: Parent | null;
@@ -18,7 +18,7 @@ export interface AppState {
 const PREFS_KEY = 'bhv_prefs';
 const CHILD_KEY = 'bhv_child';
 function loadPrefs(): Prefs {
-  const def: Prefs = { lang: navigator.language?.startsWith('en') ? 'en' : 'vi', sound: true, music: false, voice: true, autoRead: true, reduceMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false };
+  const def: Prefs = { lang: navigator.language?.startsWith('en') ? 'en' : 'vi', sound: true, music: true, voice: true, autoRead: true, theme: 'fairy', reduceMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false };
   try { return { ...def, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; } catch { return def; }
 }
 const readChild = () => { try { return Number(localStorage.getItem(CHILD_KEY)) || null; } catch { return null; } };
