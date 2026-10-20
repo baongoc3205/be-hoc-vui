@@ -1,6 +1,6 @@
 // Service worker: lưu sẵn giao diện để mở nhanh và vẫn hiện được khi mạng chập chờn.
 // Dữ liệu học (/api) luôn lấy từ server để tiến độ chính xác.
-const CACHE = 'bhv-v3';
+const CACHE = 'bhv-v4';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/index.html', '/favicon.svg', '/manifest.webmanifest'])).then(() => self.skipWaiting()));
 });

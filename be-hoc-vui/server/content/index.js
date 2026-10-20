@@ -92,107 +92,8 @@ export const LESSONS = buildLessons();
 export const lessonById = new Map(LESSONS.map((l) => [l.id, l]));
 export const lessonsFor = (subject, grade) => LESSONS.filter((l) => l.subject === subject && l.grade === grade);
 
-// ---------------- Cửa hàng (xu ảo, không có tiền thật) ----------------
-export const SHOP = [
-  // kiểu tóc
-  { id: 'hair:bob', slot: 'hair', value: 'bob', price: 0, name: L('Tóc ngắn', 'Bob cut') },
-  { id: 'hair:twin', slot: 'hair', value: 'twin', price: 0, name: L('Tóc buộc hai bên', 'Twin tails') },
-  { id: 'hair:spiky', slot: 'hair', value: 'spiky', price: 60, name: L('Tóc dựng', 'Spiky') },
-  { id: 'hair:long', slot: 'hair', value: 'long', price: 80, name: L('Tóc dài', 'Long hair') },
-  { id: 'hair:bun', slot: 'hair', value: 'bun', price: 90, name: L('Búi tóc', 'Bun') },
-  { id: 'hair:ponytail', slot: 'hair', value: 'ponytail', price: 70, name: L('Tóc đuôi ngựa', 'Ponytail') },
-  { id: 'hair:curly', slot: 'hair', value: 'curly', price: 100, name: L('Tóc xoăn bồng', 'Curly cloud') },
-  { id: 'hair:braids', slot: 'hair', value: 'braids', price: 110, name: L('Tóc tết hai bên', 'Braids') },
-  { id: 'hair:pixie', slot: 'hair', value: 'pixie', price: 60, name: L('Tóc tém', 'Pixie cut') },
-  // màu tóc
-  { id: 'hairColor:cocoa', slot: 'hairColor', value: '#6B4A3A', price: 0, name: L('Nâu ca cao', 'Cocoa') },
-  { id: 'hairColor:black', slot: 'hairColor', value: '#2F2A2E', price: 0, name: L('Đen', 'Black') },
-  { id: 'hairColor:cream', slot: 'hairColor', value: '#F3E6D8', price: 50, name: L('Kem sữa', 'Cream') },
-  { id: 'hairColor:honey', slot: 'hairColor', value: '#D9A55B', price: 50, name: L('Mật ong', 'Honey') },
-  { id: 'hairColor:rose', slot: 'hairColor', value: '#D99A9A', price: 70, name: L('Hồng phấn', 'Rose') },
-  { id: 'hairColor:mint', slot: 'hairColor', value: '#9CC9B4', price: 70, name: L('Bạc hà', 'Mint') },
-  { id: 'hairColor:lavender', slot: 'hairColor', value: '#B9A3D6', price: 80, name: L('Tím oải hương', 'Lavender') },
-  { id: 'hairColor:sky', slot: 'hairColor', value: '#9CC3E0', price: 80, name: L('Xanh da trời', 'Sky blue') },
-  { id: 'hairColor:cherry', slot: 'hairColor', value: '#C9565E', price: 90, name: L('Đỏ anh đào', 'Cherry') },
-  { id: 'hairColor:ash', slot: 'hairColor', value: '#A8A2A6', price: 60, name: L('Xám tro', 'Ash grey') },
-  { id: 'hairColor:chestnut', slot: 'hairColor', value: '#8E5A3C', price: 40, name: L('Nâu hạt dẻ', 'Chestnut') },
-  // tai thú
-  { id: 'ears:none', slot: 'ears', value: 'none', price: 0, name: L('Không tai thú', 'No ears') },
-  { id: 'ears:cat', slot: 'ears', value: 'cat', price: 0, name: L('Tai mèo', 'Cat ears') },
-  { id: 'ears:bunny', slot: 'ears', value: 'bunny', price: 80, name: L('Tai thỏ', 'Bunny ears') },
-  { id: 'ears:bear', slot: 'ears', value: 'bear', price: 80, name: L('Tai gấu', 'Bear ears') },
-  { id: 'ears:fox', slot: 'ears', value: 'fox', price: 100, name: L('Tai cáo', 'Fox ears') },
-  { id: 'ears:panda', slot: 'ears', value: 'panda', price: 90, name: L('Tai gấu trúc', 'Panda ears') },
-  { id: 'ears:mouse', slot: 'ears', value: 'mouse', price: 80, name: L('Tai chuột', 'Mouse ears') },
-  { id: 'ears:puppy', slot: 'ears', value: 'puppy', price: 90, name: L('Tai cún cụp', 'Puppy ears') },
-  { id: 'ears:deer', slot: 'ears', value: 'deer', price: 140, name: L('Sừng nai', 'Deer antlers') },
-  // trang phục
-  { id: 'outfit:dress', slot: 'outfit', value: 'dress', price: 0, name: L('Váy yếm', 'Pinafore') },
-  { id: 'outfit:overall', slot: 'outfit', value: 'overall', price: 0, name: L('Quần yếm', 'Overalls') },
-  { id: 'outfit:hoodie', slot: 'outfit', value: 'hoodie', price: 90, name: L('Áo hoodie', 'Hoodie') },
-  { id: 'outfit:aodai', slot: 'outfit', value: 'aodai', price: 150, name: L('Áo dài', 'Áo dài') },
-  { id: 'outfit:raincoat', slot: 'outfit', value: 'raincoat', price: 120, name: L('Áo mưa', 'Raincoat') },
-  { id: 'outfit:school', slot: 'outfit', value: 'school', price: 0, name: L('Đồng phục khăn quàng đỏ', 'School uniform') },
-  { id: 'outfit:sailor', slot: 'outfit', value: 'sailor', price: 120, name: L('Áo thuỷ thủ', 'Sailor suit') },
-  { id: 'outfit:tracksuit', slot: 'outfit', value: 'tracksuit', price: 100, name: L('Đồ thể thao', 'Tracksuit') },
-  { id: 'outfit:tutu', slot: 'outfit', value: 'tutu', price: 130, name: L('Váy múa ba lê', 'Ballet tutu') },
-  { id: 'outfit:chef', slot: 'outfit', value: 'chef', price: 140, name: L('Áo đầu bếp', 'Chef coat') },
-  { id: 'outfit:labcoat', slot: 'outfit', value: 'labcoat', price: 150, name: L('Áo nhà khoa học', 'Lab coat') },
-  { id: 'outfit:astronaut', slot: 'outfit', value: 'astronaut', price: 220, name: L('Đồ phi hành gia', 'Astronaut suit') },
-  { id: 'outfit:princess', slot: 'outfit', value: 'princess', price: 250, name: L('Váy công chúa', 'Princess gown') },
-  // màu trang phục
-  { id: 'outfitColor:sage', slot: 'outfitColor', value: '#B8C98A', price: 0, name: L('Xanh lá mạ', 'Sage') },
-  { id: 'outfitColor:peach', slot: 'outfitColor', value: '#F0B48E', price: 0, name: L('Đào', 'Peach') },
-  { id: 'outfitColor:sky', slot: 'outfitColor', value: '#9FC3DD', price: 40, name: L('Xanh trời', 'Sky') },
-  { id: 'outfitColor:lilac', slot: 'outfitColor', value: '#C2A9D6', price: 40, name: L('Tím oải hương', 'Lilac') },
-  { id: 'outfitColor:butter', slot: 'outfitColor', value: '#F2D57E', price: 40, name: L('Vàng bơ', 'Butter') },
-  { id: 'outfitColor:berry', slot: 'outfitColor', value: '#D97B8A', price: 60, name: L('Dâu', 'Berry') },
-  { id: 'outfitColor:mint', slot: 'outfitColor', value: '#9CD3BE', price: 40, name: L('Xanh bạc hà', 'Mint') },
-  { id: 'outfitColor:coral', slot: 'outfitColor', value: '#F09A86', price: 40, name: L('San hô', 'Coral') },
-  { id: 'outfitColor:navy', slot: 'outfitColor', value: '#5D6E9A', price: 50, name: L('Xanh than', 'Navy') },
-  { id: 'outfitColor:cream', slot: 'outfitColor', value: '#F3E6D2', price: 30, name: L('Kem sữa', 'Cream') },
-  { id: 'outfitColor:rose', slot: 'outfitColor', value: '#E9A6BC', price: 50, name: L('Hồng phấn', 'Rose') },
-  // phụ kiện
-  { id: 'acc:none', slot: 'acc', value: 'none', price: 0, name: L('Không phụ kiện', 'None') },
-  { id: 'acc:bow', slot: 'acc', value: 'bow', price: 50, name: L('Nơ xinh', 'Bow') },
-  { id: 'acc:flower', slot: 'acc', value: 'flower', price: 60, name: L('Kẹp hoa', 'Flower clip') },
-  { id: 'acc:glasses', slot: 'acc', value: 'glasses', price: 70, name: L('Kính tròn', 'Round glasses') },
-  { id: 'acc:nonla', slot: 'acc', value: 'nonla', price: 120, name: L('Nón lá', 'Conical hat') },
-  { id: 'acc:crown', slot: 'acc', value: 'crown', price: 200, name: L('Vương miện', 'Crown') },
-  { id: 'acc:headband', slot: 'acc', value: 'headband', price: 40, name: L('Băng đô nơ', 'Bow headband') },
-  { id: 'acc:starclip', slot: 'acc', value: 'starclip', price: 40, name: L('Kẹp ngôi sao', 'Star clip') },
-  { id: 'acc:beret', slot: 'acc', value: 'beret', price: 90, name: L('Mũ nồi', 'Beret') },
-  { id: 'acc:cap', slot: 'acc', value: 'cap', price: 80, name: L('Mũ lưỡi trai', 'Cap') },
-  { id: 'acc:wreath', slot: 'acc', value: 'wreath', price: 110, name: L('Vòng hoa', 'Flower crown') },
-  { id: 'acc:headphones', slot: 'acc', value: 'headphones', price: 100, name: L('Tai nghe', 'Headphones') },
-  { id: 'acc:partyhat', slot: 'acc', value: 'partyhat', price: 60, name: L('Mũ sinh nhật', 'Party hat') },
-  // giày
-  { id: 'shoes:maryjane', slot: 'shoes', value: 'maryjane', price: 0, name: L('Giày búp bê đỏ', 'Red Mary Janes') },
-  { id: 'shoes:sneakers', slot: 'shoes', value: 'sneakers', price: 0, name: L('Giày thể thao', 'Sneakers') },
-  { id: 'shoes:slippers', slot: 'shoes', value: 'slippers', price: 50, name: L('Dép bông thỏ', 'Bunny slippers') },
-  { id: 'shoes:sandals', slot: 'shoes', value: 'sandals', price: 50, name: L('Dép quai hậu', 'Sandals') },
-  { id: 'shoes:boots', slot: 'shoes', value: 'boots', price: 90, name: L('Bốt da', 'Boots') },
-  { id: 'shoes:rainboots', slot: 'shoes', value: 'rainboots', price: 80, name: L('Ủng đi mưa', 'Rain boots') },
-  // đồ cầm tay
-  { id: 'hold:none', slot: 'hold', value: 'none', price: 0, name: L('Không cầm gì', 'Nothing') },
-  { id: 'hold:pencil', slot: 'hold', value: 'pencil', price: 0, name: L('Bút chì', 'Pencil') },
-  { id: 'hold:book', slot: 'hold', value: 'book', price: 40, name: L('Quyển sách', 'Book') },
-  { id: 'hold:tulip', slot: 'hold', value: 'tulip', price: 60, name: L('Hoa tulip', 'Tulip') },
-  { id: 'hold:balloon', slot: 'hold', value: 'balloon', price: 60, name: L('Bóng bay', 'Balloon') },
-  { id: 'hold:lollipop', slot: 'hold', value: 'lollipop', price: 50, name: L('Kẹo mút', 'Lollipop') },
-  { id: 'hold:teddy', slot: 'hold', value: 'teddy', price: 120, name: L('Gấu bông', 'Teddy bear') },
-  { id: 'hold:wand', slot: 'hold', value: 'wand', price: 150, name: L('Đũa phép ngôi sao', 'Star wand') },
-  // cảnh nền sảnh
-  { id: 'scene:meadow', slot: 'scene', value: 'meadow', price: 0, name: L('Đồng hoa', 'Flower meadow') },
-  { id: 'scene:beach', slot: 'scene', value: 'beach', price: 150, name: L('Bờ biển', 'Seaside') },
-  { id: 'scene:village', slot: 'scene', value: 'village', price: 150, name: L('Làng quê', 'Countryside') },
-  { id: 'scene:night', slot: 'scene', value: 'night', price: 180, name: L('Đêm sao', 'Starry night') },
-  { id: 'scene:sakura', slot: 'scene', value: 'sakura', price: 200, name: L('Mùa hoa anh đào', 'Cherry blossoms') },
-  { id: 'scene:snow', slot: 'scene', value: 'snow', price: 200, name: L('Mùa đông tuyết', 'Snowy winter') },
-];
-export const shopById = new Map(SHOP.map((s) => [s.id, s]));
-export const DEFAULT_LOOK = { skin: '#F7D9C4', hair: 'bob', hairColor: '#6B4A3A', ears: 'cat', outfit: 'dress', outfitColor: '#B8C98A', acc: 'none', shoes: 'maryjane', hold: 'none', scene: 'meadow' };
-export const FREE_ITEMS = SHOP.filter((s) => s.price === 0).map((s) => s.id);
+// ---------------- Cửa hàng (xu ảo, không có tiền thật) → ./shop.js ----------------
+export { SHOP, shopById, DEFAULT_LOOK, FREE_ITEMS, COLLECTIONS, COMBOS, comboById } from './shop.js';
 
 // ---------------- Huy hiệu ----------------
 // cond(s): s = thống kê của bé (xem server/game.js → statsFor)
@@ -220,6 +121,10 @@ export const BADGES = [
   { id: 'early-bird', icon: 'sun', name: L('Chăm chỉ buổi sáng', 'Early bird'), desc: L('Học xong 1 màn trước 9 giờ sáng', 'Finish a level before 9 am'), cond: (s) => s.morning >= 1 },
   { id: 'checkin-7', icon: 'calendar', name: L('Chăm điểm danh', 'Daily visitor'), desc: L('Điểm danh 7 ngày', 'Check in on 7 days'), cond: (s) => s.checkins >= 7 },
   { id: 'checkin-30', icon: 'calendar2', name: L('Bạn thân của Bé Học Vui', 'Best friend'), desc: L('Điểm danh 30 ngày', 'Check in on 30 days'), cond: (s) => s.checkins >= 30 },
+  { id: 'combo-1', icon: 'shirt', name: L('Cả bộ cánh', 'Full outfit'), desc: L('Sưu tầm đủ 1 combo trang phục', 'Collect a whole outfit combo'), cond: (s) => s.combos >= 1 },
+  { id: 'combo-5', icon: 'crown', name: L('Nhà thiết kế nhí', 'Little designer'), desc: L('Sưu tầm đủ 5 combo trang phục', 'Collect 5 outfit combos'), cond: (s) => s.combos >= 5 },
+  { id: 'wardrobe-30', icon: 'shirt', name: L('Tủ đồ khổng lồ', 'Giant wardrobe'), desc: L('Có 30 món đồ đã mua', 'Own 30 bought items'), cond: (s) => s.bought >= 30 },
+  { id: 'festive', icon: 'gem', name: L('Vui ngày lễ', 'Festive fun'), desc: L('Nhận quà trong một dịp lễ', 'Claim a holiday gift'), cond: (s) => s.gifts >= 1 },
   { id: 'perfect-boss', icon: 'gem', name: L('Hoàn hảo', 'Flawless'), desc: L('Đạt 3 sao ở màn trùm', '3 stars on a boss level'), cond: (s) => s.perfectBoss >= 1 },
 ];
 

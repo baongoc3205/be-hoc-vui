@@ -16,5 +16,5 @@
     "noEmit": true,
     "types": []
   },
-  "include": ["src", "../shared/logic.d.ts"]
+  "include": ["src", "../shared/logic.d.ts", "../shared/shop.d.ts"]
 }

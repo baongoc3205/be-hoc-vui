@@ -2,28 +2,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import { go, setChildState, toast, useApp } from '../lib/store';
 import { useT } from '../lib/hooks';
-import type { ChildState, Look, ShopItem } from '../lib/types';
+import type { ChildState, Look } from '../lib/types';
 import { Bar, Btn, Inset, LvPill, Notch, Panel, SideTabs, TopBar } from '../ui/kit';
 import { BadgeGrid } from '../ui/Badges';
 import { Scene, type SceneName } from '../ui/Scene';
 import { Chibi } from '../ui/Chibi';
 import { Glyph, LockIcon, SkillTile, StarIcon, TulipIcon } from '../ui/Icons';
 import { errText } from './Auth';
+import { ComboCard, ItemThumb, SLOTS, TagChips, comboHave, comboLook } from '../ui/ShopCards';
 import { sfx } from '../lib/sfx';
 import { burstAt } from '../lib/fx';
 
 interface Report { stats: { lessonsDone: number; bySubject: Record<string, number>; threeStars: number; correctTotal: number; streak: number } }
-export const SLOTS: (keyof Look)[] = ['hair', 'hairColor', 'ears', 'outfit', 'outfitColor', 'acc', 'shoes', 'hold', 'scene'];
-const FULL_BODY = new Set(['outfit', 'shoes', 'hold']);
-const COLOR_SLOTS = new Set(['hairColor', 'outfitColor']);
-
-/** Ô xem trước một món đồ: màu → chấm tròn, còn lại → nhân vật mặc thử. */
-export function ItemThumb({ item, look }: { item: ShopItem; look: Look }) {
-  if (COLOR_SLOTS.has(item.slot)) return <span className="swatch" style={{ background: item.value, width: 72, height: 72 }} />;
-  if (item.slot === 'scene') return <div className="thumb" style={{ position: 'relative' }}><Scene name={item.value as SceneName} blur={false} /></div>;
-  if (FULL_BODY.has(item.slot)) return <div className="thumb full"><Chibi look={{ ...look, [item.slot]: item.value }} size={88} /></div>;
-  return <div className="thumb"><Chibi look={{ ...look, [item.slot]: item.value }} size={120} /></div>;
-}
+export { ItemThumb, SLOTS };
 
 export function Character({ tab = 'info' }: { tab?: string }) {
   const T = useT();
@@ -33,12 +24,17 @@ export function Character({ tab = 'info' }: { tab?: string }) {
   const [cur, setCur] = useState<'info' | 'outfit' | 'achievements'>((['info', 'outfit', 'achievements'].includes(tab) ? tab : 'info') as 'info');
   const [rep, setRep] = useState<Report | null>(null);
   const [draft, setDraft] = useState<Look>(cs.child.look);
-  const [slot, setSlot] = useState<keyof Look>('hair');
+  const [slot, setSlot] = useState<keyof Look | 'combo'>('hair');
+  const [tag, setTag] = useState('all');
   useEffect(() => { api.get<Report>(`/children/${childId}/report`).then(setRep).catch(() => undefined); }, [childId, cs.xp]);
   useEffect(() => setDraft(cs.child.look), [cs.child.look]);
   const child = cs.child;
   const dirty = JSON.stringify(draft) !== JSON.stringify(child.look);
   const items = useMemo(() => catalog.shop.filter((s) => s.slot === slot), [catalog, slot]);
+  const byId = useMemo(() => new Map(catalog.shop.map((i) => [i.id, i])), [catalog]);
+  const tags = useMemo(() => new Map((catalog.collections ?? []).map((c) => [c.id, c])), [catalog]);
+  const slotTags = useMemo(() => [...new Set(items.map((i) => i.tag).filter(Boolean))].map((t) => tags.get(t!)!).filter(Boolean), [items, tags]);
+  const combos = useMemo(() => (catalog.combos ?? []).map((c) => ({ c, h: comboHave(c, byId, cs.owned) })).sort((a, b) => (b.h.have / b.h.total) - (a.h.have / a.h.total)), [catalog, byId, cs.owned]);
 
   const save = async (el: HTMLElement) => {
     try { const st = await api.post<ChildState>(`/children/${childId}/look`, { look: draft }); setChildState(st); sfx.levelup(); burstAt(el, 'stars', 16); toast(T.t('saved')); }
@@ -86,9 +82,18 @@ export function Character({ tab = 'info' }: { tab?: string }) {
                 </div>
               </>)}
               {cur === 'outfit' && (<>
-                <div className="chips slot-chips">{SLOTS.map((s) => <button key={s} type="button" className={`chip ${slot === s ? 'on' : ''}`} onClick={() => { sfx.tap(); setSlot(s); }}>{T.t(`slot_${s}` as 'slot_hair')}</button>)}</div>
+                <div className="chips slot-chips">
+                  <button type="button" className={`chip ${slot === 'combo' ? 'on' : ''}`} onClick={() => { sfx.tap(); setSlot('combo'); setTag('all'); }}>{T.t('tabCombo')}</button>
+                  {SLOTS.map((s) => <button key={s} type="button" className={`chip ${slot === s ? 'on' : ''}`} onClick={() => { sfx.tap(); setSlot(s); setTag('all'); }}>{T.t(`slot_${s}` as 'slot_hair')}</button>)}
+                </div>
+                {slot !== 'combo' && <TagChips tags={slotTags} value={tag} onChange={setTag} />}
                 <div className="item-grid">
-                  {items.map((it) => {
+                  {slot === 'combo' && combos.map(({ c, h }) => (
+                    <ComboCard key={c.id} combo={c} base={draft} byId={byId} owned={cs.owned} price={h.items.filter((i) => i.price > 0 && !cs.owned.includes(i.id)).reduce((a, i) => a + i.price, 0)} full={0} locked
+                      on={h.complete && Object.entries(comboLook(c, byId)).every(([k, v]) => draft[k as keyof Look] === v)} tag={tags.get(c.tag)}
+                      onClick={() => { sfx.tap(); if (h.complete) setDraft({ ...draft, ...comboLook(c, byId) }); else toast(T.t('comboHave', { a: h.have, b: h.total }) + ' — ' + T.t('notOwned'), 'warn'); }} />
+                  ))}
+                  {slot !== 'combo' && items.filter((i) => tag === 'all' || i.tag === tag).map((it) => {
                     const owned = cs.owned.includes(it.id);
                     const on = draft[it.slot] === it.value;
                     return (

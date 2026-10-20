@@ -69,6 +69,22 @@ try {
       await check(p);
     }
     await page.goto(base + '/#/privacy'); await page.waitForTimeout(500); await check('privacy');
+    // cửa hàng: các thẻ Ngày lễ / Combo / lọc chủ đề, thử cả bộ; tủ đồ: thẻ Combo
+    await page.goto(base + '/#/shop'); await page.waitForTimeout(700);
+    for (const label of ['Combo', 'Ngày lễ', 'Trang phục']) {
+      const tab = page.locator('.side-tab', { hasText: label }).first();
+      if (!(await tab.count())) { fails.push(`${name} shop: thiếu thẻ "${label}"`); continue; }
+      await tab.click(); await page.waitForTimeout(400);
+      if (label !== 'Ngày lễ') { const chip = page.locator('.tag-chips .chip').nth(1); if (await chip.count()) { await chip.click(); await page.waitForTimeout(250); } }
+      const card = page.locator('.item-grid .item-card').first();
+      if (await card.count()) { await card.click(); await page.waitForTimeout(250); }
+      else if (label !== 'Ngày lễ') fails.push(`${name} shop ${label}: không có món nào`);
+      await check(`shop-${label}`);
+    }
+    await page.goto(base + '/#/character/outfit'); await page.waitForTimeout(600);
+    await page.locator('.slot-chips .chip', { hasText: 'Combo' }).first().click(); await page.waitForTimeout(400);
+    if (!(await page.locator('.combo-card').count())) fails.push(`${name} tủ đồ: không thấy combo`);
+    await check('character-combo');
 
     // chơi thử mọi loại trò chơi (ở 2 cỡ: máy tính và điện thoại dọc là đủ)
     if (name === 'laptop' || name === 'iphone') {

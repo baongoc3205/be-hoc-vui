@@ -248,6 +248,8 @@ export function createApp(db) {
   r.post('/api/children/:id/checkin', async (req, res, { id }) => [200, (await G.doCheckin(db, await childOf(req, id)))]);
   r.post('/api/children/:id/quests/:qid/claim', async (req, res, { id, qid }) => [200, (await G.claimQuest(db, await childOf(req, id), qid))]);
   r.post('/api/children/:id/shop/:itemId', async (req, res, { id, itemId }) => [200, (await G.buyItem(db, await childOf(req, id), itemId))]);
+  r.post('/api/children/:id/combo/:comboId', async (req, res, { id, comboId }) => [200, (await G.buyCombo(db, await childOf(req, id), comboId))]);
+  r.post('/api/children/:id/events/:eventId/gift', async (req, res, { id, eventId }) => [200, (await G.claimEventGift(db, await childOf(req, id), eventId))]);
   r.post('/api/children/:id/look', async (req, res, { id }) => [200, (await G.setLook(db, await childOf(req, id), (await readJson(req)).look ?? {}))]);
   r.get('/api/children/:id/report', async (req, res, { id }) => [200, (await G.reportFor(db, await childOf(req, id)))]);
   r.get('/api/leaderboard', async (req) => [200, { rows: (await G.leaderboard(db, (await requireParent(db, req)).id)) }]);

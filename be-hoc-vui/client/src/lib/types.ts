@@ -1,4 +1,6 @@
 import type { LText, Round } from '../../../shared/logic.js';
+import type { ShopEvent } from '../../../shared/shop.js';
+export type { ShopEvent };
 export type { LText, Round };
 
 export type Lang = 'vi' | 'en';
@@ -25,12 +27,16 @@ export interface ChildState {
   energy: { value: number; max: number; nextInMs: number; enabled: boolean };
   streak: number; chestAvailable: boolean; checkin: Checkin; quests: Quest[]; badges: string[]; owned: string[];
   today: { minutes: number; limit: number };
+  events?: { active: ActiveEvent[]; next: ShopEvent | null; today: string };
   next?: { subject: SubjectId; done: number; total: number; lesson: { id: string; index: number; game: GameType; kind: string; name: LText } | null; topic: LText | null } | null;
 }
 export interface Subject { id: SubjectId; name: LText; world: LText; mascot: string; color: string }
-export interface ShopItem { id: string; slot: keyof Look; value: string; price: number; name: LText }
+export interface ShopItem { id: string; slot: keyof Look; value: string; price: number; name: LText; tag?: string }
+export interface Collection { id: string; icon: string; name: LText; holiday?: boolean }
+export interface Combo { id: string; tag: string; name: LText; items: string[] }
+export type ActiveEvent = ShopEvent & { claimed: boolean };
 export interface Badge { id: string; icon: string; name: LText; desc: LText }
-export interface Catalog { subjects: Subject[]; topics: { id: string; subject: SubjectId; grade: number; title: LText }[]; games: Record<GameType, { name: LText; icon: string }>; shop: ShopItem[]; badges: Badge[]; lessonCount: number }
+export interface Catalog { subjects: Subject[]; topics: { id: string; subject: SubjectId; grade: number; title: LText }[]; games: Record<GameType, { name: LText; icon: string }>; shop: ShopItem[]; collections: Collection[]; combos: Combo[]; badges: Badge[]; lessonCount: number }
 export interface MapNode { id: string; index: number; topicId: string; game: GameType; kind: 'normal' | 'boss' | 'chest'; name: LText; stars: number; done: boolean; unlocked: boolean; coins: number; tier?: number | null }
 export interface MapData { subject: SubjectId; grade: number; topics: { id: string; title: LText; practice?: boolean }[]; nodes: MapNode[]; current: string | null }
 export interface SessionStart {

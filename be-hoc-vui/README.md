@@ -145,23 +145,45 @@ Nhân vật được dựng từ nhiều lớp SVG nên có thể phối tự do
 - Trong Cửa hàng có thể **mặc thử** trước khi mua.
 - Đồ đã có thay ở **Nhân vật → Trang phục**.
 
-| Nhóm | Số món | Danh sách |
+Cửa hàng có **4 cách mua sắm**:
+- **Đồ lẻ** theo từng ô (tóc, tai thú, trang phục, phụ kiện…), lọc được theo **chủ đề**.
+- **Combo**: cả bộ phối sẵn (vd. Phù thuỷ nhỏ, Ông già Noel nhí, Du xuân ngày Tết, Phi hành gia). Mua combo chỉ trả tiền những món còn thiếu, **rẻ hơn mua lẻ 20%**, mua xong mặc luôn cả bộ. Ở Tủ đồ có thẻ **Combo** để mặc lại cả bộ bằng một chạm.
+- **Chủ đề (bộ sưu tập)**: mỗi món thuộc một chủ đề — Thường ngày, Đến trường, Nghề nghiệp, Cổ tích, Phiêu lưu, Muông thú, Thể thao, Vũ trụ, Mùa hè, Mùa đông, Việt Nam và 8 chủ đề ngày lễ.
+- **Ngày lễ**: trong dịp lễ, đồ cùng chủ đề **giảm 30%**, combo giảm thêm, và mỗi bé nhận **1 món quà lễ** miễn phí (đã có rồi thì được 40 xu). Thẻ *Ngày lễ* trong Cửa hàng và chấm đỏ trên nút Cửa hàng báo khi có quà.
+
+| Dịp lễ | Thời gian (giờ Việt Nam) | Quà |
+|---|---|---|
+| 🧧 Tết Nguyên Đán | 14 ngày trước → 7 ngày sau mùng 1 (âm lịch, có sẵn đến 2035) | Bao lì xì |
+| 💝 Ngày yêu thương | 7–15/2 | Kẹp trái tim |
+| 🌷 Quốc tế Phụ nữ / Phụ nữ Việt Nam | 1–9/3 và 13–21/10 | Bó hoa hồng |
+| 🎈 Quốc tế Thiếu nhi | 25/5–3/6 | Chong chóng |
+| 🏖️ Hè rực rỡ | 10/6–15/8 | Kem ốc quế |
+| 🎒 Ngày khai trường | 25/8–8/9 | Cặp sách |
+| 🇻🇳 Quốc khánh | 28/8–3/9 | Lá cờ Tổ quốc |
+| 🏮 Tết Trung thu | 10 ngày trước → 3 ngày sau rằm tháng 8 (âm lịch) | Đèn ông sao |
+| 🎃 Lễ hội bí ngô | 18/10–1/11 | Đèn bí ngô |
+| 💐 Ngày Nhà giáo | 13–21/11 | Bó hoa tặng cô |
+| 🎄 Giáng sinh | 10–31/12 | Kẹo gậy |
+
+| Nhóm | Số món | Ví dụ |
 |---|:---:|---|
 | 💇 Kiểu tóc | 9 | Tóc ngắn, Buộc hai bên, Tóc dựng, Tóc dài, Búi tóc, Đuôi ngựa, Xoăn bồng, Tết hai bên, Tóc tém |
-| 🎨 Màu tóc | 11 | Nâu ca cao, Đen, Kem sữa, Mật ong, Hồng phấn, Bạc hà, Tím oải hương, Xanh da trời, Đỏ anh đào, Xám tro, Nâu hạt dẻ |
-| 🐾 Tai thú | 9 | Không có, Mèo, Thỏ, Gấu, Cáo, Gấu trúc, Chuột, Cún cụp, Sừng nai |
-| 👗 Trang phục | 13 | Váy yếm, Quần yếm, **Đồng phục khăn quàng đỏ**, Hoodie, Áo mưa, Đồ thể thao, Áo thuỷ thủ, Váy ba lê, Áo đầu bếp, **Áo dài**, Áo nhà khoa học, Đồ phi hành gia, Váy công chúa |
-| 🌈 Màu áo | 11 | Xanh lá mạ, Đào, Xanh trời, Oải hương, Vàng bơ, Dâu, Bạc hà, San hô, Xanh than, Kem sữa, Hồng phấn |
-| 🎀 Phụ kiện | 13 | Không có, Nơ, Kẹp hoa, Kẹp ngôi sao, Băng đô nơ, Kính tròn, **Nón lá**, Mũ nồi, Mũ lưỡi trai, Vòng hoa, Tai nghe, Mũ sinh nhật, Vương miện |
-| 👟 Giày dép | 6 | Giày búp bê đỏ, Giày thể thao, Dép bông thỏ, Dép quai hậu, Bốt da, Ủng đi mưa |
-| 🌷 Đồ cầm tay | 8 | Không cầm, Bút chì, Quyển sách, **Hoa tulip**, Bóng bay, Kẹo mút, Gấu bông, Đũa phép ngôi sao |
-| 🏞️ Cảnh nền sảnh | 6 | Đồng hoa, Bờ biển, Làng quê, Đêm sao, Mùa hoa anh đào, Mùa đông tuyết |
+| 🎨 Màu tóc | 17 | Nâu ca cao, Đen, Kem sữa, Mật ong, Hồng phấn, Bạc hà, Trắng tuyết, Tím nho, Xanh đại dương, Vàng kim… |
+| 🐾 Tai thú & sừng | 18 | Mèo, Thỏ, Gấu, Cáo, Gấu trúc, Hổ, Gấu túi, Ếch, Cú mèo, Sừng tuần lộc, Sừng kỳ lân, Sừng rồng, Tai tiên… |
+| 👗 Trang phục | 46 | Áo dài, Áo bà ba, Áo dài Tết hoa mai, Áo cờ đỏ sao vàng, Đồ múa lân, Bác sĩ, Lính cứu hoả, Phi công, Hoạ sĩ, Hiệp sĩ, Pháp sư, Nàng tiên có cánh, Tiên cá, Siêu anh hùng, Cướp biển, Ninja, Khủng long, Ong, Phù thuỷ, Bí ngô, Ma cà rồng, Ông già Noel, Chú lùn, Người tuyết… |
+| 🌈 Màu áo | 21 | Xanh lá mạ, Đào, Đỏ may mắn, Vàng kim, Cam bí ngô, Tím đêm, Xanh thông, Xanh hoàng gia… |
+| 🎀 Phụ kiện | 35 | Nón lá, Khăn vấn Tết, Đầu lân, Mũ phù thuỷ, Mũ Noel, Mũ cử nhân, Mũ cứu hoả, Mũ phi công, Kính râm, Mặt nạ siêu nhân, Vòng hào quang… |
+| 👟 Giày dép | 14 | Guốc mộc, Giày ba lê, Giày trượt patin, Chân vịt, Bốt lông, Giày pha lê, Giày chú lùn, Giày giáp… |
+| 🌷 Đồ cầm tay | 30 | Đèn ông sao, Đèn cá chép, Bánh trung thu, Bao lì xì, Cành mai, Lá cờ, Đèn bí ngô, Chổi bay, Kẹo gậy, Hộp quà, Kiếm gỗ, Bóng đá… |
+| 🏞️ Cảnh nền sảnh | 13 | Đồng hoa, Bờ biển, Đáy đại dương, Làng quê, Đêm sao, Lâu đài, Vũ trụ, Hoa anh đào, Tuyết, Phố hoa ngày Tết, Đêm rước đèn, Đêm bí ngô, Đêm Giáng sinh |
 
-Ngoài ra bé chọn được **5 màu da** khi tạo nhân vật.
+Tổng cộng **203 món**, **56 combo**, **19 chủ đề**. Ngoài ra bé chọn được **5 màu da** khi tạo nhân vật.
 
 Muốn thêm món mới:
-1. Khai báo món đó trong `SHOP` ở `server/content/index.js`.
-2. Vẽ hình tương ứng trong `client/src/ui/Chibi.tsx`, đúng nhánh `switch` của nhóm.
+1. Khai báo món trong `SHOP` ở `server/content/shop.js` (kèm `tag` = chủ đề). Combo khai báo trong `COMBOS` cùng file.
+2. Vẽ hình tương ứng trong `client/src/ui/Chibi.tsx` (cảnh nền: `client/src/ui/Scene.tsx`), đúng nhánh `switch` của nhóm.
+3. Dịp lễ, mức giảm giá và cách tính giá combo nằm ở `shared/shop.js` (dùng chung cho máy chủ và giao diện).
+4. Chạy `npm test` — có bài kiểm tra mọi combo, quà lễ và chủ đề đều trỏ đúng món.
 
 ---
 
@@ -286,7 +308,7 @@ be-hoc-vui/
 │   ├── auth.js             Mật khẩu (scrypt) + phiên đăng nhập (cookie httpOnly)
 │   ├── game.js             Tiến độ, năng lượng, chấm điểm, thưởng, huy hiệu, báo cáo
 │   ├── rounds.js           Tạo vòng chơi từ ngân hàng câu hỏi / bộ sinh
-│   └── content/            math.js (bộ sinh), bank.js (ngân hàng), index.js (môn, màn, cửa hàng, huy hiệu)
+│   └── content/            math.js (bộ sinh), bank.js (ngân hàng), index.js (môn, màn, huy hiệu), shop.js (cửa hàng, combo, chủ đề)
 ├── shared/logic.js         Logic dùng chung client + server: chấm câu, sao, cấp, năng lượng
 ├── client/
 │   ├── src/

@@ -17,7 +17,7 @@ export function MainMenu({ value }: { value: MenuKey | 'lobby' }) {
   const questReady = cs?.quests.some((q) => q.done && !q.claimed) || (cs ? !cs.checkin.today : false);
   const tabs: { key: MenuKey | 'lobby'; label: string; badge?: boolean }[] = [
     { key: 'lobby', label: T.t('lobby') }, { key: 'learn', label: T.t('learn') }, { key: 'arcade', label: T.t('arcadeShort') }, { key: 'quests', label: T.t('quests'), badge: !!questReady },
-    { key: 'shop', label: T.t('shop') }, { key: 'character', label: T.t('character') }, { key: 'ranking', label: T.t('ranking') },
+    { key: 'shop', label: T.t('shop'), badge: !!cs?.events?.active.some((e) => !e.claimed) }, { key: 'character', label: T.t('character') }, { key: 'ranking', label: T.t('ranking') },
   ];
   const to: Record<string, string> = { lobby: 'lobby', learn: 'worlds', arcade: 'arcade', quests: 'rewards', treasure: 'rewards/badges', shop: 'shop', character: 'character', ranking: 'ranking' };
   return <SideTabs tabs={tabs} value={value} onChange={(k) => go(to[k])} />;

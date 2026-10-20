@@ -4,7 +4,8 @@ import { HttpError } from './http.js';
 import { buildRounds } from './rounds.js';
 import './arcade.js'; // đăng ký các bài Khu vui chơi vào lessonById
 import { computeRewards, currentEnergy, gradeRound, levelInfo, makeRng, shuffle, ageThemeForGrade, MAX_ENERGY } from '../shared/logic.js';
-import { BADGES, CHECKIN_REWARDS, DEFAULT_LOOK, FREE_ITEMS, GAME_INFO, LESSONS, QUEST_POOL, SHOP, SUBJECTS, TOPICS, lessonById, lessonsFor, shopById, topicById } from './content/index.js';
+import { BADGES, CHECKIN_REWARDS, COLLECTIONS, COMBOS, DEFAULT_LOOK, FREE_ITEMS, GAME_INFO, LESSONS, QUEST_POOL, SHOP, SUBJECTS, TOPICS, comboById, lessonById, lessonsFor, shopById, topicById } from './content/index.js';
+import { GIFT_COINS, activeEvents, comboPrice, giftKey, itemPrice, nextEvent } from '../shared/shop.js';
 
 const TZ = process.env.TZ_GAME || 'Asia/Ho_Chi_Minh';
 const dayFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -130,7 +131,13 @@ export async function stateOf(db, child) {
     badges: (await db.prepare('SELECT badge_id FROM badges WHERE child_id = ?').all(child.id)).map((r) => r.badge_id),
     owned: [...new Set([...FREE_ITEMS, ...json(child.owned, [])])],
     today: { minutes: Math.floor(todayStats.seconds / 60), limit: settings.dailyLimitMin },
+    events: eventsFor(child, today),
   };
+}
+/** Các dịp lễ đang diễn ra (kèm đã nhận quà chưa) + dịp lễ sắp tới. */
+function eventsFor(child, today) {
+  const owned = json(child.owned, []);
+  return { active: activeEvents(today).map((e) => ({ ...e, claimed: owned.includes(giftKey(e)) })), next: nextEvent(today), today };
 }
 
 // ---------------- Bản đồ màn chơi ----------------
@@ -232,7 +239,7 @@ export async function statsFor(db, child) {
   const morning = (await db.prepare('SELECT finished_at FROM play_sessions WHERE child_id = ? AND finished_at IS NOT NULL AND stars >= 1').all(child.id)).filter((r) => Number(hourFmt.format(new Date(r.finished_at))) < 9).length;
   const owned = json(child.owned, FREE_ITEMS);
   const checkins = Number((await db.prepare('SELECT COUNT(*) n FROM checkins WHERE child_id = ?').get(child.id)).n);
-  return { checkins, lessonsDone: Object.values(bySubject).reduce((a, b) => a + b, 0), bySubject, threeStars, bossDone, perfectBoss, correctTotal: tot, streak: child.streak, level: levelInfo(child.xp).level, coins: child.coins, bought: owned.filter((id) => !FREE_ITEMS.includes(id)).length, morning };
+  return { checkins, lessonsDone: Object.values(bySubject).reduce((a, b) => a + b, 0), bySubject, threeStars, bossDone, perfectBoss, correctTotal: tot, streak: child.streak, level: levelInfo(child.xp).level, coins: child.coins, bought: owned.filter((id) => shopById.has(id) && !FREE_ITEMS.includes(id)).length, combos: COMBOS.filter((c) => c.items.every((i) => FREE_ITEMS.includes(i) || owned.includes(i))).length, gifts: owned.filter((id) => id.startsWith('gift:')).length, morning };
 }
 async function awardBadges(db, childId) {
   const child = (await db.prepare('SELECT * FROM children WHERE id = ?').get(childId));
@@ -333,12 +340,46 @@ export async function buyItem(db, child, itemId) {
   if (!item) throw new HttpError(404, 'ITEM_NOT_FOUND');
   const owned = json(child.owned, FREE_ITEMS);
   if (owned.includes(itemId) || item.price === 0) throw new HttpError(409, 'ALREADY_OWNED');
-  if (child.coins < item.price) throw new HttpError(409, 'NOT_ENOUGH_COINS');
+  const price = itemPrice(item, activeEvents(dayKey()));
+  if (child.coins < price) throw new HttpError(409, 'NOT_ENOUGH_COINS');
   owned.push(itemId);
-  (await db.prepare('UPDATE children SET coins = coins - ?, owned = ? WHERE id = ?').run(item.price, JSON.stringify(owned), child.id));
+  (await db.prepare('UPDATE children SET coins = coins - ?, owned = ? WHERE id = ? AND coins >= ?').run(price, JSON.stringify(owned), child.id, price));
   const newBadges = (await awardBadges(db, child.id));
   const fresh = (await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id));
   return { state: (await stateOf(db, fresh)), newBadges };
+}
+/** Mua cả combo: chỉ trả tiền các món còn thiếu, có giảm giá; mua xong mặc luôn cả bộ. */
+export async function buyCombo(db, child, comboId) {
+  const combo = comboById.get(comboId);
+  if (!combo) throw new HttpError(404, 'ITEM_NOT_FOUND');
+  const owned = json(child.owned, FREE_ITEMS);
+  const { price, missing } = comboPrice(combo, combo.items.map((i) => shopById.get(i)), owned, activeEvents(dayKey()));
+  if (!missing.length) throw new HttpError(409, 'ALREADY_OWNED');
+  if (child.coins < price) throw new HttpError(409, 'NOT_ENOUGH_COINS');
+  owned.push(...missing);
+  (await db.prepare('UPDATE children SET coins = coins - ?, owned = ? WHERE id = ? AND coins >= ?').run(price, JSON.stringify(owned), child.id, price));
+  const newBadges = (await awardBadges(db, child.id));
+  let fresh = (await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id));
+  const look = Object.fromEntries(combo.items.map((i) => shopById.get(i)).map((it) => [it.slot, it.value]));
+  await setLook(db, fresh, look);
+  fresh = (await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id));
+  return { state: (await stateOf(db, fresh)), newBadges, paid: price, items: missing };
+}
+/** Nhận quà ngày lễ (mỗi mùa lễ một lần). Đã có sẵn món quà thì nhận xu. */
+export async function claimEventGift(db, child, eventId) {
+  const ev = activeEvents(dayKey()).find((e) => e.id === eventId);
+  if (!ev) throw new HttpError(404, 'EVENT_NOT_ACTIVE');
+  const owned = json(child.owned, FREE_ITEMS);
+  const key = giftKey(ev);
+  if (owned.includes(key)) throw new HttpError(409, 'ALREADY_CLAIMED');
+  const gift = shopById.get(ev.gift);
+  const giveItem = gift && !owned.includes(gift.id);
+  owned.push(key); if (giveItem) owned.push(gift.id);
+  const coins = giveItem ? 0 : GIFT_COINS;
+  (await db.prepare('UPDATE children SET coins = coins + ?, owned = ? WHERE id = ?').run(coins, JSON.stringify(owned), child.id));
+  const newBadges = (await awardBadges(db, child.id));
+  const fresh = (await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id));
+  return { item: giveItem ? { id: gift.id, slot: gift.slot, value: gift.value, name: gift.name } : null, coins, newBadges, state: (await stateOf(db, fresh)) };
 }
 export async function setLook(db, child, look) {
   const safe = sanitizeLook({ ...json(child.look, DEFAULT_LOOK), ...look }, json(child.owned, FREE_ITEMS));
@@ -375,6 +416,8 @@ export const catalog = () => ({
   topics: TOPICS.map((t) => ({ id: t.id, subject: t.subject, grade: t.grade, title: t.title })),
   games: GAME_INFO,
   shop: SHOP,
+  collections: COLLECTIONS,
+  combos: COMBOS,
   badges: BADGES.map(({ cond, ...b }) => b),
   lessonCount: LESSONS.length,
 });
