@@ -56,12 +56,12 @@ export function ProfileDialog({ id, onClose }: { id: number; onClose: () => void
         <Btn tone="gray" onClick={() => setReporting(true)}>{tr('Báo cáo', 'Report')}</Btn>
       </> : <Btn tone="gray" onClick={onClose}>{T.t('close')}</Btn>}>
       {err ? <p>{tr('Không xem được hồ sơ này.', 'This profile isn’t available.')}</p> : !p ? <Spinner /> : (
-        <div className="profile-card">
-          <div className="profile-hero"><Chibi look={p.look} mood="happy" size={150} /></div>
-          <div className="profile-info">
-            <b className="profile-name">{p.nickname}</b>
+        <div className="fp-card">
+          <div className="fp-hero"><Chibi look={p.look} mood="happy" size={140} /></div>
+          <div className="fp-info">
+            <b className="fp-name">{p.nickname}</b>
             <span>{T.t('gradeN', { n: p.grade })} · Lv. {p.level}</span>
-            <div className="profile-stats">
+            <div className="fp-stats">
               <span>⭐ {p.stars}</span><span>🏅 {p.badges.length}</span><span>🔥 {p.streak}</span><span>⚡ {T.t('xpWeek', { n: p.xpWeek })}</span>
             </div>
             {rel === 'friends' && <span className="chip-dark">{tr('Bạn bè', 'Friends')}</span>}

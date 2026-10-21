@@ -1321,12 +1321,27 @@ button.pcard { cursor: pointer; }
 .pick-game { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 6px; border: 0; border-radius: 20px; background: var(--cream-50); box-shadow: 0 4px 0 var(--cream-300); color: var(--ink); }
 .pick-game span { font-size: 40px; } .pick-game b { font-family: var(--font-d); font-size: 17px; }
 .report-list { display: flex; flex-direction: column; gap: 8px; }
-.profile-card { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; justify-content: center; }
-.profile-hero .chibi { width: 150px; height: auto; }
-.profile-info { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; min-width: 200px; }
-.profile-name { font-family: var(--font-d); font-size: 28px; color: var(--ink); }
-.profile-stats { display: flex; gap: 10px; flex-wrap: wrap; font-weight: 800; }
-.profile-stats span { background: var(--cream-50); border-radius: 12px; padding: 4px 10px; }
+.fp-card { display: flex; gap: 18px; align-items: center; justify-content: center; text-align: left; font-size: 18px; }
+.fp-hero { flex: none; width: 150px; height: 150px; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 35%, #fff, var(--cream-300)); display: flex; justify-content: center; align-items: flex-start; }
+.fp-hero .chibi { width: 170px; height: auto; margin-top: 6px; }
+.fp-info { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; min-width: 0; }
+.fp-name { font-family: var(--font-d); font-size: 28px; color: var(--ink); line-height: 1.1; word-break: break-word; }
+.fp-stats { display: flex; gap: 8px; flex-wrap: wrap; font-weight: 800; font-size: 16px; }
+.fp-stats span { background: var(--cream-50); border-radius: 12px; padding: 4px 10px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .fp-card { flex-direction: column; text-align: center; gap: 10px; }
+  .fp-info { align-items: center; }
+  .fp-hero { width: 120px; height: 120px; } .fp-hero .chibi { width: 136px; }
+  .fp-name { font-size: 24px; }
+  .fp-stats { justify-content: center; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .fp-card { flex-direction: row; text-align: left; gap: 14px; }
+  .fp-info { align-items: flex-start; }
+  .fp-hero { width: 96px; height: 96px; } .fp-hero .chibi { width: 110px; }
+  .fp-name { font-size: 22px; }
+  .fp-stats { justify-content: flex-start; font-size: 14px; }
+}
 .rank-wrap { flex: 1; min-height: 0; width: 100%; max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; }
 .rank-wrap .panel { flex: 1; min-height: 0; }
 .rank-tabs { gap: 8px; margin-bottom: 6px; } .rank-tabs .chip { height: 40px; font-size: 16px; }
