@@ -8,6 +8,7 @@ import { checkRate, clearCookie, currentParent, hashPassword, issueToken, refres
 import { randomBytes } from 'node:crypto';
 import * as G from './game.js';
 import { arcadeMenu, pickArcade } from './arcade.js';
+import { THEORY } from './content/theory/index.js';
 
 const [major, minor] = process.versions.node.split('.').map(Number);
 if (major < 22 || (major === 22 && minor < 13)) {
@@ -183,6 +184,7 @@ export function createApp(db) {
 
   // ---------- Nội dung ----------
   r.get('/api/catalog', async () => [200, G.catalog()]);
+  r.get('/api/theory', async () => [200, { topics: THEORY }]);
 
   // ---------- Hồ sơ bé ----------
   r.get('/api/children', async (req) => {
@@ -245,6 +247,7 @@ export function createApp(db) {
     const c = await childOf(req, id); const { game, subject } = await readJson(req);
     return [200, { lessonId: pickArcade(c.grade, String(game ?? ''), subject ? String(subject) : 'any').id }];
   });
+  r.post('/api/children/:id/board', async (req, res, { id }) => [200, (await G.finishBoard(db, await childOf(req, id), await readJson(req)))]);
   r.post('/api/children/:id/checkin', async (req, res, { id }) => [200, (await G.doCheckin(db, await childOf(req, id)))]);
   r.post('/api/children/:id/quests/:qid/claim', async (req, res, { id, qid }) => [200, (await G.claimQuest(db, await childOf(req, id), qid))]);
   r.post('/api/children/:id/shop/:itemId', async (req, res, { id, itemId }) => [200, (await G.buyItem(db, await childOf(req, id), itemId))]);

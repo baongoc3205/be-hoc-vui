@@ -10,6 +10,7 @@ import { GameTile, SkillTile } from '../ui/Icons';
 import { sfx } from '../lib/sfx';
 import { errText } from './Auth';
 import { makeT } from '../lib/i18n';
+import { BOARD_GAMES } from './Board';
 
 interface MenuItem { game: GameType; subjects: SubjectId[]; total: number }
 const TONE: Record<string, string> = { 'fruit-slice': 'rose', 'candy-match': 'english', slingshot: 'science', 'draw-trace': 'vietnamese', 'balloon-pop': 'math', 'catch-fall': 'rose', 'math-race': 'math' };
@@ -43,8 +44,14 @@ export function Arcade() {
         <p className="arcade-sub title-out">{T.t('arcadeSub')}</p>
         {!menu ? <Spinner /> : (
           <div className="arcade-grid">
+            {BOARD_GAMES.map((g, k) => (
+              <button key={g.id} type="button" className="arcade-card board-card" style={{ animationDelay: `${k * 0.05}s` }} onClick={() => { sfx.pop(); go(`board/${g.id}`); }}>
+                <span className="board-ico" aria-hidden>{g.icon}</span>
+                <span className="ac-text"><b>{T.lang === 'en' ? g.name[1] : g.name[0]}</b><small>{T.t('boardTag')} · {T.lang === 'en' ? g.desc[1] : g.desc[0]}</small></span>
+              </button>
+            ))}
             {menu.map((m, k) => (
-              <button key={m.game} type="button" className="arcade-card" style={{ animationDelay: `${k * 0.05}s` }} onClick={() => open(m)}>
+              <button key={m.game} type="button" className="arcade-card" style={{ animationDelay: `${(k + 3) * 0.05}s` }} onClick={() => open(m)}>
                 <GameTile game={m.game} tone={TONE[m.game]} size={78} />
                 <span className="ac-text">
                   <b>{T.tx(catalog.games[m.game]?.name)}</b>

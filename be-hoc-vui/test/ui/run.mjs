@@ -23,7 +23,7 @@ const base = `http://127.0.0.1:${PORT}`;
 for (let i = 0; i < 50; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch { /* chờ */ } await new Promise((r) => setTimeout(r, 200)); }
 
 const SIZES = [[1366, 768, 'laptop'], [1920, 1080, 'fullhd'], [1024, 768, 'tablet-ngang'], [768, 1024, 'tablet-doc'], [390, 844, 'iphone'], [360, 740, 'android-nho'], [844, 390, 'dien-thoai-ngang']];
-const PAGES = ['lobby', 'worlds', 'map/math/3', 'character', 'character/outfit', 'shop', 'rewards', 'rewards/checkin', 'rewards/badges', 'ranking', 'arcade'];
+const PAGES = ['lobby', 'worlds', 'map/math/3', 'character', 'character/outfit', 'shop', 'rewards', 'rewards/checkin', 'rewards/badges', 'ranking', 'arcade', 'board/cards', 'board/ludo', 'board/werewolf', 'theory', 'theory/m-times', 'theory/m-inequality', 'theory/s-atoms', 'theory/e-past'];
 // màn được phép cuộn cả trang (dành cho người lớn, nhiều chữ)
 const SCROLL_OK = new Set(['privacy', 'parents']);
 const GAMES = { quiz: 'm1a-1', 'balloon-pop': 'm1a-2', 'drag-match': 'm1a-3', 'true-false': 'm1a-4', 'math-race': 'm1a-5', boss: 'm1a-6', 'sort-order': 'm1b-2', 'catch-fall': 'm1b-3', memory: 'm1b-5', 'draw-trace': 'm1c-2', 'fruit-slice': 'm1c-3', 'candy-match': 'm1c-4', slingshot: 'm1d-3', clock: 'm2b-1', 'listen-pick': 'v1-1', 'word-builder': 'v1-2', 'fill-blank': 'v2-4', 'type-answer': 'm3r-1', 'multi-pick': 'm3r-2', reading: 'v3b-1', 'reading-en': 'e9b-1', 'type-text': 'e5b-3', 'multi-text': 's8b-4', 'practice-quiz': 'e3p-jobs-1', 'practice-boss': 'm3p-word-2-9' };
@@ -80,6 +80,20 @@ try {
       if (await card.count()) { await card.click(); await page.waitForTimeout(250); }
       else if (label !== 'Ngày lễ') fails.push(`${name} shop ${label}: không có món nào`);
       await check(`shop-${label}`);
+    }
+    // trò chơi cùng bot: vào ván, thao tác vài bước
+    for (const g of ['cards', 'ludo', 'werewolf']) {
+      await page.goto(`${base}/#/board/${g}?r=${Date.now()}`); await page.waitForTimeout(600);
+      await page.locator('.bg-setup .btn-orange').click(); await page.waitForTimeout(700);
+      if (g === 'cards') { const c = page.locator('.hand .pcard.lift').first(); if (await c.count()) await c.click(); else await page.locator('.cards-pile .pcard').click(); await page.waitForTimeout(400); const col = page.locator('.color-pick button').first(); if (await col.count()) await col.click(); await page.waitForTimeout(2600); if (!(await page.locator('.hand .pcard').count())) fails.push(`${name} board-cards: không thấy bài trên tay`); }
+      if (g === 'ludo') { await page.locator('.dice-btn').click(); await page.waitForTimeout(1500); if (!(await page.locator('.horse').count())) fails.push(`${name} board-ludo: không thấy ngựa`); }
+      if (g === 'werewolf') {
+        await page.locator('.ww-actions .btn').first().click(); await page.waitForTimeout(500);
+        for (let i = 0; i < 3; i++) { const p = page.locator('.ww-p.can').first(); if (await p.count()) { await p.click(); await page.waitForTimeout(400); } const go2 = page.locator('.ww-actions .btn-lime, .ww-actions .btn-gray').first(); if (await go2.count()) { await go2.click(); await page.waitForTimeout(300); } }
+        await page.waitForTimeout(2500);
+        if ((await page.locator('.ww-p').count()) < 6) fails.push(`${name} board-werewolf: thiếu người chơi`);
+      }
+      await check(`board-${g}-play`);
     }
     await page.goto(base + '/#/character/outfit'); await page.waitForTimeout(600);
     await page.locator('.slot-chips .chip', { hasText: 'Combo' }).first().click(); await page.waitForTimeout(400);

@@ -112,7 +112,7 @@ export function MapScreen({ subject, grade }: { subject: string; grade: number }
     <div className="screen">
       <Scene name={(subject as SceneName) ?? 'meadow'} />
       <div className="screen-content">
-        <TopBar title={`${T.tx(subj?.world)} · ${T.t('gradeN', { n: grade })}`} to={`worlds/${grade}`} />
+        <TopBar title={`${T.tx(subj?.world)} · ${T.t('gradeN', { n: grade })}`} to={`worlds/${grade}`} right={<Btn tone="cream" size="sm" className="th-btn" onClick={() => go(`theory?s=${subject}&g=${grade}`)}>📖 {T.t('theoryShort')}</Btn>} />
         {map && map.topics.length > 1 && (
           <div className="chapter-bar" role="tablist" aria-label={T.t('chapters')}>
             {map.topics.map((t, k) => {

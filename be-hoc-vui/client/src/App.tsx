@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { boot, go, refreshChild, toast, useApp, useRoute } from './lib/store';
 import { useT } from './lib/hooks';
-import { installAudioUnlock, setMusic, setMusicTheme, sfx, unlockAudio } from './lib/sfx';
+import { installAudioUnlock, musicStatus, setMusic, setMusicTheme, sfx, unlockAudio } from './lib/sfx';
 import { themeById } from './lib/themes';
 import { Toast, Spinner } from './ui/kit';
 import { Scene } from './ui/Scene';
@@ -25,6 +25,8 @@ import { SettingsDialog } from './screens/Settings';
 installAudioUnlock();
 import { Parents } from './screens/Parents';
 import { Arcade } from './screens/Arcade';
+import { Board, type BoardId } from './screens/Board';
+import { Theory } from './screens/Theory';
 
 
 export function App() {
@@ -67,11 +69,16 @@ export function App() {
   useEffect(() => { setMusicTheme(prefs.theme); }, [prefs.theme]);
   // nhạc nền bật sau lần chạm đầu tiên (chính sách tự phát của trình duyệt)
   useEffect(() => {
-    const first = () => { unlockAudio(); setMusicTheme(prefs.theme); setMusic(prefs.music); };
-    const evs = ['pointerup', 'touchend', 'keydown'];
-    evs.forEach((e) => addEventListener(e, first, { once: true }));
+    // thử ở mọi thao tác cho tới khi âm thanh thật sự chạy (một số trình duyệt cần vài lần chạm)
+    const evs = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'];
+    const off = () => evs.forEach((e) => removeEventListener(e, first, true));
+    function first() {
+      unlockAudio(); setMusicTheme(prefs.theme); setMusic(prefs.music);
+      setTimeout(() => { if (musicStatus().audio === 'running') off(); }, 400);
+    }
+    evs.forEach((e) => addEventListener(e, first, true));
     setMusic(prefs.music);
-    return () => evs.forEach((e) => removeEventListener(e, first));
+    return off;
   }, [prefs.music]);
   // tiếng lật trang khi chuyển màn hình
   const pageKey = route.split('/')[0];
@@ -106,7 +113,7 @@ export function App() {
   else if (head === 'onboarding') view = <Onboarding />;
   else if (head === 'profiles' || !childId) view = <Profiles />;
   else if (!cs) view = <div className="screen"><Scene name="meadow" /><div className="screen-content splash"><Spinner /></div></div>;
-  else switch (head) {
+  else switch (head.split('?')[0]) {
     case 'lobby': view = <Lobby />; break;
     case 'worlds': view = <Worlds grade={Number(rest[0]) || cs.child.grade} />; break;
     case 'map': view = <MapScreen subject={rest[0]} grade={Number(rest[1]) || cs.child.grade} />; break;
@@ -116,9 +123,11 @@ export function App() {
     case 'rewards': view = <Rewards tab={rest[0]} />; break;
     case 'ranking': view = <Ranking />; break;
     case 'arcade': view = <Arcade />; break;
+    case 'theory': view = <Theory key={route} id={rest[0]?.split('?')[0] || undefined} query={route.includes('?') ? route.slice(route.indexOf('?') + 1) : ''} />; break;
+    case 'board': { const g = (rest[0] ?? '').split('?')[0] as BoardId; view = <Board key={g} game={g || 'cards'} />; break; }
     default: view = <Lobby />;
   }
-  const showDock = parent && cs && ['lobby', 'worlds', 'character', 'shop', 'rewards', 'ranking', 'map', 'arcade'].includes(head);
+  const showDock = parent && cs && ['lobby', 'worlds', 'character', 'shop', 'rewards', 'ranking', 'map', 'arcade', 'board', 'theory'].includes(head.split('?')[0]);
 
   return (
     <>
@@ -136,7 +145,7 @@ function Dock({ active }: { active: string }) {
   return (
     <nav className="dock" aria-label="menu">
       {items.map(([k, ico, label]) => (
-        <button key={k} type="button" className={active === k || (k === 'worlds' && active === 'map') || (k === 'lobby' && active === 'arcade') ? 'on' : ''} onClick={() => go(k)}>
+        <button key={k} type="button" className={active === k || (k === 'worlds' && active === 'map') || (k === 'lobby' && ['arcade', 'board', 'theory'].includes(active.split('?')[0])) ? 'on' : ''} onClick={() => go(k)}>
           <Glyph name={ico} size={24} />{label}
         </button>
       ))}

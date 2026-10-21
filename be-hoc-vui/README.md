@@ -138,6 +138,35 @@ Hướng dẫn chi tiết từng bước: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
 
 ---
 
+### Góc lý thuyết
+
+Bé đọc lại kiến thức theo môn và lớp: vào **Lý thuyết** ở sảnh, ở menu bên trái, hoặc nút **📖 Lý thuyết** trên bản đồ mỗi môn.
+- **48 bài** cho cả 4 môn, lớp 1–9, đủ tiếng Việt và tiếng Anh. Ví dụ: bảng cộng, cộng trừ có nhớ, **bảng cửu chương**, đơn vị đo, chu vi – diện tích, phân số, dấu hiệu chia hết, số nguyên, luỹ thừa, **bất đẳng thức và bất phương trình**, hằng đẳng thức, Pythagore, căn bậc hai, phương trình bậc hai, lượng giác; thanh điệu, chính tả, từ loại, biện pháp tu từ; thì tiếng Anh, động từ bất quy tắc; cơ thể người, ba thể của chất, Hệ Mặt Trời, công thức Vật lí, bảng tuần hoàn, pH.
+- Bảng tương tác: bảng cửu chương (chạm ô để nghe phép nhân, chế độ **Che đáp án** để tự kiểm tra), bảng cộng, bảng số nguyên tố đến 100, bình phương – lập phương, 20 nguyên tố hoá học đầu tiên, trục số minh hoạ tập nghiệm.
+- Nút **🔊 Đọc cho bé nghe** và **Luyện tập ngay** (mở bản đồ màn chơi đúng môn, đúng lớp).
+- Nội dung nằm ở `server/content/theory/` (bộ dựng ở `kit.js`). Thêm bài xong chạy `npm test` để kiểm tra song ngữ và đúng định dạng.
+
+### Chơi cùng bạn bot (Khu vui chơi)
+
+Ba trò chơi tự do, chơi với 1–9 bạn bot:
+
+| Trò | Luật chính | Tuỳ chọn |
+|---|---|---|
+| 🃏 **Bài Màu Sắc** (luật kiểu UNO) | Ra lá cùng màu hoặc cùng số/ký hiệu; ⦸ mất lượt, ⇄ đổi chiều, +2, ✦ đổi màu, +4 (chỉ khi hết lá cùng màu). Còn 2 lá phải bấm "Một lá!", quên thì bốc phạt 2 lá. | 2–4 người, bot Dễ / Khéo |
+| 🐴 **Cá ngựa** | Gieo 6 mới ra chuồng; gieo 6 hoặc đá ngựa đối thủ thì được gieo thêm; ba lần 6 liền mất lượt; ô ★ và ô xuất phát an toàn; về đích phải đúng số. | 2–4 người, bot Dễ / Khéo, luật ra quân "1 hoặc 6" |
+| 🐺 **Ma sói** | Đêm: Sói bắt người, Tiên tri soi, Bảo vệ che chở, Phù thuỷ cứu/độc. Ngày: các bạn bot bàn bạc, bé nêu nghi ngờ hoặc bênh vực rồi bỏ phiếu. | Làng 6 / 8 / 10 người, chọn vai hoặc ngẫu nhiên |
+
+- Bot "Khéo" có chiến thuật riêng: chặn người sắp thắng (bài), ưu tiên đá ngựa và tránh bị đá (cá ngựa), Tiên tri lên tiếng, sói giả làm Tiên tri, dân làng suy luận theo lời khai và kết quả bỏ phiếu (ma sói).
+- Luật chơi viết trong `shared/board/` và được kiểm thử bằng hàng trăm ván bot tự đấu (`test/board.test.js`).
+- Thời gian chơi được **tính vào giới hạn giờ mỗi ngày** mà phụ huynh đặt. Mỗi ván từ 1 phút trở lên được thưởng 6 xu nếu thắng, 2 xu nếu thua, tối đa 5 ván có thưởng mỗi ngày.
+
+### Nhạc nền và cảnh nền
+
+- Nhạc nền **mặc định bật**. Trình duyệt chỉ cho phát âm thanh sau lần chạm/bấm đầu tiên, nên nhạc bắt đầu ngay khi bé chạm vào màn hình. Tắt/bật trong Cài đặt.
+- Cảnh nền chỉ làm mờ nhẹ để vẫn nhìn rõ khung cảnh mà không rối mắt.
+
+---
+
 ## 5. Tủ đồ thời trang
 
 Nhân vật được dựng từ nhiều lớp SVG nên có thể phối tự do.

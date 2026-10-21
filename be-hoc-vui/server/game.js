@@ -225,6 +225,32 @@ async function advanceQuests(db, child, day, ev) {
   }
 }
 
+// ---------------- Trò chơi cùng bot (bài màu sắc, cá ngựa, ma sói) ----------------
+// Chơi hoàn toàn trên trình duyệt; máy chủ chỉ ghi thời gian chơi (tính vào giới hạn giờ mỗi ngày)
+// và thưởng ít xu cho ván chơi thật (≥ 1 phút), tối đa BOARD_REWARDS ván mỗi ngày.
+export const BOARD_GAMES = ['cards', 'ludo', 'werewolf'];
+const BOARD_REWARDS = 5;
+export async function finishBoard(db, child, body = {}) {
+  const game = String(body.game ?? '');
+  if (!BOARD_GAMES.includes(game)) throw new HttpError(400, 'BAD_GAME');
+  const seconds = Math.max(0, Math.min(1800, Math.round(Number(body.seconds) || 0)));
+  const day = dayKey();
+  await bump(db, child.id, day, { seconds });
+  let coins = 0;
+  if (seconds >= 60) {
+    const key = `board:${child.id}:${day}`;
+    const row = await db.prepare('SELECT n FROM rate_limits WHERE key = ?').get(key);
+    if ((row?.n ?? 0) < BOARD_REWARDS) {
+      coins = body.won ? 6 : 2;
+      await db.prepare('INSERT INTO rate_limits (key, n, t) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET n = n + 1').run(key, Date.now());
+      await db.prepare('UPDATE children SET coins = coins + ? WHERE id = ?').run(coins, child.id);
+    }
+  }
+  await advanceQuests(db, child, day, { correct: 0, passed: false, stars: 0, subject: null });
+  const fresh = await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id);
+  return { coins, state: await stateOf(db, fresh) };
+}
+
 export async function statsFor(db, child) {
   const rows = (await db.prepare('SELECT lesson_id, stars FROM lesson_progress WHERE child_id = ? AND stars >= 1').all(child.id));
   const bySubject = { math: 0, vietnamese: 0, english: 0, science: 0 };

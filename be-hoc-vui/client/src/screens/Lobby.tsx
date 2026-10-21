@@ -10,16 +10,16 @@ import { CheckinDialog } from '../ui/Checkin';
 /** Hộp thoại điểm danh chỉ tự bật 1 lần mỗi ngày cho mỗi bé (trong phiên mở trang). */
 const autoShown = new Set<string>();
 
-export type MenuKey = 'learn' | 'arcade' | 'quests' | 'treasure' | 'shop' | 'character' | 'ranking';
+export type MenuKey = 'learn' | 'theory' | 'arcade' | 'quests' | 'treasure' | 'shop' | 'character' | 'ranking';
 export function MainMenu({ value }: { value: MenuKey | 'lobby' }) {
   const T = useT();
   const cs = useApp((s) => s.cs);
   const questReady = cs?.quests.some((q) => q.done && !q.claimed) || (cs ? !cs.checkin.today : false);
   const tabs: { key: MenuKey | 'lobby'; label: string; badge?: boolean }[] = [
-    { key: 'lobby', label: T.t('lobby') }, { key: 'learn', label: T.t('learn') }, { key: 'arcade', label: T.t('arcadeShort') }, { key: 'quests', label: T.t('quests'), badge: !!questReady },
+    { key: 'lobby', label: T.t('lobby') }, { key: 'learn', label: T.t('learn') }, { key: 'theory', label: T.t('theoryShort') }, { key: 'arcade', label: T.t('arcadeShort') }, { key: 'quests', label: T.t('quests'), badge: !!questReady },
     { key: 'shop', label: T.t('shop'), badge: !!cs?.events?.active.some((e) => !e.claimed) }, { key: 'character', label: T.t('character') }, { key: 'ranking', label: T.t('ranking') },
   ];
-  const to: Record<string, string> = { lobby: 'lobby', learn: 'worlds', arcade: 'arcade', quests: 'rewards', treasure: 'rewards/badges', shop: 'shop', character: 'character', ranking: 'ranking' };
+  const to: Record<string, string> = { lobby: 'lobby', learn: 'worlds', theory: 'theory', arcade: 'arcade', quests: 'rewards', treasure: 'rewards/badges', shop: 'shop', character: 'character', ranking: 'ranking' };
   return <SideTabs tabs={tabs} value={value} onChange={(k) => go(to[k])} />;
 }
 
@@ -104,9 +104,9 @@ export function Lobby() {
                 <button type="button" className="quick hot2" onClick={() => go('arcade')}>
                   <span className="ico"><Glyph name="sparkle" size={30} /></span>{T.t('arcadeShort')}
                 </button>
-                <div className="quick">
-                  <span className="ico" style={{ color: '#E2804F' }}><Glyph name="flame" size={30} /></span>{T.t('streakShort', { n: cs.streak })}
-                </div>
+                <button type="button" className="quick" onClick={() => go('theory')}>
+                  <span className="ico"><Glyph name="book" size={30} /></span>{T.t('theoryShort')}
+                </button>
               </div>
               {cs.today.limit > 0 && <Bar label={<span style={{ fontSize: 18 }}>{T.t('todayMinutes', { m: cs.today.minutes })}</span>} right={<span style={{ fontSize: 18 }}>{cs.today.limit} {T.t('minutes')}</span>} value={cs.today.minutes} max={cs.today.limit} tone="lime" />}
               <div className="panel-actions">

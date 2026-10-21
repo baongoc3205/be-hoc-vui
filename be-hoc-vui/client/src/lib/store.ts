@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react';
 import { api } from './api';
 import type { Catalog, Child, ChildState, Lang, Parent } from './types';
 
-export interface Prefs { lang: Lang; sound: boolean; music: boolean; voice: boolean; autoRead: boolean; reduceMotion: boolean; theme: string }
+export interface Prefs { lang: Lang; sound: boolean; music: boolean; voice: boolean; autoRead: boolean; reduceMotion: boolean; theme: string; prefsVer?: number }
 export interface AppState {
   booted: boolean;
   parent: Parent | null;
@@ -18,11 +18,12 @@ export interface AppState {
 const PREFS_KEY = 'bhv_prefs';
 const CHILD_KEY = 'bhv_child';
 function loadPrefs(): Prefs {
-  const def: Prefs = { lang: navigator.language?.startsWith('en') ? 'en' : 'vi', sound: true, music: true, voice: true, autoRead: true, theme: 'fairy', reduceMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false };
+  const def: Prefs = { lang: navigator.language?.startsWith('en') ? 'en' : 'vi', sound: true, music: true, voice: true, autoRead: true, theme: 'fairy', prefsVer: 2, reduceMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false };
   try {
     const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
-    // bản cũ mặc định TẮT nhạc nền; khi lên bản có chủ đề + nhạc thì bật lại một lần
-    if (saved && typeof saved === 'object' && !('theme' in saved)) saved.music = true;
+    // Nhạc nền mặc định BẬT. Lần đầu lên bản này (prefsVer < 2) bật lại nhạc một lần cho mọi máy;
+    // sau đó bé/phụ huynh tắt trong Cài đặt thì giữ nguyên lựa chọn.
+    if (saved && typeof saved === 'object' && !(Number(saved.prefsVer) >= 2)) { saved.music = true; saved.prefsVer = 2; try { localStorage.setItem(PREFS_KEY, JSON.stringify({ ...def, ...saved })); } catch { /* bỏ qua */ } }
     return { ...def, ...saved };
   } catch { return def; }
 }
