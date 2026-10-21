@@ -1,7 +1,7 @@
 // Kho trạng thái toàn cục rất nhỏ (không cần thư viện) + điều hướng theo hash.
 import { useSyncExternalStore } from 'react';
 import { api } from './api';
-import type { Catalog, Child, ChildState, Lang, Parent } from './types';
+import type { Catalog, Child, ChildState, Lang, Parent, SocialSummary } from './types';
 
 export interface Prefs { lang: Lang; sound: boolean; music: boolean; voice: boolean; autoRead: boolean; reduceMotion: boolean; theme: string; prefsVer?: number }
 export interface AppState {
@@ -13,6 +13,7 @@ export interface AppState {
   catalog: Catalog | null;
   prefs: Prefs;
   toast: { id: number; text: string; tone?: 'ok' | 'warn' } | null;
+  social: SocialSummary | null;
 }
 
 const PREFS_KEY = 'bhv_prefs';
@@ -29,7 +30,7 @@ function loadPrefs(): Prefs {
 }
 const readChild = () => { try { return Number(localStorage.getItem(CHILD_KEY)) || null; } catch { return null; } };
 
-let state: AppState = { booted: false, parent: null, children: [], childId: readChild(), cs: null, catalog: null, prefs: loadPrefs(), toast: null };
+let state: AppState = { booted: false, parent: null, children: [], childId: readChild(), cs: null, catalog: null, prefs: loadPrefs(), toast: null, social: null };
 const subs = new Set<() => void>();
 export const getState = () => state;
 export function setState(patch: Partial<AppState>) {
@@ -77,6 +78,13 @@ export async function refreshChild() {
   return cs;
 }
 export const setChildState = (cs: ChildState) => setState({ cs: { ...cs, next: cs.next ?? state.cs?.next } });
+/** Tin chưa đọc / lời mời kết bạn / lời mời chơi — để hiện chấm đỏ. */
+export async function refreshSocial() {
+  if (!state.childId) return null;
+  const social = await api.get<SocialSummary>(`/children/${state.childId}/social`);
+  setState({ social });
+  return social;
+}
 
 // ---------- điều hướng ----------
 export function useRoute() {

@@ -18,7 +18,7 @@ const hashStr = (s) => { let h = 2166136261; for (const c of s) h = Math.imul(h 
 // DEMO_UNLOCK=1: mở khoá mọi màn (dùng để trình diễn / giáo viên xem trước nội dung)
 const DEMO_UNLOCK = process.env.DEMO_UNLOCK === '1';
 
-export const DEFAULT_SETTINGS = { dailyLimitMin: 60, energy: true, leaderboard: true };
+export const DEFAULT_SETTINGS = { dailyLimitMin: 60, energy: true, leaderboard: true, social: true, publicBoard: true };
 
 // ---------------- Hồ sơ bé ----------------
 export async function getChild(db, parentId, childId) {
@@ -228,7 +228,7 @@ async function advanceQuests(db, child, day, ev) {
 // ---------------- Trò chơi cùng bot (bài màu sắc, cá ngựa, ma sói) ----------------
 // Chơi hoàn toàn trên trình duyệt; máy chủ chỉ ghi thời gian chơi (tính vào giới hạn giờ mỗi ngày)
 // và thưởng ít xu cho ván chơi thật (≥ 1 phút), tối đa BOARD_REWARDS ván mỗi ngày.
-export const BOARD_GAMES = ['cards', 'ludo', 'werewolf'];
+export const BOARD_GAMES = ['cards', 'ludo', 'werewolf', 'quiz'];
 const BOARD_REWARDS = 5;
 export async function finishBoard(db, child, body = {}) {
   const game = String(body.game ?? '');

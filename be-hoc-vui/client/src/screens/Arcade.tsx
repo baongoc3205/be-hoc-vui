@@ -11,6 +11,7 @@ import { sfx } from '../lib/sfx';
 import { errText } from './Auth';
 import { makeT } from '../lib/i18n';
 import { BOARD_GAMES } from './Board';
+import { createRoomAndInvite } from './Friends';
 
 interface MenuItem { game: GameType; subjects: SubjectId[]; total: number }
 const TONE: Record<string, string> = { 'fruit-slice': 'rose', 'candy-match': 'english', slingshot: 'science', 'draw-trace': 'vietnamese', 'balloon-pop': 'math', 'catch-fall': 'rose', 'math-race': 'math' };
@@ -50,6 +51,10 @@ export function Arcade() {
                 <span className="ac-text"><b>{T.lang === 'en' ? g.name[1] : g.name[0]}</b><small>{T.lang === 'en' ? g.desc[1] : g.desc[0]}</small></span>
               </button>
             ))}
+            <button type="button" className="arcade-card board-card" style={{ animationDelay: '.15s' }} onClick={() => { sfx.pop(); createRoomAndInvite('quiz').catch((e) => toast(errText(T as never, e), 'warn')); }}>
+              <span className="board-ico" aria-hidden>🧠</span>
+              <span className="ac-text"><b>{T.lang === 'en' ? 'Quiz duel' : 'Thi đố cùng bạn'}</b><small>{T.lang === 'en' ? 'Same questions for everyone — most correct and fastest wins' : 'Cùng một bộ câu hỏi đúng lớp, ai đúng nhiều và nhanh hơn thì thắng'}</small></span>
+            </button>
             {menu.map((m, k) => (
               <button key={m.game} type="button" className="arcade-card" style={{ animationDelay: `${(k + 3) * 0.05}s` }} onClick={() => open(m)}>
                 <GameTile game={m.game} tone={TONE[m.game]} size={78} />

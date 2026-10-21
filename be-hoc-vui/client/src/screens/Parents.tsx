@@ -9,6 +9,8 @@ import { Glyph } from '../ui/Icons';
 import { Consent, errText, RecoveryCodeDialog } from './Auth';
 import { sfx } from '../lib/sfx';
 
+interface ChatLog { messages: { id: number; from: string; to: string; mine: boolean; kind: string; text: string | null; at: number }[]; friends: { id: number; nickname: string }[]; reports: { target: string; reason: string; at: number }[] }
+
 let gateUntil = 0; // mở khoá cổng phụ huynh trong 10 phút
 
 interface Report {
@@ -62,6 +64,7 @@ export function Parents() {
   const [sel, setSel] = useState<number | null>(activeChild ?? kids[0]?.id ?? null);
   const [rep, setRep] = useState<Report | null>(null);
   const [edit, setEdit] = useState<Child | null>(null);
+  const [chatLog, setChatLog] = useState<Child | null>(null);
   const [del, setDel] = useState<Child | null>(null);
   const [pw, setPw] = useState(''); const [err, setErr] = useState('');
   const [acct, setAcct] = useState<'upgrade' | 'password' | null>(null);
@@ -168,6 +171,10 @@ export function Parents() {
                   <Segmented options={limits.map((m) => ({ key: m, label: m === 0 ? T.t('noLimit') : `${m}′` }))} value={child.settings.dailyLimitMin} onChange={(m) => patch({ settings: { dailyLimitMin: m } })} /></div>
                 <div className="setting-row"><span>{T.t('energySys')}</span><Toggle on={child.settings.energy} onChange={(v) => patch({ settings: { energy: v } })} label="energy" /></div>
                 <div className="setting-row"><span>{T.t('boardOn')}</span><Toggle on={child.settings.leaderboard} onChange={(v) => patch({ settings: { leaderboard: v } })} label="leaderboard" /></div>
+                <div className="setting-row"><span>{T.t('publicBoardOn')}</span><Toggle on={child.settings.publicBoard !== false} onChange={(v) => patch({ settings: { publicBoard: v } })} label="publicBoard" /></div>
+                <div className="setting-row"><span>{T.t('socialOn')}</span><Toggle on={child.settings.social !== false} onChange={(v) => patch({ settings: { social: v } })} label="social" /></div>
+                <p className="muted" style={{ margin: 0, fontSize: 14 }}>{T.t('socialNote')}</p>
+                <div className="panel-actions" style={{ justifyContent: 'flex-start' }}><Btn tone="cream" onClick={() => setChatLog(child)}>💬 {T.t('viewChats')}</Btn></div>
                 <div className="panel-actions">
                   <Btn tone="gray" icon={<Glyph name="trash" size={20} />} onClick={() => { setErr(''); setPw(''); setDel(child); }}>{T.t('deleteChild')}</Btn>
                   <Btn tone="lime" icon={<Glyph name="edit" size={20} />} onClick={() => setEdit({ ...child })}>{T.t('editChild')}</Btn>
@@ -178,6 +185,7 @@ export function Parents() {
         </div>
       </div>
 
+      {chatLog && <ChatLogDialog child={chatLog} onClose={() => setChatLog(null)} />}
       {edit && (
         <Dialog title={T.t('editChild')} icon="edit" onClose={() => setEdit(null)} actions={<><Btn tone="gray" onClick={() => setEdit(null)}>{T.t('cancel')}</Btn><Btn tone="lime" onClick={async () => { await patch({ nickname: edit.nickname, grade: edit.grade }); setEdit(null); }}>{T.t('save')}</Btn></>}>
           <div className="dialog-body left" style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -225,5 +233,28 @@ export function Parents() {
         </Dialog>
       )}
     </div>
+  );
+}
+
+/** Phụ huynh xem tin nhắn gần đây của bé, danh sách bạn và báo cáo bé đã gửi. */
+function ChatLogDialog({ child, onClose }: { child: Child; onClose: () => void }) {
+  const T = useT();
+  const [d, setD] = useState<ChatLog | null>(null);
+  useEffect(() => { api.get<ChatLog>(`/children/${child.id}/parent-messages`).then(setD).catch(() => setD({ messages: [], friends: [], reports: [] })); }, [child.id]);
+  const when = (at: number) => new Date(at).toLocaleString(T.lang === 'vi' ? 'vi-VN' : 'en-GB');
+  return (
+    <Dialog title={`💬 ${child.nickname}`} icon={null} wide onClose={onClose} actions={<Btn tone="gray" onClick={onClose}>{T.t('close')}</Btn>}>
+      {!d ? <p>{T.t('loading')}</p> : (
+        <div className="chatlog">
+          <p className="muted" style={{ marginTop: 0 }}>{T.t('chatFriends')}: {d.friends.length ? d.friends.map((f) => f.nickname).join(', ') : '—'}</p>
+          {d.reports.length > 0 && <div className="th-rule">🚩 {T.t('chatReports')}: {d.reports.map((r) => `${r.target} (${r.reason}, ${when(r.at)})`).join(' · ')}</div>}
+          {!d.messages.length ? <p className="muted">{T.t('noData')}</p> : (
+            <table className="recent-table"><tbody>{d.messages.map((m) => (
+              <tr key={m.id}><td><b>{m.from}</b> → {m.to}<br /><small className="muted">{when(m.at)}</small></td><td>{m.kind === 'invite' ? '🎲' : m.text}</td></tr>
+            ))}</tbody></table>
+          )}
+        </div>
+      )}
+    </Dialog>
   );
 }

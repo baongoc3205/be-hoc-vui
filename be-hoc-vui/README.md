@@ -160,6 +160,21 @@ Ba trò chơi tự do, chơi với 1–9 bạn bot:
 - Luật chơi viết trong `shared/board/` và được kiểm thử bằng hàng trăm ván bot tự đấu (`test/board.test.js`).
 - Thời gian chơi được **tính vào giới hạn giờ mỗi ngày** mà phụ huynh đặt. Mỗi ván từ 1 phút trở lên được thưởng 6 xu nếu thắng, 2 xu nếu thua, tối đa 5 ván có thưởng mỗi ngày.
 
+### Bạn bè, tin nhắn, bảng xếp hạng và chơi cùng nhau
+
+- **Kết bạn bằng mã:** mỗi bé có mã 6 ký tự ở màn **Bạn bè**. Nhập mã của bạn là gửi lời mời, bạn kia bấm Đồng ý là thành bạn. Cũng có thể gửi lời mời từ hồ sơ trên bảng xếp hạng.
+- **Bảng xếp hạng 7 ngày:** ba thẻ Toàn app / Bạn bè / Gia đình. Chạm vào một bạn để xem hồ sơ (biệt danh, lớp, cấp độ, sao, huy hiệu), kết bạn, chặn hoặc báo cáo.
+- **Nhắn tin:** bé gõ tự do với bạn bè, có sticker và câu nhanh. Lời mời chơi hiện thành thẻ trong khung chat và thanh báo ở mọi màn hình chính.
+- **Chơi cùng nhau:** Bài Màu Sắc, Cá ngựa (2–4 người) và **Thi đố cùng bạn** (cùng bộ câu hỏi đúng lớp, ai đúng nhiều và nhanh hơn thì thắng). Tạo phòng, mời bạn hoặc gửi mã phòng; ghế trống có bot chơi. Máy chủ phân xử mọi nước đi (gieo xúc xắc, chia bài, chấm đáp án), giấu bài của người khác. Ai rời đi hoặc quá 30 giây chưa đi thì bot đi hộ. Thời gian chơi tính vào giới hạn giờ và được thưởng xu như trò chơi với bot.
+  Phòng chơi lưu trong bộ nhớ máy chủ (không cần thêm dịch vụ), trình duyệt hỏi trạng thái mỗi giây. Nếu máy chủ khởi động lại thì các phòng đang chơi bị đóng.
+- **Lớp bảo vệ cho trẻ (luôn bật):**
+  - Chỉ nhắn tin với bạn đã đồng ý kết bạn. Chỉ bạn bè hoặc anh chị em cùng gia đình mới vào được phòng của bé.
+  - Tin nhắn tự che số điện thoại, email, đường link, tên mạng xã hội (Zalo, Facebook, TikTok…) và từ ngữ thô tục.
+  - Giới hạn 15 tin mỗi phút, 30 lời mời kết bạn mỗi ngày.
+  - Có nút chặn (hai bên không thấy và không nhắn được cho nhau) và báo cáo.
+- **Phụ huynh** (trong Góc phụ huynh, cho từng bé): bật/tắt kết bạn & nhắn tin & chơi cùng bạn, bật/tắt hiện trên bảng xếp hạng toàn app, xem tin nhắn gần đây và các báo cáo bé đã gửi. File tải dữ liệu gia đình có kèm tin nhắn và danh sách bạn.
+- Kiểm thử: `test/social.test.js` (máy chủ) và `npm run test:ui:social` (hai trình duyệt kết bạn, nhắn tin, mời và chơi cùng nhau).
+
 ### Nhạc nền và cảnh nền
 
 - Nhạc nền **mặc định bật**. Trình duyệt chỉ cho phát âm thanh sau lần chạm/bấm đầu tiên, nên nhạc bắt đầu ngay khi bé chạm vào màn hình. Tắt/bật trong Cài đặt.

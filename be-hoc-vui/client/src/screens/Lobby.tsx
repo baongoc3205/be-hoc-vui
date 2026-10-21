@@ -10,16 +10,18 @@ import { CheckinDialog } from '../ui/Checkin';
 /** Hộp thoại điểm danh chỉ tự bật 1 lần mỗi ngày cho mỗi bé (trong phiên mở trang). */
 const autoShown = new Set<string>();
 
-export type MenuKey = 'learn' | 'theory' | 'arcade' | 'quests' | 'treasure' | 'shop' | 'character' | 'ranking';
+export type MenuKey = 'learn' | 'theory' | 'arcade' | 'friends' | 'quests' | 'treasure' | 'shop' | 'character' | 'ranking';
 export function MainMenu({ value }: { value: MenuKey | 'lobby' }) {
   const T = useT();
   const cs = useApp((s) => s.cs);
+  const social = useApp((s) => s.social);
   const questReady = cs?.quests.some((q) => q.done && !q.claimed) || (cs ? !cs.checkin.today : false);
   const tabs: { key: MenuKey | 'lobby'; label: string; badge?: boolean }[] = [
     { key: 'lobby', label: T.t('lobby') }, { key: 'learn', label: T.t('learn') }, { key: 'theory', label: T.t('theoryShort') }, { key: 'arcade', label: T.t('arcadeShort') }, { key: 'quests', label: T.t('quests'), badge: !!questReady },
+    { key: 'friends', label: T.t('friends'), badge: !!social && (social.unread > 0 || social.requests > 0) },
     { key: 'shop', label: T.t('shop'), badge: !!cs?.events?.active.some((e) => !e.claimed) }, { key: 'character', label: T.t('character') }, { key: 'ranking', label: T.t('ranking') },
   ];
-  const to: Record<string, string> = { lobby: 'lobby', learn: 'worlds', theory: 'theory', arcade: 'arcade', quests: 'rewards', treasure: 'rewards/badges', shop: 'shop', character: 'character', ranking: 'ranking' };
+  const to: Record<string, string> = { lobby: 'lobby', learn: 'worlds', theory: 'theory', friends: 'friends', arcade: 'arcade', quests: 'rewards', treasure: 'rewards/badges', shop: 'shop', character: 'character', ranking: 'ranking' };
   return <SideTabs tabs={tabs} value={value} onChange={(k) => go(to[k])} />;
 }
 
@@ -39,6 +41,7 @@ export function Lobby() {
   const subj = catalog.subjects.find((s) => s.id === next?.subject);
   const claimable = cs.quests.filter((q) => q.done && !q.claimed).length;
   const parent = useApp((s) => s.parent);
+  const social = useApp((s) => s.social);
   const [ckOpen, setCkOpen] = useState(false);
   useEffect(() => {
     const key = `${child.id}:${new Date().toDateString()}`;
@@ -103,6 +106,13 @@ export function Lobby() {
                 </button>
                 <button type="button" className="quick hot2" onClick={() => go('arcade')}>
                   <span className="ico"><Glyph name="sparkle" size={30} /></span>{T.t('arcadeShort')}
+                </button>
+                <button type="button" className="quick" onClick={() => go('friends')}>
+                  <span className="ico"><Glyph name="user" size={30} /></span>{T.t('friends')}
+                  {!!social && (social.unread > 0 || social.requests > 0) && <i className="dot" />}
+                </button>
+                <button type="button" className="quick" onClick={() => go('ranking')}>
+                  <span className="ico"><Glyph name="trophy" size={30} /></span>{T.t('ranking')}
                 </button>
                 <button type="button" className="quick" onClick={() => go('theory')}>
                   <span className="ico"><Glyph name="book" size={30} /></span>{T.t('theoryShort')}

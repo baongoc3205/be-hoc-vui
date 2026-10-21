@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { boot, go, refreshChild, toast, useApp, useRoute } from './lib/store';
+import { boot, go, refreshChild, refreshSocial, toast, useApp, useRoute } from './lib/store';
 import { useT } from './lib/hooks';
 import { installAudioUnlock, musicStatus, setMusic, setMusicTheme, sfx, unlockAudio } from './lib/sfx';
 import { themeById } from './lib/themes';
@@ -27,6 +27,8 @@ import { Parents } from './screens/Parents';
 import { Arcade } from './screens/Arcade';
 import { Board, type BoardId } from './screens/Board';
 import { Theory } from './screens/Theory';
+import { Friends, Chat, InviteBanner } from './screens/Friends';
+import { Room } from './screens/Room';
 
 
 export function App() {
@@ -56,6 +58,13 @@ export function App() {
   useEffect(startBoot, []); // eslint-disable-line
   useEffect(() => { const f = () => setSettings(true); addEventListener('bhv:settings', f); return () => removeEventListener('bhv:settings', f); }, []);
   useEffect(() => { if (childId && !cs) refreshChild().catch(() => undefined); }, [childId, cs]);
+  // tin nhắn / lời mời mới: hỏi máy chủ mỗi 15 giây khi đang mở app
+  useEffect(() => {
+    if (!childId || !parent) return;
+    const tick = () => { if (document.visibilityState === 'visible') refreshSocial().catch(() => undefined); };
+    tick(); const iv = setInterval(tick, 15_000);
+    return () => clearInterval(iv);
+  }, [childId, parent]);
   // giao diện theo tuổi, ngôn ngữ, giảm chuyển động
   useEffect(() => {
     const el = document.documentElement;
@@ -124,16 +133,20 @@ export function App() {
     case 'ranking': view = <Ranking />; break;
     case 'arcade': view = <Arcade />; break;
     case 'theory': view = <Theory key={route} id={rest[0]?.split('?')[0] || undefined} query={route.includes('?') ? route.slice(route.indexOf('?') + 1) : ''} />; break;
+    case 'friends': view = <Friends tab={rest[0]} />; break;
+    case 'chat': view = <Chat key={rest[0]} friendId={Number(rest[0])} />; break;
+    case 'room': view = <Room key={rest[0]} roomId={(rest[0] ?? '').split('?')[0]} />; break;
     case 'board': { const g = (rest[0] ?? '').split('?')[0] as BoardId; view = <Board key={g} game={g || 'cards'} />; break; }
     default: view = <Lobby />;
   }
-  const showDock = parent && cs && ['lobby', 'worlds', 'character', 'shop', 'rewards', 'ranking', 'map', 'arcade', 'board', 'theory'].includes(head.split('?')[0]);
+  const showDock = parent && cs && ['lobby', 'worlds', 'character', 'shop', 'rewards', 'ranking', 'map', 'arcade', 'board', 'theory', 'friends'].includes(head.split('?')[0]);
 
   return (
     <>
       {view}
       {showDock && <Dock active={head} />}
       {settings && <SettingsDialog onClose={() => setSettings(false)} />}
+      {showDock && <InviteBanner />}
       <Toast />
     </>
   );

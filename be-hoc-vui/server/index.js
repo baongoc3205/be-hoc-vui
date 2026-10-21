@@ -2,13 +2,15 @@
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
-import { openDb, CHILD_TABLES } from './db.js';
+import { openDb, CHILD_TABLES, SOCIAL_REFS } from './db.js';
 import { createRouter, HttpError, readJson, sendJson, serveStatic } from './http.js';
 import { checkRate, clearCookie, currentParent, hashPassword, issueToken, refreshToken, requireParent, sessionCookie, verifyPassword, COOKIE } from './auth.js';
 import { randomBytes } from 'node:crypto';
 import * as G from './game.js';
 import { arcadeMenu, pickArcade } from './arcade.js';
 import { THEORY } from './content/theory/index.js';
+import * as S from './social.js';
+import * as R from './rooms.js';
 
 const [major, minor] = process.versions.node.split('.').map(Number);
 if (major < 22 || (major === 22 && minor < 13)) {
@@ -24,6 +26,8 @@ const STATIC = join(ROOT, 'client', 'dist');
 const SECURE = process.env.COOKIE_SECURE === '1';
 
 export function createApp(db) {
+  // phòng chơi chung xong ván: ghi thời gian chơi + thưởng xu như trò chơi cùng bot
+  R.setRoomHooks({ onFinish: async (childId, game, seconds, won) => { const c = await db.prepare('SELECT * FROM children WHERE id = ?').get(childId); return c ? (await G.finishBoard(db, c, { game, seconds, won })).coins : 0; } });
   let newCode; // gán ở phần mã khôi phục bên dưới
   const r = createRouter();
   const childOf = async (req, id) => G.getChild(db, (await requireParent(db, req)).id, id);
@@ -153,6 +157,8 @@ export function createApp(db) {
     for (const c of kids) {
       const extra = {};
       for (const tb of CHILD_TABLES) extra[tb] = (await db.prepare(`SELECT * FROM ${tb} WHERE child_id = ?`).all(c.id)).map((row) => (tb === 'play_sessions' ? { ...row, rounds: undefined } : row));
+      extra.messages = await db.prepare('SELECT id, from_id, to_id, kind, body, created_at, read_at FROM messages WHERE from_id = ? OR to_id = ? ORDER BY id').all(c.id, c.id);
+      extra.friends = await db.prepare('SELECT * FROM friends WHERE a = ? OR b = ?').all(c.id, c.id);
       children.push({ ...G.publicChild(c), coins: c.coins, xp: c.xp, streak: c.streak, owned: JSON.parse(c.owned), createdAt: c.created_at, ...extra });
     }
     const consent = await db.prepare('SELECT version, at FROM consents WHERE parent_id = ?').get(p.id);
@@ -207,6 +213,8 @@ export function createApp(db) {
         dailyLimitMin: s.dailyLimitMin !== undefined ? Math.min(240, Math.max(0, Math.round(Number(s.dailyLimitMin) || 0))) : cur.dailyLimitMin,
         energy: s.energy !== undefined ? !!s.energy : cur.energy,
         leaderboard: s.leaderboard !== undefined ? !!s.leaderboard : cur.leaderboard,
+        social: s.social !== undefined ? !!s.social : cur.social,
+        publicBoard: s.publicBoard !== undefined ? !!s.publicBoard : cur.publicBoard,
       };
       (await db.prepare('UPDATE children SET settings = ? WHERE id = ?').run(JSON.stringify(next), c.id));
     }
@@ -255,6 +263,29 @@ export function createApp(db) {
   r.post('/api/children/:id/events/:eventId/gift', async (req, res, { id, eventId }) => [200, (await G.claimEventGift(db, await childOf(req, id), eventId))]);
   r.post('/api/children/:id/look', async (req, res, { id }) => [200, (await G.setLook(db, await childOf(req, id), (await readJson(req)).look ?? {}))]);
   r.get('/api/children/:id/report', async (req, res, { id }) => [200, (await G.reportFor(db, await childOf(req, id)))]);
+  // ---------- Bạn bè, tin nhắn, bảng xếp hạng, phòng chơi chung ----------
+  const notLimited = async (c) => { const st = await G.stateOf(db, c); if (st.today.limit > 0 && st.today.minutes >= st.today.limit) throw new HttpError(423, 'DAILY_LIMIT'); };
+  r.get('/api/children/:id/social', async (req, res, { id }) => [200, await S.summary(db, await childOf(req, id))]);
+  r.get('/api/children/:id/friends', async (req, res, { id }) => [200, await S.friendsOf(db, await childOf(req, id))]);
+  r.post('/api/children/:id/friends', async (req, res, { id }) => { const b = await readJson(req); return [200, await S.requestFriend(db, await childOf(req, id), { code: b.code ? String(b.code) : null, childId: b.childId ? Number(b.childId) : null })]; });
+  r.post('/api/children/:id/friends/:fid/accept', async (req, res, { id, fid }) => [200, await S.respondFriend(db, await childOf(req, id), fid, true)]);
+  r.post('/api/children/:id/friends/:fid/decline', async (req, res, { id, fid }) => [200, await S.respondFriend(db, await childOf(req, id), fid, false)]);
+  r.del('/api/children/:id/friends/:fid', async (req, res, { id, fid }) => [200, await S.unfriend(db, await childOf(req, id), fid)]);
+  r.post('/api/children/:id/block/:fid', async (req, res, { id, fid }) => [200, await S.block(db, await childOf(req, id), fid, true)]);
+  r.del('/api/children/:id/block/:fid', async (req, res, { id, fid }) => [200, await S.block(db, await childOf(req, id), fid, false)]);
+  r.post('/api/children/:id/report/:fid', async (req, res, { id, fid }) => [200, await S.report(db, await childOf(req, id), fid, await readJson(req))]);
+  r.get('/api/children/:id/profile/:fid', async (req, res, { id, fid }) => [200, await S.profile(db, await childOf(req, id), fid)]);
+  r.get('/api/children/:id/ranking', async (req, res, { id }) => { const sc = new URL(req.url, 'http://x').searchParams.get('scope'); return [200, await S.leaderboard(db, await childOf(req, id), ['family', 'friends', 'global'].includes(sc) ? sc : 'global')]; });
+  r.get('/api/children/:id/messages/:fid', async (req, res, { id, fid }) => [200, await S.messages(db, await childOf(req, id), fid, new URL(req.url, 'http://x').searchParams.get('after'))]);
+  r.post('/api/children/:id/messages/:fid', async (req, res, { id, fid }) => [200, await S.send(db, await childOf(req, id), fid, { text: (await readJson(req)).text })]);
+  r.get('/api/children/:id/parent-messages', async (req, res, { id }) => [200, await S.parentView(db, await childOf(req, id))]);
+  r.post('/api/children/:id/rooms', async (req, res, { id }) => { const c = await childOf(req, id); await notLimited(c); const b = await readJson(req); return [200, await R.createRoom(db, c, String(b.game ?? ''), b.opts ?? {})]; });
+  r.post('/api/children/:id/rooms/join', async (req, res, { id }) => { const c = await childOf(req, id); await notLimited(c); return [200, await R.joinRoom(db, c, (await readJson(req)).code)]; });
+  r.get('/api/children/:id/rooms/:rid', async (req, res, { id, rid }) => [200, R.getRoom(await childOf(req, id), rid)]);
+  r.post('/api/children/:id/rooms/:rid/start', async (req, res, { id, rid }) => [200, R.startRoom(await childOf(req, id), rid)]);
+  r.post('/api/children/:id/rooms/:rid/act', async (req, res, { id, rid }) => [200, R.actRoom(await childOf(req, id), rid, await readJson(req))]);
+  r.post('/api/children/:id/rooms/:rid/leave', async (req, res, { id, rid }) => [200, R.leaveRoom(await childOf(req, id), rid)]);
+  r.post('/api/children/:id/rooms/:rid/invite', async (req, res, { id, rid }) => [200, await R.inviteToRoom(db, await childOf(req, id), rid, Number((await readJson(req)).friendId))]);
   r.get('/api/leaderboard', async (req) => [200, { rows: (await G.leaderboard(db, (await requireParent(db, req)).id)) }]);
   r.get('/api/health', async () => [200, { ok: true, time: Date.now() }]);
 
@@ -278,6 +309,7 @@ export function createApp(db) {
 
 async function deleteChild(t, childId) {
   for (const tb of CHILD_TABLES) await t.prepare(`DELETE FROM ${tb} WHERE child_id = ?`).run(childId);
+  for (const [tb, col] of SOCIAL_REFS) await t.prepare(`DELETE FROM ${tb} WHERE ${col} = ?`).run(childId);
   await t.prepare('DELETE FROM children WHERE id = ?').run(childId);
 }
 /** Xoá toàn bộ dữ liệu một gia đình (chạy được cả khi Turso không bật khoá ngoại). */

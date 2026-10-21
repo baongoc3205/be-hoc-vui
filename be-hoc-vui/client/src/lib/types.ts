@@ -14,7 +14,7 @@ export interface Look {
   skin: string; hair: string; hairColor: string; ears: string; outfit: string; outfitColor: string; acc: string; shoes: string; hold: string; scene: string;
 }
 export interface Parent { id: number; name: string; email: string | null; isGuest: boolean; hasRecovery?: boolean }
-export interface ChildSettings { dailyLimitMin: number; energy: boolean; leaderboard: boolean }
+export interface ChildSettings { dailyLimitMin: number; energy: boolean; leaderboard: boolean; social: boolean; publicBoard: boolean }
 export interface Child { id: number; nickname: string; grade: number; ageTheme: 'sprout' | 'bud' | 'wing'; look: Look; settings: ChildSettings }
 export interface Quest { id: string; name: LText; target: number; coins: number; progress: number; done: boolean; claimed: boolean }
 export interface Checkin {
@@ -47,3 +47,13 @@ export interface FinishResult {
   accuracy: number; stars: number; coins: number; xp: number; correct: number; total: number; prevStars: number; maxCombo: number;
   levelUp: number | null; newBadges: Badge[]; next: { id: string; kind: string } | null; state: ChildState;
 }
+
+// ---------- Bạn bè & tương tác ----------
+export interface FriendCard { id: number; nickname: string; grade: number; look: Look; level: number }
+export interface FriendRow extends FriendCard { unread: number; social: boolean; last: { mine: boolean; kind: string; text: string | null; at: number } | null }
+export interface FriendsData { friends: FriendRow[]; incoming: FriendCard[]; outgoing: FriendCard[]; code: string; social: boolean }
+export type Relation = 'self' | 'family' | 'friends' | 'sent' | 'received' | 'blocked' | 'hidden' | 'none';
+export interface Profile extends FriendCard { stars: number; badges: string[]; streak: number; xpWeek: number; relation: Relation; canChat: boolean; social: boolean }
+export interface RankRow extends FriendCard { xp: number; stars: number; me: boolean }
+export interface ChatMsg { id: number; mine: boolean; kind: 'text' | 'invite'; body: string | { room: string; code: string; game: string }; at: number; read: boolean }
+export interface SocialSummary { unread: number; requests: number; invite: { id: number; from: string; fromId: number; room: string; code: string; game: string } | null }

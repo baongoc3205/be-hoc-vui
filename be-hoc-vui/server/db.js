@@ -47,12 +47,23 @@ const SCHEMA = [
   // mã khôi phục: thay cho email quên mật khẩu (chỉ lưu dạng băm, phụ huynh tự cất mã)
   `CREATE TABLE IF NOT EXISTS recovery_codes (parent_id INTEGER PRIMARY KEY, code_hash TEXT NOT NULL, created_at INTEGER NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS consents (parent_id INTEGER PRIMARY KEY, version TEXT NOT NULL, at INTEGER NOT NULL)`,
+  // ---- tương tác giữa các bé: mã bạn bè, kết bạn, tin nhắn, chặn, báo cáo ----
+  `CREATE TABLE IF NOT EXISTS friend_codes (child_id INTEGER PRIMARY KEY, code TEXT NOT NULL UNIQUE)`,
+  `CREATE TABLE IF NOT EXISTS friends (a INTEGER NOT NULL, b INTEGER NOT NULL, status TEXT NOT NULL, by_id INTEGER NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY (a, b))`,
+  `CREATE INDEX IF NOT EXISTS idx_friends_b ON friends(b)`,
+  `CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, from_id INTEGER NOT NULL, to_id INTEGER NOT NULL, kind TEXT NOT NULL DEFAULT 'text', body TEXT NOT NULL, created_at INTEGER NOT NULL, read_at INTEGER)`,
+  `CREATE INDEX IF NOT EXISTS idx_messages_to ON messages(to_id, from_id, id)`,
+  `CREATE INDEX IF NOT EXISTS idx_messages_from ON messages(from_id, to_id, id)`,
+  `CREATE TABLE IF NOT EXISTS blocks (child_id INTEGER NOT NULL, blocked_id INTEGER NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY (child_id, blocked_id))`,
+  `CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, reporter_id INTEGER NOT NULL, target_id INTEGER NOT NULL, message_id INTEGER, reason TEXT, created_at INTEGER NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS client_errors (
     id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL, message TEXT, stack TEXT, route TEXT, ua TEXT)`,
 ];
 
 /** Bảng phụ thuộc vào children — xoá thủ công để chạy đúng cả khi foreign key không bật (Turso). */
 export const CHILD_TABLES = ['lesson_progress', 'play_sessions', 'daily_stats', 'badges', 'quests', 'checkins'];
+/** Bảng tương tác xã hội: xoá theo mọi cột trỏ tới bé (khi xoá hồ sơ). */
+export const SOCIAL_REFS = [['friend_codes', 'child_id'], ['friends', 'a'], ['friends', 'b'], ['messages', 'from_id'], ['messages', 'to_id'], ['blocks', 'child_id'], ['blocks', 'blocked_id'], ['reports', 'reporter_id'], ['reports', 'target_id']];
 
 // ======================= SQLite trên máy =======================
 async function localAdapter(file) {

@@ -2,7 +2,7 @@
 // Dùng qua scripts/backup.mjs và scripts/restore.mjs.
 
 /** Danh sách bảng dữ liệu (bỏ bảng nội bộ của SQLite). Bảng cha đứng trước bảng con. */
-const ORDER = ['parents', 'auth_tokens', 'consents', 'recovery_codes', 'children', 'lesson_progress', 'play_sessions', 'daily_stats', 'badges', 'quests', 'checkins', 'rate_limits', 'client_errors'];
+const ORDER = ['parents', 'auth_tokens', 'consents', 'recovery_codes', 'children', 'lesson_progress', 'play_sessions', 'daily_stats', 'badges', 'quests', 'checkins', 'friend_codes', 'friends', 'messages', 'blocks', 'reports', 'rate_limits', 'client_errors'];
 
 export async function listTables(db) {
   const rows = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").all();

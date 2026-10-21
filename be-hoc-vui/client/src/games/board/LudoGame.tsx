@@ -8,9 +8,9 @@ import { Btn } from '../../ui/kit';
 import { sfx } from '../../lib/sfx';
 import { Avatar, BOT_DELAY, botLook, type Level, type Tr } from './common';
 
-const HEX = ['#E0574F', '#5FAE6E', '#F2C14B', '#4F8FD6'];
+export const HEX = ['#E0574F', '#5FAE6E', '#F2C14B', '#4F8FD6'];
 const SOFT = ['#F6C9C4', '#CBE6CF', '#FBE7B3', '#C6DCF3'];
-const CNAME: [string, string][] = [['Đỏ', 'Red'], ['Xanh lá', 'Green'], ['Vàng', 'Yellow'], ['Xanh dương', 'Blue']];
+export const CNAME: [string, string][] = [['Đỏ', 'Red'], ['Xanh lá', 'Green'], ['Vàng', 'Yellow'], ['Xanh dương', 'Blue']];
 const BOTS = ['Bo', 'Foxy', 'Kiwi'];
 const CELL = 40;
 // góc chuồng: [hàng, cột] góc trên trái của khu 6×6
@@ -40,7 +40,7 @@ function spot(col: number, pos: number, k: number): [number, number] {
   const [r, c] = Lu.TRACK[Lu.cellOf(col, pos)!]; return at(r, c);
 }
 
-function BoardSvg({ s, movable, onPick }: { s: LudoState; movable: LudoMove[]; onPick: (m: LudoMove) => void }) {
+export function BoardSvg({ s, movable, onPick }: { s: LudoState; movable: LudoMove[]; onPick: (m: LudoMove) => void }) {
   const cells = [];
   for (let i = 0; i < 52; i++) {
     const [r, c] = Lu.TRACK[i];

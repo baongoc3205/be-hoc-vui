@@ -12,6 +12,8 @@ import { burstAt } from '../lib/fx';
 import { CardsGame } from '../games/board/CardsGame';
 import { LudoGame } from '../games/board/LudoGame';
 import { WerewolfGame } from '../games/board/WerewolfGame';
+import { createRoomAndInvite } from './Friends';
+import { errText } from './Auth';
 import { makeTr, type Level } from '../games/board/common';
 import { ROLE_INFO } from '../../../shared/board/werewolf.js';
 import type { Role } from '../../../shared/board/werewolf.js';
@@ -105,7 +107,11 @@ export function Board({ game }: { game: BoardId }) {
               </ul>
             </>}
             {limited && <p className="bg-warn">{T.t('err_DAILY_LIMIT')}</p>}
-            <div className="panel-actions"><Btn tone="gray" onClick={() => go('arcade')}>{T.t('back')}</Btn><Btn tone="orange" disabled={limited} onClick={start}>{T.t('play')}</Btn></div>
+            <div className="panel-actions">
+              <Btn tone="gray" onClick={() => go('arcade')}>{T.t('back')}</Btn>
+              {game !== 'werewolf' && <Btn tone="cream" disabled={limited} onClick={() => createRoomAndInvite(game, undefined, { players: opts.players, level: opts.level, exitOne: opts.exitOne }).catch((e) => toast(errText(T, e), 'warn'))}>👫 {tr('Chơi với bạn bè', 'Play with friends')}</Btn>}
+              <Btn tone="orange" disabled={limited} onClick={start}>{tr('Chơi với bot', 'Play with bots')}</Btn>
+            </div>
           </div>
         ) : (
           <div className="bg-stage" key={run}>

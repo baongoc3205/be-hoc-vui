@@ -18,7 +18,8 @@
     "backup": "node scripts/backup.mjs",
     "restore": "node scripts/restore.mjs",
     "audit:content": "node scripts/audit-content.mjs",
-    "export:content": "node scripts/export-content.mjs"
+    "export:content": "node scripts/export-content.mjs",
+    "test:ui:social": "node test/ui/social.mjs"
   },
   "devDependencies": {
     "@types/react": "^18.3.18",
