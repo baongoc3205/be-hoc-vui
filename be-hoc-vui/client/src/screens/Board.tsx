@@ -7,6 +7,7 @@ import { useT } from '../lib/hooks';
 import type { ChildState } from '../lib/types';
 import { Btn, Dialog, TopBar } from '../ui/kit';
 import { Scene } from '../ui/Scene';
+import { GameTile } from '../ui/Icons';
 import { sfx } from '../lib/sfx';
 import { burstAt } from '../lib/fx';
 import { CardsGame } from '../games/board/CardsGame';
@@ -15,21 +16,22 @@ import { WerewolfGame } from '../games/board/WerewolfGame';
 import { createRoomAndInvite } from './Friends';
 import { errText } from './Auth';
 import { makeTr, type Level } from '../games/board/common';
+import { QuizPrompt, useQuestions, type Ask, type LQuestion } from '../games/board/LearnQuiz';
 import { ROLE_INFO } from '../../../shared/board/werewolf.js';
 import type { Role } from '../../../shared/board/werewolf.js';
 
 export type BoardId = 'cards' | 'ludo' | 'werewolf';
 export const BOARD_GAMES: { id: BoardId; icon: string; name: [string, string]; desc: [string, string] }[] = [
-  { id: 'cards', icon: '🃏', name: ['Bài Màu Sắc', 'Colour Cards'], desc: ['Luật kiểu UNO: ra lá cùng màu hoặc cùng số, hết bài trước là thắng', 'UNO-style rules: match colour or number, empty your hand first'] },
-  { id: 'ludo', icon: '🐴', name: ['Cá ngựa', 'Ludo'], desc: ['Gieo xúc xắc, đá ngựa đối thủ, đưa 4 ngựa về đích', 'Roll the dice, bump rivals, bring all 4 horses home'] },
-  { id: 'werewolf', icon: '🐺', name: ['Ma sói', 'Werewolf'], desc: ['Suy luận tìm sói giữa làng, bỏ phiếu cùng các bạn bot', 'Find the wolves in the village and vote with the bots'] },
+  { id: 'cards', icon: '🃏', name: ['Bài Màu Sắc', 'Colour Cards'], desc: ['Luật kiểu UNO, trả lời đúng để chặn +2 và chọn màu', 'UNO-style rules — answer questions to block +2 and pick colours'] },
+  { id: 'ludo', icon: '🐴', name: ['Cá ngựa', 'Ludo'], desc: ['Gieo xúc xắc, đá ngựa; trả lời đúng để ra quân, gieo thêm', 'Roll, bump rivals — answer questions to get out and roll again'] },
+  { id: 'werewolf', icon: '🐺', name: ['Ma sói', 'Werewolf'], desc: ['Suy luận tìm sói, giải đố để nhận gợi ý', 'Find the wolves — solve puzzles for clues'] },
 ];
 
-interface Opts { players: number; level: Level; exitOne: boolean; role: Role | 'random' }
+interface Opts { players: number; level: Level; exitOne: boolean; role: Role | 'random'; learn: boolean; subject: string }
 const DEFAULT: Record<BoardId, Opts> = {
-  cards: { players: 4, level: 'normal', exitOne: false, role: 'random' },
-  ludo: { players: 4, level: 'normal', exitOne: false, role: 'random' },
-  werewolf: { players: 8, level: 'normal', exitOne: false, role: 'random' },
+  cards: { players: 4, level: 'normal', exitOne: false, role: 'random', learn: true, subject: 'any' },
+  ludo: { players: 4, level: 'normal', exitOne: false, role: 'random', learn: true, subject: 'any' },
+  werewolf: { players: 8, level: 'normal', exitOne: false, role: 'random', learn: true, subject: 'any' },
 };
 const loadOpts = (g: BoardId): Opts => { try { return { ...DEFAULT[g], ...JSON.parse(localStorage.getItem(`bhv_board_${g}`) ?? '{}') }; } catch { return DEFAULT[g]; } };
 const saveOpts = (g: BoardId, o: Opts) => { try { localStorage.setItem(`bhv_board_${g}`, JSON.stringify(o)); } catch { /* bỏ qua */ } };
@@ -50,11 +52,18 @@ export function Board({ game }: { game: BoardId }) {
   const info = BOARD_GAMES.find((g) => g.id === game) ?? BOARD_GAMES[0];
   const [opts, setOpts] = useState<Opts>(() => loadOpts(info.id));
   const [run, setRun] = useState(0);         // 0 = đang chọn luật; >0 = mã ván
-  const [result, setResult] = useState<{ won: boolean; coins: number; short: boolean } | null>(null);
+  const [result, setResult] = useState<{ won: boolean; coins: number; short: boolean; right: number; total: number } | null>(null);
   const started = useRef<number | null>(null);
   const me = { name: cs.child.nickname, look: cs.child.look };
   const limited = cs.today.limit > 0 && cs.today.minutes >= cs.today.limit;
   const set = (p: Partial<Opts>) => { const o = { ...opts, ...p }; setOpts(o); saveOpts(info.id, o); };
+  // ---- học kết hợp: hỏi một câu đúng lớp, trả về đúng/sai ----
+  const catalog = useApp((s) => s.catalog)!;
+  const qs = useQuestions(opts.subject, opts.learn);
+  const [asking, setAsking] = useState<{ q: LQuestion; reason: string; resolve: (ok: boolean) => void } | null>(null);
+  const tally = useRef({ right: 0, total: 0 });
+  const ask: Ask = opts.learn ? (reason) => new Promise<boolean>((resolve) => { const q = qs.next(); if (!q) { resolve(false); return; } setAsking({ q, reason, resolve }); }) : null;
+  const answered = (ok: boolean) => { if (!asking) return; tally.current.total++; if (ok) tally.current.right++; const r = asking.resolve; setAsking(null); r(ok); };
 
   const report = async (won: boolean) => {
     const secs = started.current ? (Date.now() - started.current) / 1000 : 0; started.current = null;
@@ -67,9 +76,9 @@ export function Board({ game }: { game: BoardId }) {
 
   const start = () => {
     if (limited) { sfx.wrong(); toast(T.t('err_DAILY_LIMIT'), 'warn'); return; }
-    sfx.open(); started.current = Date.now(); setResult(null); setRun((n) => n + 1);
+    sfx.open(); started.current = Date.now(); setResult(null); tally.current = { right: 0, total: 0 }; setRun((n) => n + 1);
   };
-  const end = async (won: boolean) => { const r = await report(won); setResult({ won, coins: r.coins, short: r.secs < 60 }); };
+  const end = async (won: boolean) => { const r = await report(won); setResult({ won, coins: r.coins, short: r.secs < 60, ...tally.current }); };
 
   return (
     <div className="screen board-screen">
@@ -78,7 +87,7 @@ export function Board({ game }: { game: BoardId }) {
         <TopBar title={`${info.icon} ${tr(...info.name)}`} to="arcade" onBack={run ? () => { if (started.current) void report(false); setRun(0); } : undefined} />
         {!run ? (
           <div className="bg-setup panel">
-            <div className="bg-setup-head"><span className="bg-big-ico">{info.icon}</span><div><h2>{tr(...info.name)}</h2><p>{tr(...info.desc)}</p></div></div>
+            <div className="bg-setup-head"><GameTile game={info.id} tone={{ cards: 'rose', ludo: 'science', werewolf: 'english' }[info.id]} size={72} /><div><h2>{tr(...info.name)}</h2><p>{tr(...info.desc)}</p></div></div>
             {game === 'cards' && <>
               <Choice label={tr('Số người chơi', 'Players')} value={opts.players} options={[[2, tr('2 (bé + 1 bot)', '2 (you + 1 bot)')], [3, '3'], [4, '4']]} onChange={(v) => set({ players: v })} />
               <Choice label={tr('Bot', 'Bots')} value={opts.level} options={[['easy', tr('Dễ', 'Easy')], ['normal', tr('Khéo', 'Clever')]]} onChange={(v) => set({ level: v })} />
@@ -106,6 +115,9 @@ export function Board({ game }: { game: BoardId }) {
                 <li>{tr('Ban ngày cả làng bàn bạc rồi bỏ phiếu mời một người rời làng. Dân thắng khi hết sói; sói thắng khi số sói bằng số dân.', 'By day everyone talks, then votes someone out. The village wins when no wolves remain; wolves win when they equal the villagers.')}</li>
               </ul>
             </>}
+            <Choice label={tr('Học kết hợp', 'Learn while playing')} value={opts.learn ? 1 : 0} options={[[1, tr('Bật — có câu hỏi', 'On — with questions')], [0, tr('Tắt — chơi thuần', 'Off — just play')]]} onChange={(v) => set({ learn: v === 1 })} />
+            {opts.learn && <Choice label={tr('Câu hỏi môn', 'Question subject')} value={opts.subject} options={[['any', tr('Trộn tất cả', 'Mix')], ...catalog.subjects.map((x) => [x.id, T.tx(x.name)] as [string, string])]} onChange={(v) => set({ subject: v })} />}
+            {opts.learn && <p className="bg-learn">🧠 {game === 'cards' ? tr('Bị +2/+4: trả lời đúng để chặn, không phải bốc. Đánh lá đổi màu: trả lời đúng mới được tự chọn màu (sai thì màu ngẫu nhiên).', 'Hit by +2/+4: answer right to block it. Wild card: answer right to pick the colour (otherwise it’s random).') : game === 'ludo' ? tr('Không gieo được số ra quân: trả lời đúng để vẫn ra được 1 ngựa. Đi vào ô ★: trả lời đúng để được gieo thêm.', 'Can’t roll out of the stable? Answer right to bring a horse out anyway. Land on a ★: answer right to roll again.') : tr('Mỗi ngày giải tối đa 2 câu đố để nhận gợi ý tìm sói (gợi ý luôn đúng).', 'Each day, solve up to 2 puzzles to get clues about the wolves (clues are always true).')} {tr('Bot cũng phải trả lời câu hỏi.', 'Bots have to answer too.')}</p>}
             {limited && <p className="bg-warn">{T.t('err_DAILY_LIMIT')}</p>}
             <div className="panel-actions">
               <Btn tone="gray" onClick={() => go('arcade')}>{T.t('back')}</Btn>
@@ -115,15 +127,17 @@ export function Board({ game }: { game: BoardId }) {
           </div>
         ) : (
           <div className="bg-stage" key={run}>
-            {game === 'cards' && <CardsGame players={opts.players} level={opts.level} tr={tr} me={me} onEnd={end} />}
-            {game === 'ludo' && <LudoGame players={opts.players} level={opts.level} exitOn={opts.exitOne ? [1, 6] : [6]} tr={tr} me={me} onEnd={end} />}
-            {game === 'werewolf' && <WerewolfGame players={opts.players} role={opts.players === 6 && opts.role === 'witch' ? 'random' : opts.role} tr={tr} lang={T.lang} me={me} onEnd={end} />}
+            {game === 'cards' && <CardsGame players={opts.players} level={opts.level} tr={tr} me={me} onEnd={end} ask={ask} />}
+            {game === 'ludo' && <LudoGame players={opts.players} level={opts.level} exitOn={opts.exitOne ? [1, 6] : [6]} tr={tr} me={me} onEnd={end} ask={ask} />}
+            {game === 'werewolf' && <WerewolfGame players={opts.players} role={opts.players === 6 && opts.role === 'witch' ? 'random' : opts.role} tr={tr} lang={T.lang} me={me} onEnd={end} ask={ask} />}
           </div>
         )}
       </div>
+      {asking && <QuizPrompt key={asking.q.id} q={asking.q} reason={asking.reason} tr={tr} lang={T.lang} onDone={answered} />}
       {result && (
         <Dialog title={result.won ? tr('🎉 Bé thắng rồi!', '🎉 You won!') : tr('Ván sau cố lên nhé!', 'Better luck next time!')} icon={result.won ? 'trophy' : 'flower'} onClose={() => setResult(null)}
           actions={<><Btn tone="gray" onClick={() => { setResult(null); setRun(0); }}>{tr('Đổi luật', 'Change rules')}</Btn><Btn tone="orange" onClick={(e) => { burstAt(e.currentTarget, 'stars', 10); start(); }}>{T.t('playAgain')}</Btn></>}>
+          {result.total > 0 && <p className="lq-score">🧠 {tr(`Bé trả lời đúng ${result.right}/${result.total} câu hỏi`, `You answered ${result.right}/${result.total} questions correctly`)}</p>}
           <p style={{ margin: 0 }}>{result.coins > 0 ? tr(`Bé nhận được ${result.coins} xu.`, `You earned ${result.coins} coins.`) : result.short ? tr('Ván chơi dưới 1 phút nên chưa có xu thưởng.', 'Games under a minute don’t earn coins.') : tr('Hôm nay bé đã nhận đủ xu từ trò chơi này rồi — chơi tiếp cho vui nhé!', 'You’ve collected today’s game coins — keep playing for fun!')}</p>
         </Dialog>
       )}

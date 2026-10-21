@@ -140,3 +140,11 @@ export function botMove(s, p, level, rnd) {
   const called = hand.length === 2 ? (level === 'easy' ? rnd() > 0.25 : rnd() > 0.05) : false;
   return { type: 'play', idx, color, called };
 }
+
+/** Trả lại nọc k lá người chơi p vừa phải bốc (bé/bot trả lời đúng câu hỏi để "chặn" lá +2/+4). */
+export function returnCards(s0, p, k) {
+  const s = clone(s0);
+  const back = s.hands[p].splice(Math.max(0, s.hands[p].length - k), k);
+  s.deck.push(...back.reverse());
+  return s;
+}

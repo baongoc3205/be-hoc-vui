@@ -259,3 +259,39 @@ export function resolveVote(s0, votes) {
   else s.phase = 'end';
   return { s, out, tally };
 }
+
+// ---------------- Học kết hợp: giải câu đố để nhận gợi ý ----------------
+/**
+ * Gợi ý riêng cho bé (người chơi 0), luôn đúng sự thật:
+ *  • phe dân: "X là người tốt" hoặc "trong A, B, C có đúng 1 sói"
+ *  • phe sói: "Tiên tri là một trong hai người A, B"
+ */
+export function clue(s0, rnd) {
+  const s = withSus(s0, clone(s0));
+  s.known = { ...(s0.known ?? {}) };
+  const me = s.players[0];
+  const others = alive(s).filter((p) => p.id !== 0);
+  const say = (vi, en) => s.log.push({ day: s.day, who: null, text: L(vi, en), kind: 'clue' });
+  if (me.role === 'wolf') {
+    const seer = others.find((p) => p.role === 'seer') ?? others.find((p) => p.role === 'guard' || p.role === 'witch');
+    const decoy = others.filter((p) => p.role !== 'wolf' && p !== seer);
+    if (seer && decoy.length) {
+      const d = pickOne(rnd, decoy); const [a, b] = shuffle(rnd, [seer, d]);
+      const r = ROLE_INFO[seer.role].name;
+      say(`🧩 Gợi ý: ${r.vi} là một trong hai bạn ${a.name} và ${b.name}.`, `🧩 Clue: the ${r.en} is either ${a.name} or ${b.name}.`);
+    } else { const v = pickOne(rnd, others.filter((p) => p.role !== 'wolf')); if (v) say(`🧩 Gợi ý: ${v.name} chỉ là dân thường.`, `🧩 Clue: ${v.name} is just a villager.`); }
+    return s;
+  }
+  const unknown = others.filter((p) => !(p.id in s.known) && !(me.role === 'seer' && p.id in s.checks));
+  const good = unknown.filter((p) => p.role !== 'wolf');
+  const wolves = unknown.filter((p) => p.role === 'wolf');
+  if (wolves.length && good.length >= 2 && rnd() < 0.5) {
+    const w = pickOne(rnd, wolves); const g = shuffle(rnd, good).slice(0, 2);
+    const names = shuffle(rnd, [w, ...g]).map((p) => p.name).join(', ');
+    say(`🧩 Gợi ý: trong ba bạn ${names} có đúng 1 con sói.`, `🧩 Clue: exactly one of ${names} is a wolf.`);
+  } else if (good.length) {
+    const g = pickOne(rnd, good); s.known[g.id] = 'good';
+    say(`🧩 Gợi ý: ${g.name} là người tốt.`, `🧩 Clue: ${g.name} is on the village’s side.`);
+  } else say('🧩 Bé đã biết hết những gì gợi ý có thể nói rồi!', '🧩 You already know everything a clue could tell you!');
+  return s;
+}

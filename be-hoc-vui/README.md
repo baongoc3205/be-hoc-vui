@@ -158,6 +158,14 @@ Ba trò chơi tự do, chơi với 1–9 bạn bot:
 
 - Bot "Khéo" có chiến thuật riêng: chặn người sắp thắng (bài), ưu tiên đá ngựa và tránh bị đá (cá ngựa), Tiên tri lên tiếng, sói giả làm Tiên tri, dân làng suy luận theo lời khai và kết quả bỏ phiếu (ma sói).
 - Luật chơi viết trong `shared/board/` và được kiểm thử bằng hàng trăm ván bot tự đấu (`test/board.test.js`).
+- **Học kết hợp (mặc định bật, tắt được ở màn thiết lập):** câu hỏi trắc nghiệm đúng lớp của bé, chọn được môn (Toán, Tiếng Việt, Tiếng Anh, Khoa học hoặc trộn). Trả lời đúng thì được lợi thế, sai thì vẫn chơi tiếp bình thường:
+  - 🃏 Bài Màu Sắc: bị +2/+4 thì trả lời đúng để **chặn**, trả lại số lá phải bốc. Ra lá đen thì trả lời đúng mới được tự chọn màu, sai thì màu ngẫu nhiên.
+  - 🐴 Cá ngựa: gieo không ra quân được thì trả lời đúng để **vẫn ra 1 ngựa**. Đi vào ô ★ (ô an toàn có sao vàng trên bàn) thì trả lời đúng để **gieo thêm**.
+  - 🐺 Ma sói: lúc thảo luận ban ngày, bé bấm **Giải đố lấy gợi ý** (tối đa 2 lần mỗi ngày). Đúng thì nhận một gợi ý luôn đúng, chỉ mình bé thấy (ví dụ "Su là người tốt" hay "trong ba bạn A, B, C có đúng 1 con sói").
+  - Bot cũng "trả lời": bot Dễ đúng khoảng 45%, bot Khéo khoảng 65%. Cuối ván có thống kê số câu bé trả lời đúng.
+  - Câu hỏi lấy từ ngân hàng câu trắc nghiệm của các màn học (`server/questions.js`, API `GET /api/children/:id/questions`).
+  - Phòng chơi online với bạn bè vẫn dùng luật cổ điển. Trò học khi chơi cùng bạn là **Thi đố cùng bạn**.
+- **Bé tập vẽ** cũng có giải đố: mỗi vòng hỏi một câu (hình nào có 3 cạnh, 7 − 4 = ?, …), bé chọn đúng hình hoặc số trong 4 lựa chọn rồi mới tô nó. Chọn sai thì vẫn tô được nhưng tối đa 1 sao.
 - Thời gian chơi được **tính vào giới hạn giờ mỗi ngày** mà phụ huynh đặt. Mỗi ván từ 1 phút trở lên được thưởng 6 xu nếu thắng, 2 xu nếu thua, tối đa 5 ván có thưởng mỗi ngày.
 
 ### Bạn bè, tin nhắn, bảng xếp hạng và chơi cùng nhau
@@ -173,11 +181,13 @@ Ba trò chơi tự do, chơi với 1–9 bạn bot:
   - Giới hạn 15 tin mỗi phút, 30 lời mời kết bạn mỗi ngày.
   - Có nút chặn (hai bên không thấy và không nhắn được cho nhau) và báo cáo.
 - **Phụ huynh** (trong Góc phụ huynh, cho từng bé): bật/tắt kết bạn & nhắn tin & chơi cùng bạn, bật/tắt hiện trên bảng xếp hạng toàn app, xem tin nhắn gần đây và các báo cáo bé đã gửi. File tải dữ liệu gia đình có kèm tin nhắn và danh sách bạn.
+- Kiểm thử học kết hợp: `npm run test:ui:learn`.
 - Kiểm thử: `test/social.test.js` (máy chủ) và `npm run test:ui:social` (hai trình duyệt kết bạn, nhắn tin, mời và chơi cùng nhau).
 
 ### Nhạc nền và cảnh nền
 
 - Nhạc nền **mặc định bật**. Trình duyệt chỉ cho phát âm thanh sau lần chạm/bấm đầu tiên, nên nhạc bắt đầu ngay khi bé chạm vào màn hình. Tắt/bật trong Cài đặt.
+- Âm lượng nhạc nền đã được tăng lên (khoảng 1,5 lần so với trước). Vẫn chỉnh được bằng âm lượng của máy.
 - Cảnh nền chỉ làm mờ nhẹ để vẫn nhìn rõ khung cảnh mà không rối mắt.
 
 ---

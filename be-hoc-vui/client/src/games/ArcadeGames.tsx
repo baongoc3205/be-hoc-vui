@@ -405,12 +405,24 @@ export function DrawTrace({ round, T, onSubmit, revealed }: StepProps) {
   const samples = useRef<{ x: number; y: number }[]>([]);
   const [score, setScore] = useState({ cover: 0, stray: 0 });
   const sent = useRef(false);
+  // học kết hợp: chọn đúng hình/số là đáp án rồi mới tô
+  const quiz = round.quiz ?? null;
+  const [pick, setPick] = useState<number | null>(null);
+  const [phase, setPhase] = useState<'pick' | 'trace'>(quiz ? 'pick' : 'trace');
+  useEffect(() => { setPick(null); setPhase(round.quiz ? 'pick' : 'trace'); }, [round.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const choose = (i: number) => {
+    if (pick !== null || revealed || !quiz) return;
+    setPick(i);
+    if (i === quiz.answer) sfx.correct(); else sfx.wrong();
+    setTimeout(() => setPhase('trace'), i === quiz.answer ? 650 : 1500);
+  };
   useEffect(() => {
+    if (phase !== 'trace') return;
     setStrokes([]); setScore({ cover: 0, stray: 0 }); sent.current = false;
     const g = guide.current; if (!g) return; const len = g.getTotalLength(); const out: { x: number; y: number }[] = [];
     for (let s = 0; s <= len; s += 6) { const p = g.getPointAtLength(s); out.push({ x: p.x, y: p.y }); }
     samples.current = out;
-  }, [round.id]);
+  }, [round.id, phase]); // eslint-disable-line react-hooks/exhaustive-deps
   const measure = (all: { x: number; y: number }[][]) => {
     const pts = all.flat(); const S = samples.current; if (!pts.length || !S.length) return { cover: 0, stray: 0 };
     const near = (a: { x: number; y: number }, list: { x: number; y: number }[], r: number) => list.some((b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2 <= r * r);
@@ -418,7 +430,7 @@ export function DrawTrace({ round, T, onSubmit, revealed }: StepProps) {
     const stray = pts.filter((p) => !near(p, S, 24)).length / pts.length;
     return { cover, stray };
   };
-  const submit = (sc = score) => { if (sent.current || revealed) return; sent.current = true; onSubmit({ cover: Math.round(sc.cover * 100) / 100, stray: Math.round(sc.stray * 100) / 100 }); };
+  const submit = (sc = score) => { if (sent.current || revealed) return; sent.current = true; onSubmit({ cover: Math.round(sc.cover * 100) / 100, stray: Math.round(sc.stray * 100) / 100, pick: pick ?? undefined }); };
   const toSvg = (e: React.PointerEvent) => { const p = svg.current!.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.current!.getScreenCTM()!.inverse()); return { x: q.x, y: q.y }; };
   const onDown = (e: React.PointerEvent) => { if (revealed) return; drawing.current = true; (e.target as Element).setPointerCapture?.(e.pointerId); setStrokes((s) => [...s, [toSvg(e)]]); };
   const onMove = (e: React.PointerEvent) => {
@@ -430,8 +442,21 @@ export function DrawTrace({ round, T, onSubmit, revealed }: StepProps) {
     setStrokes((s) => { const sc = measure(s); setScore(sc); if (sc.cover >= 0.92 && sc.stray <= 0.25) { sfx.correct(); setTimeout(() => submit(sc), 250); } else sfx.flip(); return s; });
   };
   const start = samples.current[0];
+  if (quiz && phase === 'pick' && !revealed) return (
+    <div className="trace-quiz">
+      <p className="tq-hint">{T.t('tracePick')}</p>
+      <div className="tq-opts">{quiz.options.map((sh, i) => (
+        <button key={sh} type="button" disabled={pick !== null} className={`tq-opt ${pick !== null && i === quiz.answer ? 'right' : ''} ${pick === i && i !== quiz.answer ? 'wrong' : ''}`} onClick={() => choose(i)} aria-label={`${'ABCD'[i]}`}>
+          <svg viewBox="0 0 300 300" aria-hidden><path d={TRACE_PATHS[sh] ?? ''} fill="none" stroke="#7B6668" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <span>{'ABCD'[i]}</span>
+        </button>
+      ))}</div>
+      {pick !== null && <p className={`duel-last ${pick === quiz.answer ? 'ok' : 'no'}`}>{pick === quiz.answer ? T.t('tracePickOk') : T.t('tracePickNo')}</p>}
+    </div>
+  );
   return (
     <div className="trace-wrap">
+      {quiz && <p className="tq-after">{pick === quiz.answer ? '✅ ' : '👉 '}{T.tx(quiz.after)}</p>}
       <div className="trace-board">
         <svg ref={svg} viewBox="0 0 300 300" className="trace-svg" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} role="img" aria-label={T.tx(round.prompt)}>
           <rect x="4" y="4" width="292" height="292" rx="26" fill="#fffaf6" />

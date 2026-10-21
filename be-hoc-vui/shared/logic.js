@@ -114,10 +114,12 @@ export function gradeRound(round, given) {
     }
     case 'trace': {
       // Bé tô theo nét: trình duyệt đo độ phủ (cover) và tỉ lệ nét vẽ lệch ra ngoài (stray), đều trong khoảng 0..1.
+      // Có câu đố (round.quiz): bé phải chọn đúng hình/số là đáp án (given.pick) thì mới được điểm tối đa.
       const cover = Math.max(0, Math.min(1, Number(given?.cover) || 0));
       const stray = Math.max(0, Math.min(1, Number(given?.stray) || 0));
-      if (cover >= 0.75 && stray <= 0.35) return 1;
-      return Math.max(0, Math.min(0.49, cover * 0.6 - stray * 0.3));
+      const drawn = cover >= 0.75 && stray <= 0.35 ? 1 : Math.max(0, Math.min(0.49, cover * 0.6 - stray * 0.3));
+      if (round.quiz && Number(given?.pick) !== round.quiz.answer) return Math.min(0.3, drawn * 0.3);
+      return drawn;
     }
     default:
       return 0;

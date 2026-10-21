@@ -11,6 +11,8 @@ import { arcadeMenu, pickArcade } from './arcade.js';
 import { THEORY } from './content/theory/index.js';
 import * as S from './social.js';
 import * as R from './rooms.js';
+import { quizPool } from './questions.js';
+import { makeRng as mkRng } from '../shared/logic.js';
 
 const [major, minor] = process.versions.node.split('.').map(Number);
 if (major < 22 || (major === 22 && minor < 13)) {
@@ -254,6 +256,11 @@ export function createApp(db) {
   r.post('/api/children/:id/arcade', async (req, res, { id }) => {
     const c = await childOf(req, id); const { game, subject } = await readJson(req);
     return [200, { lessonId: pickArcade(c.grade, String(game ?? ''), subject ? String(subject) : 'any').id }];
+  });
+  r.get('/api/children/:id/questions', async (req, res, { id }) => {
+    const c = await childOf(req, id); const u = new URL(req.url, 'http://x');
+    const n = Math.max(1, Math.min(40, Number(u.searchParams.get('n')) || 20));
+    return [200, { questions: quizPool(c.grade, u.searchParams.get('subject'), n, mkRng((Date.now() ^ (c.id * 2654435761)) >>> 0)) }];
   });
   r.post('/api/children/:id/board', async (req, res, { id }) => [200, (await G.finishBoard(db, await childOf(req, id), await readJson(req)))]);
   r.post('/api/children/:id/checkin', async (req, res, { id }) => [200, (await G.doCheckin(db, await childOf(req, id)))]);

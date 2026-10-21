@@ -7,6 +7,7 @@ import type { Look } from '../../lib/types';
 import { Btn } from '../../ui/kit';
 import { sfx } from '../../lib/sfx';
 import { Avatar, BOT_DELAY, botLook, type Level, type Tr } from './common';
+import type { Ask } from './LearnQuiz';
 
 export const HEX = ['#E0574F', '#5FAE6E', '#F2C14B', '#4F8FD6'];
 const SOFT = ['#F6C9C4', '#CBE6CF', '#FBE7B3', '#C6DCF3'];
@@ -46,7 +47,7 @@ export function BoardSvg({ s, movable, onPick }: { s: LudoState; movable: LudoMo
     const [r, c] = Lu.TRACK[i];
     const startCol = Lu.START.indexOf(i);
     cells.push(<rect key={`t${i}`} x={c * CELL} y={r * CELL} width={CELL} height={CELL} fill={startCol >= 0 ? HEX[startCol] : '#FFFDF9'} stroke="#D9CEC8" strokeWidth="1.5" />);
-    if (Lu.SAFE.has(i) && startCol < 0) cells.push(<text key={`s${i}`} x={c * CELL + CELL / 2} y={r * CELL + CELL / 2 + 7} textAnchor="middle" fontSize="20" fill="#C9BBB5">★</text>);
+    if (Lu.SAFE.has(i) && startCol < 0) cells.push(<g key={`s${i}`}><rect x={c * CELL + 2} y={r * CELL + 2} width={CELL - 4} height={CELL - 4} rx="8" fill="#FFF1C9" /><text x={c * CELL + CELL / 2} y={r * CELL + CELL / 2 + 8} textAnchor="middle" fontSize="22" fill="#E9B949">★</text></g>);
   }
   Lu.HOME.forEach((h, col) => h.forEach(([r, c], k) => cells.push(<rect key={`h${col}${k}`} x={c * CELL} y={r * CELL} width={CELL} height={CELL} fill={SOFT[col]} stroke="#D9CEC8" strokeWidth="1.5" />)));
   // xếp chồng ngựa cùng ô
@@ -86,7 +87,7 @@ export function BoardSvg({ s, movable, onPick }: { s: LudoState; movable: LudoMo
   );
 }
 
-export function LudoGame({ players, level, exitOn, tr, me, onEnd }: { players: number; level: Level; exitOn: number[]; tr: Tr; me: { name: string; look: Look }; onEnd: (won: boolean) => void }) {
+export function LudoGame({ players, level, exitOn, tr, me, onEnd, ask = null }: { players: number; level: Level; exitOn: number[]; tr: Tr; me: { name: string; look: Look }; onEnd: (won: boolean) => void; ask?: Ask }) {
   const rnd = useRef(makeRng((Date.now() & 0xffffff) + 7)).current;
   const seats = SEATS[players] ?? SEATS[2];
   const [s, setS] = useState<LudoState>(() => Lu.newGame(seats, { exitOn }));
@@ -94,6 +95,8 @@ export function LudoGame({ players, level, exitOn, tr, me, onEnd }: { players: n
   const [face, setFace] = useState<number | null>(null);
   const [msg, setMsg] = useState(tr(`Bé cầm ngựa Đỏ. Gieo được ${exitOn.join(' hoặc ')} mới ra chuồng!`, `You are Red. Roll ${exitOn.join(' or ')} to leave the stable!`));
   const ended = useRef(false);
+  const [busy, setBusy] = useState(false);
+  const botOk = level === 'easy' ? 0.45 : 0.65; // xác suất bot trả lời đúng
   const names = useMemo(() => Object.fromEntries(seats.map((c, i) => [c, i === 0 ? me.name : BOTS[i - 1]])), [seats, me.name]);
   const looks = useMemo(() => Object.fromEntries(seats.map((c, i) => [c, i === 0 ? me.look : botLook(i)])), [seats, me.look]);
   const cur = Lu.current(s);
@@ -108,6 +111,7 @@ export function LudoGame({ players, level, exitOn, tr, me, onEnd }: { players: n
       if (e.t === 'three6') lines.push(tr(`${names[who]} gieo ba lần 6 liền — mất lượt!`, `${names[who]} rolled three 6s — turn lost!`));
       if (e.t === 'nomove') lines.push(tr(`${names[who]} không đi được nước nào.`, `${names[who]} can’t move.`));
       if (e.t === 'again') lines.push(tr(`${names[who]} được gieo thêm!`, `${names[who]} rolls again!`));
+      if (e.t === 'quizExit') lines.push(tr(`🧠 ${names[who]} trả lời đúng — ra được 1 ngựa!`, `🧠 ${names[who]} answered right — a horse leaves the stable!`));
       if (e.t === 'win') lines.push(tr(`${names[who]} về đích đủ 4 ngựa — chiến thắng!`, `${names[who]} brings all 4 horses home — wins!`));
     }
     if (lines.length) setMsg(lines.join(' · '));
@@ -117,23 +121,47 @@ export function LudoGame({ players, level, exitOn, tr, me, onEnd }: { players: n
     setRolling(true); sfx.tap();
     const v = 1 + Math.floor(rnd() * 6);
     let n = 0;
-    const iv = setInterval(() => { setFace(1 + Math.floor(Math.random() * 6)); if (++n >= 6) { clearInterval(iv); setFace(v); setRolling(false); const r = Lu.roll(s, v); setS(r.s); if (!r.events.length) setMsg(tr(`${names[cur]} gieo được ${v}.`, `${names[cur]} rolled ${v}.`)); say(r.events, cur); } }, 70);
+    const iv = setInterval(() => { setFace(1 + Math.floor(Math.random() * 6)); if (++n >= 6) { clearInterval(iv); setFace(v); setRolling(false); void afterRoll(v); } }, 70);
   };
-  const doMove = (m: LudoMove) => { sfx.pop(); const r = Lu.move(s, m); say(r.events, cur); setS(r.s); };
+  /** Học kết hợp: gieo không ra quân được → trả lời đúng để vẫn ra 1 ngựa. */
+  const afterRoll = async (v: number) => {
+    const r = Lu.roll(s, v);
+    const stuck = r.events.some((e) => e.t === 'nomove') && !s.exitOn.includes(v) && Lu.hasStable(s);
+    if (ask && stuck) {
+      let ok: boolean;
+      if (human) { setMsg(tr(`Bé gieo được ${v}, chưa ra quân được…`, `You rolled ${v}, no horse can move…`)); setBusy(true); ok = await ask(tr(`Gieo được ${v}. Trả lời đúng để vẫn ra được 1 ngựa!`, `You rolled ${v}. Answer right to bring a horse out anyway!`)); setBusy(false); }
+      else ok = rnd() < botOk;
+      if (ok) { const e = Lu.quizExit(s); say(e.events, cur); setS(e.s); sfx.star(); return; }
+      if (human) setMsg(tr('Chưa đúng — lượt sau cố lên nhé!', 'Not quite — try again next turn!'));
+      else setMsg(tr(`${names[cur]} trả lời sai, chưa ra quân được.`, `${names[cur]} got it wrong, no horse out.`));
+      setS(r.s); return;
+    }
+    setS(r.s); if (!r.events.length) setMsg(tr(`${names[cur]} gieo được ${v}.`, `${names[cur]} rolled ${v}.`)); say(r.events, cur);
+  };
+  /** Học kết hợp: đi vào ô ★ → trả lời đúng để được gieo thêm. */
+  const doMove = async (m: LudoMove) => {
+    sfx.pop(); const col = cur; const r = Lu.move(s, m); say(r.events, col); setS(r.s);
+    if (!ask || r.s.winner != null || Lu.current(r.s) === col || !Lu.onStar(col, m.to)) return;
+    let ok: boolean;
+    if (col === 0) { setBusy(true); ok = await ask(tr('Ô ★! Trả lời đúng để được gieo thêm', 'A ★ square! Answer right to roll again')); setBusy(false); }
+    else ok = rnd() < botOk;
+    if (ok) { setS((st) => Lu.grantExtra(st, col)); setMsg(tr(`⭐ ${names[col]} trả lời đúng ở ô ★ — được gieo thêm!`, `⭐ ${names[col]} answered right on a ★ — roll again!`)); sfx.star(); }
+    else setMsg(tr(`${names[col]} đứng ở ô ★ nhưng trả lời chưa đúng.`, `${names[col]} landed on a ★ but missed the question.`));
+  };
 
   // bot: gieo rồi đi
   useEffect(() => {
-    if (s.winner != null || human || rolling) return;
+    if (s.winner != null || human || rolling || busy) return;
     const t = setTimeout(() => {
       if (s.dice == null) doRoll();
-      else { const m = Lu.botChoose(s, level, rnd); if (m) doMove(m); }
+      else { const m = Lu.botChoose(s, level, rnd); if (m) void doMove(m); }
     }, BOT_DELAY);
     return () => clearTimeout(t);
-  }, [s, rolling]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s, rolling, busy]); // eslint-disable-line react-hooks/exhaustive-deps
   // bé: chỉ có 1 nước thì tự đi
   useEffect(() => {
-    if (!human || s.dice == null || rolling) return;
-    if (moves.length === 1) { const t = setTimeout(() => doMove(moves[0]), 450); return () => clearTimeout(t); }
+    if (!human || s.dice == null || rolling || busy) return;
+    if (moves.length === 1) { const t = setTimeout(() => void doMove(moves[0]), 450); return () => clearTimeout(t); }
     if (moves.length > 1) setMsg(tr(`Bé gieo được ${s.dice}. Chạm vào con ngựa đang sáng để đi.`, `You rolled ${s.dice}. Tap a glowing horse to move.`));
   }, [s, rolling]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -144,7 +172,7 @@ export function LudoGame({ players, level, exitOn, tr, me, onEnd }: { players: n
 
   return (
     <div className="ludo-game">
-      <div className="ludo-wrap"><BoardSvg s={s} movable={human && !rolling ? moves : []} onPick={doMove} /></div>
+      <div className="ludo-wrap"><BoardSvg s={s} movable={human && !rolling && !busy ? moves : []} onPick={(m) => void doMove(m)} /></div>
       <div className="ludo-side">
         <div className="ludo-players">
           {seats.map((c) => (
@@ -154,12 +182,12 @@ export function LudoGame({ players, level, exitOn, tr, me, onEnd }: { players: n
             </div>
           ))}
         </div>
-        <button type="button" className={`dice-btn ${human && s.dice == null && !rolling && s.winner == null ? 'ready' : ''}`} disabled={!human || s.dice != null || rolling || s.winner != null} onClick={doRoll} aria-label={tr('Gieo xúc xắc', 'Roll the dice')}>
+        <button type="button" className={`dice-btn ${human && s.dice == null && !rolling && s.winner == null ? 'ready' : ''}`} disabled={!human || s.dice != null || rolling || busy || s.winner != null} onClick={doRoll} aria-label={tr('Gieo xúc xắc', 'Roll the dice')}>
           <Dice value={face} rolling={rolling} />
           <span>{human && s.dice == null ? tr('Gieo!', 'Roll!') : `${names[cur]}`}</span>
         </button>
         <p className="bg-msg" aria-live="polite">{msg}</p>
-        {human && s.dice != null && moves.length > 1 && <Btn tone="gray" size="sm" onClick={() => doMove(moves.reduce((a, b) => (b.to > a.to ? b : a)))}>{tr('Đi ngựa xa nhất', 'Move my lead horse')}</Btn>}
+        {human && s.dice != null && moves.length > 1 && <Btn tone="gray" size="sm" onClick={() => void doMove(moves.reduce((a, b) => (b.to > a.to ? b : a)))}>{tr('Đi ngựa xa nhất', 'Move my lead horse')}</Btn>}
       </div>
     </div>
   );

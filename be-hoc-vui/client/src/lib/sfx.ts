@@ -16,7 +16,7 @@ function ac() {
     comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
     master = ctx.createGain(); master.gain.value = 0.9;
     master.connect(comp); comp.connect(ctx.destination);
-    musicBus = ctx.createGain(); musicBus.gain.value = 0.55; musicBus.connect(master);
+    musicBus = ctx.createGain(); musicBus.gain.value = 0.9; musicBus.connect(master);
   }
   if (ctx.state === 'suspended') void ctx.resume();
   return ctx;
@@ -176,7 +176,7 @@ export async function previewTheme(id: string) {
 // tạm im nhạc khi chuyển sang tab / ứng dụng khác
 if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => {
   if (!ctx || !musicBus) return;
-  const t = ctx.currentTime, v = document.visibilityState === 'visible' ? 0.55 : 0.0001;
+  const t = ctx.currentTime, v = document.visibilityState === 'visible' ? 0.9 : 0.0001;
   musicBus.gain.cancelScheduledValues(t); musicBus.gain.setValueAtTime(musicBus.gain.value, t); musicBus.gain.linearRampToValueAtTime(v, t + 0.5);
 });
 

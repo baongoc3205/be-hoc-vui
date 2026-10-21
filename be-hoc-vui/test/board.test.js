@@ -105,3 +105,49 @@ test('Ma sói: ván nào cũng kết thúc, hai phe đều có cơ hội thắng
   const pv = res.village / 600;
   assert.ok(pv > 0.25 && pv < 0.88, `cán cân hai phe lệch quá (${JSON.stringify(res)})`);
 });
+
+test('học kết hợp: chặn +2/+4, ra quân bằng câu hỏi, gieo thêm ở ô ★, gợi ý ma sói luôn đúng', async () => {
+  const { quizPool, traceQuiz } = await import('../server/questions.js');
+  // kho câu hỏi đúng lớp, không trùng, có đáp án hợp lệ
+  for (const g of [1, 5, 9]) for (const sub of [null, 'math', 'english']) {
+    const qs = quizPool(g, sub, 20, makeRng(g * 7));
+    assert.ok(qs.length >= 15, `lớp ${g} môn ${sub}: ít câu`);
+    for (const q of qs) assert.ok(q.kind === 'mc' && q.answer >= 0 && q.answer < q.options.length);
+  }
+  // câu đố trò vẽ: đáp án nằm trong 4 lựa chọn, không trùng
+  for (const shape of ['circle', 'triangle', 'square', 'rect', 'star', 'heart', 'para', 'rhombus', 'trapezoid', 'right', 'd0', 'd5', 'd9']) for (const g of [1, 3, 6]) {
+    const q = traceQuiz(shape, g, 11);
+    assert.equal(q.options[q.answer], shape); assert.equal(new Set(q.options).size, 4);
+    assert.ok(q.prompt.vi && q.prompt.en);
+  }
+  assert.match(traceQuiz('d4', 1, 3).prompt.vi, /Có bao nhiêu/);
+  // bài: trả lại lá đã bốc
+  let s = C.newGame(2, makeRng(3));
+  const before = s.hands[0].length; const deck = s.deck.length;
+  s.hands[1] = [{ id: 990, c: s.color, v: '+2' }, { id: 991, c: 'red', v: '1' }]; s.turn = 1;
+  const r = C.play(s, 1, 0, null, true, makeRng(4));
+  assert.equal(r.s.hands[0].length, before + 2);
+  const back = C.returnCards(r.s, 0, 2);
+  assert.equal(back.hands[0].length, before); assert.equal(back.deck.length, deck);
+  // cá ngựa: ra quân bằng câu hỏi, đá ngựa đứng ở ô xuất phát
+  let l = Lu.newGame([0, 2]);
+  l.pieces[2][0] = 24; // ô tuyệt đối 0 = ô xuất phát của Đỏ (an toàn) → không bị đá
+  const e = Lu.quizExit(l);
+  assert.equal(e.s.pieces[0][0], 0); assert.equal(e.s.turn, 1); assert.equal(e.s.pieces[2][0], 24);
+  assert.throws(() => Lu.quizExit({ ...l, dice: 3 }), /ILLEGAL/);
+  assert.ok(Lu.onStar(0, 8) && !Lu.onStar(0, 0) && !Lu.onStar(0, 13));
+  const ex = Lu.grantExtra(e.s, 0); assert.equal(Lu.current(ex), 0); assert.equal(ex.dice, null);
+  // ma sói: gợi ý luôn đúng sự thật
+  for (let g = 0; g < 200; g++) {
+    const rnd = makeRng(900 + g);
+    let w = W.newGame(8, rnd, { humanRole: ['villager', 'seer', 'wolf'][g % 3] });
+    for (let k = 0; k < 3; k++) w = W.clue(w, rnd);
+    for (const [id, v] of Object.entries(w.known ?? {})) assert.ok(v === 'good' && w.players[id].role !== 'wolf', 'gợi ý sai: người tốt lại là sói');
+    for (const line of w.log.filter((x) => x.kind === 'clue')) {
+      const m = line.text.vi.match(/trong ba bạn (.+) có đúng 1 con sói/);
+      if (m) assert.equal(m[1].split(', ').filter((n) => w.players.find((p) => p.name === n).role === 'wolf').length, 1, 'gợi ý "đúng 1 sói" sai');
+      const t = line.text.vi.match(/là một trong hai bạn (.+) và (.+)\./);
+      if (t) assert.ok([t[1], t[2]].some((n) => ['seer', 'guard', 'witch'].includes(w.players.find((p) => p.name === n).role)));
+    }
+  }
+});

@@ -120,3 +120,29 @@ export function botChoose(s, level, rnd) {
   };
   return ms.reduce((a, b) => (score(b) > score(a) ? b : a));
 }
+
+// ---------------- Học kết hợp ----------------
+/** Màu đang tới lượt còn ngựa trong chuồng không. */
+export const hasStable = (s, col = current(s)) => s.pieces[col].some((p) => p === -1);
+/** Trả lời đúng câu hỏi khi không gieo được số ra quân: đưa 1 ngựa ra ô xuất phát (có thể đá ngựa đối thủ đang đứng đó), rồi hết lượt. */
+export function quizExit(s0) {
+  if (s0.winner != null || s0.dice != null || !hasStable(s0)) throw new Error('ILLEGAL');
+  const s = clone(s0); const col = current(s); const ev = [];
+  const k = s.pieces[col].indexOf(-1);
+  s.pieces[col][k] = 0; s.moves++;
+  const cell = cellOf(col, 0);
+  if (!SAFE.has(cell)) for (const o of s.seats) if (o !== col) s.pieces[o].forEach((p, j) => { if (cellOf(o, p) === cell) { s.pieces[o][j] = -1; ev.push({ t: 'capture', col, victim: o }); } });
+  ev.push({ t: 'quizExit', col });
+  passTurn(s);
+  return { s, events: ev };
+}
+/** Ô ★ (ô an toàn không phải ô xuất phát): đi vào đây và trả lời đúng thì được gieo thêm. */
+export const STAR_CELLS = new Set([...SAFE].filter((c) => !START.includes(c)));
+export const onStar = (col, pos) => { const c = cellOf(col, pos); return c != null && STAR_CELLS.has(c); };
+/** Cho màu col gieo thêm một lượt (sau khi trả lời đúng ở ô ★). */
+export function grantExtra(s0, col) {
+  const s = clone(s0);
+  if (s.winner != null) return s;
+  s.turn = s.seats.indexOf(col); s.dice = null; s.sixes = 0;
+  return s;
+}

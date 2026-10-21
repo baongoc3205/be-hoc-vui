@@ -6,6 +6,7 @@ import { useT } from '../lib/hooks';
 import type { ChatMsg, FriendCard, FriendsData } from '../lib/types';
 import { Btn, Dialog, Panel, Spinner, TopBar } from '../ui/kit';
 import { Scene } from '../ui/Scene';
+import { GameTile } from '../ui/Icons';
 import { Avatar } from '../games/board/common';
 import { ProfileDialog, ReportDialog } from '../ui/ProfileDialog';
 import { errText } from './Auth';
@@ -37,7 +38,7 @@ export function GamePicker({ friend, onClose }: { friend?: FriendCard; onClose: 
   const start = async (g: string) => { try { sfx.open(); await createRoomAndInvite(g, friend?.id); onClose(); } catch (e) { toast(errText(T, e), 'warn'); } };
   return (
     <Dialog title={friend ? tr(`Chơi cùng ${friend.nickname}`, `Play with ${friend.nickname}`) : tr('Tạo phòng chơi', 'Create a room')} icon={null} onClose={onClose} actions={<Btn tone="gray" onClick={onClose}>{T.t('cancel')}</Btn>}>
-      <div className="pick-games">{ROOM_GAMES.map((g) => <button key={g.id} type="button" className="pick-game" onClick={() => start(g.id)}><span>{g.icon}</span><b>{tr(...g.name)}</b></button>)}</div>
+      <div className="pick-games">{ROOM_GAMES.map((g) => <button key={g.id} type="button" className="pick-game" onClick={() => start(g.id)}><GameTile game={g.id === 'quiz' ? 'quiz-duel' : g.id} tone={{ quiz: 'english', cards: 'rose', ludo: 'science' }[g.id]} size={56} /><b>{tr(...g.name)}</b></button>)}</div>
       <p className="muted" style={{ marginBottom: 0 }}>{tr('Ghế còn trống sẽ có bạn bot chơi cùng.', 'Empty seats are filled by bots.')}</p>
     </Dialog>
   );

@@ -20,7 +20,7 @@ function perfect(r) {
     case 'order': return r.items.map((_, i) => i);
     case 'clock': return [r.h, r.m];
     case 'classify': return { hits: r.items.filter((i) => i.ok).length, wrong: 0 };
-    case 'trace': return { cover: 0.95, stray: 0.05 };
+    case 'trace': return { cover: 0.95, stray: 0.05, pick: r.quiz ? r.quiz.answer : undefined };
   }
 }
 
@@ -277,6 +277,11 @@ async function apiFlow(db) {
     const tr = await call('POST', `/api/children/${id}/sessions`, { lessonId: (await call('POST', `/api/children/${id}/arcade`, { game: 'draw-trace' })).data.lessonId });
     const trBad = await call('POST', `/api/children/${id}/sessions/${tr.data.sessionId}/finish`, { answers: tr.data.rounds.map((r) => ({ round: r.id, given: { cover: 0.9, stray: 0.8 } })) });
     assert.equal(trBad.data.stars, 0);
+    // tô đẹp nhưng chọn sai đáp án câu đố thì cũng không đạt
+    const tq = await call('POST', `/api/children/${id}/sessions`, { lessonId: (await call('POST', `/api/children/${id}/arcade`, { game: 'draw-trace' })).data.lessonId });
+    assert.ok(tq.data.rounds.every((r) => r.quiz && r.quiz.options.length === 4 && r.quiz.options.includes(r.shape)), 'mỗi vòng tô có câu đố 4 lựa chọn');
+    const tqBad = await call('POST', `/api/children/${id}/sessions/${tq.data.sessionId}/finish`, { answers: tq.data.rounds.map((r) => ({ round: r.id, given: { cover: 1, stray: 0, pick: (r.quiz.answer + 1) % 4 } })) });
+    assert.equal(tqBad.data.stars, 0);
     // báo cáo phụ huynh
     const rep = await call('GET', `/api/children/${id}/report`);
     assert.equal(rep.data.week.length, 7);

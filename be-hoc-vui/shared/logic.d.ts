@@ -23,6 +23,8 @@ export interface Round {
   h?: number;
   m?: number;
   shape?: string;
+  /** Bé tập vẽ: câu đố chọn hình/số đúng trước khi tô */
+  quiz?: { options: string[]; answer: number; after: LText } | null;
 }
 export function makeRng(seed: number): () => number;
 export function shuffle<T>(rnd: () => number, arr: T[]): T[];

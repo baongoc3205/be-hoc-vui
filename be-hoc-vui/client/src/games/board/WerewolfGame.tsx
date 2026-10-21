@@ -7,11 +7,12 @@ import type { Look } from '../../lib/types';
 import { Btn } from '../../ui/kit';
 import { sfx } from '../../lib/sfx';
 import { Avatar, botLook, type Tr } from './common';
+import type { Ask } from './LearnQuiz';
 
 type Stage = 'intro' | 'night' | 'talk' | 'discuss' | 'vote' | 'voted' | 'end';
 type Pick = { kind: 'guard' | 'wolf' | 'seer' | 'poison' | 'accuse' | 'clear' | 'claim' | 'vote'; options: number[] };
 
-export function WerewolfGame({ players, role, tr, lang, me, onEnd }: { players: number; role: Role | 'random'; tr: Tr; lang: 'vi' | 'en'; me: { name: string; look: Look }; onEnd: (won: boolean) => void }) {
+export function WerewolfGame({ players, role, tr, lang, me, onEnd, ask = null }: { players: number; role: Role | 'random'; tr: Tr; lang: 'vi' | 'en'; me: { name: string; look: Look }; onEnd: (won: boolean) => void; ask?: Ask }) {
   const rnd = useRef(makeRng((Date.now() & 0xffffff) + 13)).current;
   const [s, setS] = useState<WState>(() => W.newGame(players, rnd, { humanName: me.name, humanRole: role }));
   const [stage, setStage] = useState<Stage>('intro');
@@ -21,6 +22,8 @@ export function WerewolfGame({ players, role, tr, lang, me, onEnd }: { players: 
   const [note, setNote] = useState<string | null>(null);
   const [said, setSaid] = useState(false);
   const [votes, setVotes] = useState<Record<number, number | null> | null>(null);
+  const [puzzles, setPuzzles] = useState(0); // số câu đố đã giải trong ngày
+  const [solving, setSolving] = useState(false);
   const plan = useRef<NightPlan>({ victim: null, guard: null, heal: false, poison: null, check: null });
   const logRef = useRef<HTMLDivElement>(null);
   const ended = useRef(false);
@@ -50,7 +53,7 @@ export function WerewolfGame({ players, role, tr, lang, me, onEnd }: { players: 
       if (r === 'seer') q.push('seer');
       if (r === 'witch') q.push('witch');
     }
-    setQueue(q); setNote(null); setSaid(false); setVotes(null); setStage('night');
+    setQueue(q); setNote(null); setSaid(false); setVotes(null); setPuzzles(0); setStage('night');
   };
   useEffect(() => {
     if (stage !== 'night') return;
@@ -115,6 +118,7 @@ export function WerewolfGame({ players, role, tr, lang, me, onEnd }: { players: 
     if (stage === 'end' || !p.alive || id === 0) return W.ROLE_INFO[p.role].icon;
     if (meP.role === 'wolf' && p.role === 'wolf') return '🐺';
     if (meP.role === 'seer' && id in s.checks) return s.checks[id] ? '🐺' : '✅';
+    if (s.known?.[id] === 'good') return '✅';
     if (s.claims[id]) return '🔮?';
     return null;
   };
@@ -178,6 +182,13 @@ export function WerewolfGame({ players, role, tr, lang, me, onEnd }: { players: 
           )}
           {stage === 'discuss' && meP.alive && !pick && (
             <div className="ww-btns">
+              {ask && puzzles < 2 && <Btn tone="lime" size="sm" disabled={solving} onClick={async () => {
+                setSolving(true);
+                const ok = await ask(tr('Giải câu đố của làng để nhận một gợi ý', 'Solve the village puzzle to get a clue'));
+                setSolving(false); setPuzzles((n) => n + 1);
+                if (ok) { setS((cur) => W.clue(cur, rnd)); sfx.star(); }
+                else setS((cur) => ({ ...cur, log: [...cur.log, { day: cur.day, who: null, text: { vi: '🧩 Chưa đúng — chưa có gợi ý lần này.', en: '🧩 Not quite — no clue this time.' }, kind: 'clue' }] }));
+              }}>🧩 {tr(`Giải đố lấy gợi ý (${2 - puzzles})`, `Puzzle for a clue (${2 - puzzles})`)}</Btn>}
               {!said && <Btn tone="mauve" size="sm" onClick={() => setPick({ kind: 'accuse', options: others() })}>{tr('Nêu nghi ngờ', 'Accuse')}</Btn>}
               {!said && <Btn tone="cream" size="sm" onClick={() => setPick({ kind: 'clear', options: others() })}>{tr('Bênh vực', 'Defend')}</Btn>}
               {!said && meP.role === 'seer' && Object.keys(s.checks).some((id) => s.players[Number(id)].alive) && <Btn tone="cream" size="sm" onClick={() => setPick({ kind: 'claim', options: Object.keys(s.checks).map(Number).filter((id) => s.players[id].alive) })}>{tr('Công bố kết quả soi', 'Reveal a check')}</Btn>}

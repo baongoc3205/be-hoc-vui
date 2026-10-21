@@ -17,3 +17,4 @@ export function draw(s: CardsState, p: number, rnd: Rnd): { s: CardsState; event
 export function pass(s: CardsState, p: number): { s: CardsState; events: CardsEvent[] };
 export function bestColor(hand: Card[], rnd: Rnd): CardColor;
 export function botMove(s: CardsState, p: number, level: 'easy' | 'normal', rnd: Rnd): BotMove;
+export function returnCards(s: CardsState, p: number, k: number): CardsState;

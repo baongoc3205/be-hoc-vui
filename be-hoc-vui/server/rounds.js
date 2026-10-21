@@ -1,5 +1,6 @@
 // Tạo các vòng chơi cho một màn từ ngân hàng câu hỏi / bộ sinh câu hỏi.
 import { makeRng, shuffle, GAME_KIND, GAME_ROUNDS } from '../shared/logic.js';
+import { traceQuiz } from './questions.js';
 import { topicById } from './content/index.js';
 import { fits, mcToInput, T, NUMERIC } from './fits.js';
 
@@ -31,7 +32,7 @@ function multiFromTf(rnd, tfs, idx) {
   return { id: `r${idx}`, kind: 'multi', prompt: { vi: 'Chọn TẤT CẢ các câu ĐÚNG', en: 'Pick ALL the TRUE statements' }, title: null, options: picked.map((x) => T(x.prompt)), answer: picked.map((x, i) => (x.answer ? i : -1)).filter((i) => i >= 0) };
 }
 
-function toRound(rnd, item, idx, game) {
+function toRound(rnd, item, idx, game, grade = 3) {
   const base = { id: `r${idx}`, kind: item.kind, prompt: item.prompt, title: item.title ?? null };
   switch (item.kind) {
     case 'mc': {
@@ -64,7 +65,11 @@ function toRound(rnd, item, idx, game) {
     case 'classify':
       return { ...base, items: shuffle(rnd, item.items) };
     case 'trace':
-      return { ...base, shape: item.shape };
+    {
+      // Bé tập vẽ có câu đố: đề hiện câu hỏi, câu hướng dẫn tô (lộ đáp án) chỉ hiện sau khi bé chọn
+      const q = traceQuiz(item.shape, grade, Math.floor(rnd() * 1e9));
+      return q ? { ...base, prompt: q.prompt, shape: item.shape, quiz: { options: q.options, answer: q.answer, after: item.prompt } } : { ...base, shape: item.shape, quiz: null };
+    }
     default:
       return base;
   }
@@ -89,7 +94,7 @@ export function buildRounds(lesson, seed) {
     const groups = new Map();
     for (const it of topic.items.filter((x) => fits('reading', x))) { const k = JSON.stringify(it.passage); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(it); }
     for (const g of shuffle(rnd, [...groups.values()])) { if (items.length >= want) break; items.push(...g.slice(0, want - items.length)); }
-    if (items.length) return { game, rounds: items.map((it, i) => toRound(rnd, it, i, game)) };
+    if (items.length) return { game, rounds: items.map((it, i) => toRound(rnd, it, i, game, lesson.grade)) };
     game = 'quiz';
   }
 
@@ -114,7 +119,7 @@ export function buildRounds(lesson, seed) {
     // Game một-vòng (lật thẻ, hứng đồ) hoặc 2 vòng (nối cặp): lặp lại nếu thiếu.
     while (items.length < Math.min(want, 2) && pool.length) items.push(pool[items.length % pool.length]);
   }
-  return { game, rounds: items.map((it, i) => toRound(rnd, it, i, game)) };
+  return { game, rounds: items.map((it, i) => toRound(rnd, it, i, game, lesson.grade)) };
 }
 
 /** Game "Chọn nhiều đáp án": xen kẽ vòng từ câu hứng đồ và vòng "chọn các câu đúng". */

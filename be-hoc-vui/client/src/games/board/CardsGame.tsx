@@ -7,6 +7,7 @@ import type { Look } from '../../lib/types';
 import { Btn } from '../../ui/kit';
 import { sfx } from '../../lib/sfx';
 import { Avatar, BOT_DELAY, botLook, type Level, type Tr } from './common';
+import type { Ask } from './LearnQuiz';
 
 const COLOR_HEX: Record<CardColor, string> = { red: '#E0574F', yellow: '#F2C14B', green: '#5FAE6E', blue: '#4F8FD6' };
 const COLOR_NAME: Record<CardColor, [string, string]> = { red: ['Đỏ', 'Red'], yellow: ['Vàng', 'Yellow'], green: ['Xanh lá', 'Green'], blue: ['Xanh dương', 'Blue'] };
@@ -19,13 +20,15 @@ export function CardView({ card, back, small, lift, dim, onClick, label }: { car
   return onClick ? <button type="button" className={cls} onClick={onClick} aria-label={label}>{inner}</button> : <div className={cls} aria-hidden={!label}>{inner}</div>;
 }
 
-export function CardsGame({ players, level, tr, me, onEnd }: { players: number; level: Level; tr: Tr; me: { name: string; look: Look }; onEnd: (won: boolean) => void }) {
+export function CardsGame({ players, level, tr, me, onEnd, ask = null }: { players: number; level: Level; tr: Tr; me: { name: string; look: Look }; onEnd: (won: boolean) => void; ask?: Ask }) {
   const rnd = useRef(makeRng((Date.now() & 0xffffff) + 1)).current;
   const [s, setS] = useState<CardsState>(() => C.newGame(players, rnd));
   const [msg, setMsg] = useState(tr('Bé đi trước! Ra lá cùng màu hoặc cùng số với lá trên bàn.', 'You go first! Play a card matching the colour or number.'));
   const [called, setCalled] = useState(false);
   const [pickColor, setPickColor] = useState<number | null>(null);
   const ended = useRef(false);
+  const [busy, setBusy] = useState(false);
+  const botOk = level === 'easy' ? 0.45 : 0.65; // xác suất bot trả lời đúng
   const names = useMemo(() => [me.name, ...BOTS].slice(0, players), [me.name, players]);
   const looks = useMemo(() => [me.look, botLook(0), botLook(3), botLook(1)].slice(0, players), [me.look, players]);
   const name = (p: number) => names[p];
@@ -47,19 +50,38 @@ export function CardsGame({ players, level, tr, me, onEnd }: { players: number; 
     if (lines.length) setMsg(lines.join(' · '));
     if (r.events.some((e) => e.t === 'draw' || e.t === 'forgot')) sfx.wrong(); else if (r.events.some((e) => e.t === 'play')) sfx.flip(); else sfx.tap();
     setS(r.s);
+    void shield(r);
+  };
+  /** Học kết hợp: ai bị +2/+4 thì trả lời câu hỏi, đúng thì chặn (trả lại số lá vừa bốc). */
+  const shield = async (r: { s: CardsState; events: CardsEvent[] }) => {
+    const d = r.events.find((e) => e.t === 'draw') as { t: 'draw'; p: number; k: number } | undefined;
+    const by = r.events.find((e) => e.t === 'play') as { p: number } | undefined;
+    if (!ask || !d || r.s.winner !== null) return;
+    if (d.p === 0) {
+      setBusy(true);
+      const ok = await ask(tr(`${by ? name(by.p) : ''} bắt bé bốc ${d.k} lá! Trả lời đúng để chặn`, `${by ? name(by.p) : ''} makes you draw ${d.k}! Answer right to block it`));
+      setBusy(false);
+      if (ok) { setS((cur) => C.returnCards(cur, 0, d.k)); setMsg(tr(`🛡️ Bé trả lời đúng — chặn được ${d.k} lá!`, `🛡️ Correct — you blocked ${d.k} cards!`)); sfx.star(); }
+      else setMsg(tr(`Bé phải giữ ${d.k} lá rồi. Cố lên!`, `You keep the ${d.k} cards. Keep going!`));
+    } else if (rnd() < botOk) {
+      setS((cur) => C.returnCards(cur, d.p, d.k));
+      setMsg(tr(`🛡️ ${name(d.p)} trả lời đúng câu hỏi — chặn được ${d.k} lá!`, `🛡️ ${name(d.p)} answered right and blocked ${d.k} cards!`));
+    } else setMsg(tr(`${name(d.p)} trả lời sai câu hỏi — phải bốc ${d.k} lá!`, `${name(d.p)} got the question wrong — draws ${d.k}!`));
   };
 
   // lượt của bot
   useEffect(() => {
-    if (s.winner !== null || s.turn === 0) return;
+    if (s.winner !== null || s.turn === 0 || busy) return;
     const t = setTimeout(() => {
       const m = C.botMove(s, s.turn, level, rnd);
-      if (m.type === 'play') apply(C.play(s, s.turn, m.idx, m.color, m.called, rnd));
+      // bot đánh lá đổi màu cũng phải trả lời câu hỏi: sai thì màu ngẫu nhiên
+      const wildMiss = m.type === 'play' && ask && s.hands[s.turn][m.idx].c === null && rnd() >= botOk;
+      if (m.type === 'play') apply(C.play(s, s.turn, m.idx, wildMiss ? C.COLORS[Math.floor(rnd() * 4)] : m.color, m.called, rnd));
       else if (m.type === 'draw') { setMsg(tr(`${name(s.turn)} bốc 1 lá`, `${name(s.turn)} draws a card`)); apply(C.draw(s, s.turn, rnd)); }
       else apply(C.pass(s, s.turn));
     }, BOT_DELAY);
     return () => clearTimeout(t);
-  }, [s]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s, busy]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (s.winner === null || ended.current) return;
@@ -73,11 +95,19 @@ export function CardsGame({ players, level, tr, me, onEnd }: { players: number; 
 
   const mine = s.hands[0];
   const ok = new Set(C.playable(s, 0));
-  const myTurn = s.turn === 0 && s.winner === null;
+  const myTurn = s.turn === 0 && s.winner === null && !busy;
   const doPlay = (idx: number, color: CardColor | null) => { setPickColor(null); apply(C.play(s, 0, idx, color, called, rnd)); };
   const tapCard = (idx: number) => {
     if (!myTurn || !ok.has(idx)) { sfx.wrong(); setMsg(myTurn ? tr('Lá này chưa ra được — cần cùng màu hoặc cùng số.', 'You can’t play that — match the colour or number.') : tr('Chưa tới lượt bé.', 'Not your turn yet.')); return; }
-    if (mine[idx].c === null) setPickColor(idx); else doPlay(idx, null);
+    if (mine[idx].c === null) {
+      if (!ask) { setPickColor(idx); return; }
+      setBusy(true);
+      void ask(tr('Lá đổi màu! Trả lời đúng để tự chọn màu', 'Wild card! Answer right to choose the colour')).then((good) => {
+        setBusy(false);
+        if (good) setPickColor(idx);
+        else { const c = C.COLORS[Math.floor(rnd() * 4)]; doPlay(idx, c); setMsg(tr(`Chưa đúng — màu được chọn ngẫu nhiên: ${COLOR_NAME[c][0]}`, `Not quite — random colour: ${COLOR_NAME[c][1]}`)); }
+      });
+    } else doPlay(idx, null);
   };
   const t = C.top(s);
 
