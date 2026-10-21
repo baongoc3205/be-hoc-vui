@@ -47,7 +47,7 @@ export function Arcade() {
             {BOARD_GAMES.map((g, k) => (
               <button key={g.id} type="button" className="arcade-card board-card" style={{ animationDelay: `${k * 0.05}s` }} onClick={() => { sfx.pop(); go(`board/${g.id}`); }}>
                 <span className="board-ico" aria-hidden>{g.icon}</span>
-                <span className="ac-text"><b>{T.lang === 'en' ? g.name[1] : g.name[0]}</b><small>{T.t('boardTag')} · {T.lang === 'en' ? g.desc[1] : g.desc[0]}</small></span>
+                <span className="ac-text"><b>{T.lang === 'en' ? g.name[1] : g.name[0]}</b><small>{T.lang === 'en' ? g.desc[1] : g.desc[0]}</small></span>
               </button>
             ))}
             {menu.map((m, k) => (
