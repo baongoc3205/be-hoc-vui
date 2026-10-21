@@ -4,8 +4,8 @@ import { HttpError } from './http.js';
 import { buildRounds } from './rounds.js';
 import './arcade.js'; // đăng ký các bài Khu vui chơi vào lessonById
 import { computeRewards, currentEnergy, gradeRound, levelInfo, makeRng, shuffle, ageThemeForGrade, MAX_ENERGY } from '../shared/logic.js';
-import { BADGES, CHECKIN_REWARDS, COLLECTIONS, COMBOS, DEFAULT_LOOK, FREE_ITEMS, GAME_INFO, LESSONS, QUEST_POOL, SHOP, SUBJECTS, TOPICS, comboById, lessonById, lessonsFor, shopById, topicById } from './content/index.js';
-import { GIFT_COINS, activeEvents, comboPrice, giftKey, itemPrice, nextEvent } from '../shared/shop.js';
+import { BADGES, BOY_LOOK, CHECKIN_REWARDS, COLLECTIONS, COMBOS, DEFAULT_LOOK, FREE_ITEMS, GAME_INFO, LESSONS, QUEST_POOL, SHOP, SUBJECTS, TOPICS, comboById, lessonById, lessonsFor, shopById, topicById } from './content/index.js';
+import { GIFT_COINS, activeEvents, comboPrice, forSale, giftKey, itemPrice, nextEvent } from '../shared/shop.js';
 
 const TZ = process.env.TZ_GAME || 'Asia/Ho_Chi_Minh';
 const dayFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -18,7 +18,7 @@ const hashStr = (s) => { let h = 2166136261; for (const c of s) h = Math.imul(h 
 // DEMO_UNLOCK=1: mở khoá mọi màn (dùng để trình diễn / giáo viên xem trước nội dung)
 const DEMO_UNLOCK = process.env.DEMO_UNLOCK === '1';
 
-export const DEFAULT_SETTINGS = { dailyLimitMin: 60, energy: true, leaderboard: true, social: true, publicBoard: true };
+export const DEFAULT_SETTINGS = { dailyLimitMin: 60, energy: true, leaderboard: true, social: true, publicBoard: true, gifts: true };
 
 // ---------------- Hồ sơ bé ----------------
 export async function getChild(db, parentId, childId) {
@@ -41,17 +41,47 @@ export async function createChild(db, parentId, { nickname, grade, look }) {
   const count = (await db.prepare('SELECT COUNT(*) n FROM children WHERE parent_id = ?').get(parentId)).n;
   if (count >= 4) throw new HttpError(400, 'MAX_CHILDREN');
   const g = Math.min(9, Math.max(1, Number(grade) || 1));
-  const safeLook = sanitizeLook(look, FREE_ITEMS);
+  const base = look?.gender === 'boy' ? BOY_LOOK : DEFAULT_LOOK;
+  const safeLook = sanitizeLook({ ...base, ...(look ?? {}) }, FREE_ITEMS);
   const r = (await db.prepare('INSERT INTO children (parent_id, nickname, grade, look, settings, energy_at, owned, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
     .run(parentId, cleanNickname(nickname), g, JSON.stringify(safeLook), JSON.stringify(DEFAULT_SETTINGS), Date.now(), JSON.stringify(FREE_ITEMS), Date.now()));
   return (await getChild(db, parentId, r.lastInsertRowid));
 }
-/** Chỉ cho phép mặc đồ đã sở hữu. */
-function sanitizeLook(look, owned) {
-  const out = { ...DEFAULT_LOOK };
-  if (look && typeof look === 'object') {
-    for (const [slot, value] of Object.entries(look)) {
+/** Bậc tiến hoá thú cưng (khớp client/src/ui/Chibi.tsx → petStage). */
+export const petStage = (xp = 0) => (xp >= 120 ? 2 : xp >= 30 ? 1 : 0);
+/** Cho thú cưng ăn: mỗi ngày một lần, +2 điểm thân thiết. Không bao giờ bị trừ hay "đói" khi bé nghỉ. */
+export async function feedPet(db, child) {
+  const lk = { ...DEFAULT_LOOK, ...json(child.look, {}) };
+  if (!lk.pet || lk.pet === 'none') throw new HttpError(409, 'NO_PET');
+  const today = dayKey();
+  if (lk.petFed === today) throw new HttpError(409, 'PET_FED');
+  const before = Number(lk.petXp) || 0;
+  lk.petXp = before + 2; lk.petFed = today;
+  const r = await db.prepare('UPDATE children SET look = ? WHERE id = ? AND look = ?').run(JSON.stringify(lk), child.id, child.look);
+  if (!r.changes) throw new HttpError(409, 'PET_FED');
+  const fresh = await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id);
+  return { state: await stateOf(db, fresh), grew: petStage(lk.petXp) > petStage(before) };
+}
+/** Tên thú cưng: như biệt danh (lọc từ xấu), chỉ chữ/số/khoảng trắng, không chứa dãy số dài (số điện thoại). */
+export function cleanPetName(s) {
+  if (s == null || String(s).trim() === '') return null;
+  const n = cleanNickname(s);
+  if (!/^[\p{L}\p{N} ]+$/u.test(n) || /\d{4,}/.test(n)) throw new HttpError(400, 'NICKNAME_NOT_ALLOWED');
+  return n;
+}
+/**
+ * Chỉ cho phép mặc đồ đã sở hữu. `stored` = dáng đang lưu: các trường máy chủ tự quản (điểm thân thiết của thú cưng,
+ * ngày cho ăn) luôn lấy từ đây, không nhận từ trình duyệt.
+ */
+function sanitizeLook(look, owned, stored = DEFAULT_LOOK) {
+  const out = { ...DEFAULT_LOOK, gender: stored.gender ?? 'girl', petName: stored.petName ?? null, petXp: Number(stored.petXp) || 0, petFed: stored.petFed ?? null };
+  // dáng đang lưu trước (món không hợp lệ thì giữ món cũ), rồi tới thay đổi mới
+  for (const src of [stored === DEFAULT_LOOK ? null : stored, look]) if (src && typeof src === 'object') {
+    for (const [slot, value] of Object.entries(src)) {
       if (slot === 'skin' && /^#[0-9a-fA-F]{6}$/.test(String(value))) { out.skin = value; continue; }
+      if (slot === 'gender') { if (value === 'boy' || value === 'girl') out.gender = value; continue; }
+      if (slot === 'petName') { if (src === look) out.petName = cleanPetName(value); continue; }
+      if (slot === 'petXp' || slot === 'petFed') continue;
       const item = SHOP.find((s) => s.slot === slot && s.value === value);
       if (item && (item.price === 0 || owned.includes(item.id))) out[slot] = value;
     }
@@ -97,7 +127,7 @@ export async function doCheckin(db, child) {
   const owned = json(child.owned, FREE_ITEMS);
   let item = null, coins = rw.coins;
   if (rw.gift) {
-    const pool = SHOP.filter((i) => i.price > 0 && i.price <= 200 && !owned.includes(i.id));
+    const pool = SHOP.filter((i) => i.price > 0 && i.price <= 200 && !i.limited && !owned.includes(i.id));
     if (pool.length) item = pool[Math.floor(Math.random() * pool.length)];
     else coins += 100;
   }
@@ -299,6 +329,7 @@ export async function finishSession(db, child, sessionId, body) {
   const durationSec = Math.max(1, Math.min(elapsed + 5, Number(body?.durationSec) || elapsed, 60 * 30));
   const before = levelInfo(child.xp).level;
   const day = dayKey(now);
+  let petBefore = null, petAfter = null;
 
   await db.tx(async (t) => {
     (await t.prepare('UPDATE play_sessions SET finished_at = ?, correct = ?, total = ?, stars = ?, coins = ?, xp = ?, duration_sec = ? WHERE id = ?')
@@ -313,6 +344,12 @@ export async function finishSession(db, child, sessionId, body) {
     (await t.prepare('UPDATE children SET coins = coins + ?, xp = xp + ?, streak = ?, streak_date = ? WHERE id = ?').run(rw.coins, rw.xp, streak, sdate, child.id));
     (await bump(t, child.id, day, { seconds: durationSec, correct: rw.correct, answered: rw.total, lessons: rw.stars >= 1 ? 1 : 0 }));
     (await advanceQuests(t, child, day, { correct: rw.correct, passed: rw.stars >= 1, stars: rw.stars, subject: lesson.subject }));
+    // thú cưng đang dẫn theo lớn lên theo số sao bé học được
+    if (rw.stars > 0) {
+      const row = await t.prepare('SELECT look FROM children WHERE id = ?').get(child.id);
+      const lk = json(row.look, {});
+      if (lk.pet && lk.pet !== 'none') { petBefore = Number(lk.petXp) || 0; lk.petXp = petBefore + rw.stars; await t.prepare('UPDATE children SET look = ? WHERE id = ?').run(JSON.stringify(lk), child.id); petAfter = lk.petXp; }
+    }
   });
 
   const newBadges = (await awardBadges(db, child.id));
@@ -326,6 +363,7 @@ export async function finishSession(db, child, sessionId, body) {
   }
   return {
     ...rw, prevStars, maxCombo, durationSec, levelUp: after > before ? after : null, newBadges,
+    pet: petAfter != null ? { before: petBefore, after: petAfter, grew: petStage(petAfter) > petStage(petBefore) } : null,
     review: rounds.map((r, i) => ({ id: r.id, q: qualities[i] })),
     next: next ? { id: next.id, kind: next.kind } : null,
     state: (await stateOf(db, fresh)),
@@ -366,7 +404,9 @@ export async function buyItem(db, child, itemId) {
   if (!item) throw new HttpError(404, 'ITEM_NOT_FOUND');
   const owned = json(child.owned, FREE_ITEMS);
   if (owned.includes(itemId) || item.price === 0) throw new HttpError(409, 'ALREADY_OWNED');
-  const price = itemPrice(item, activeEvents(dayKey()));
+  const events = activeEvents(dayKey());
+  if (!forSale(item, events)) throw new HttpError(409, 'NOT_IN_SEASON');
+  const price = itemPrice(item, events);
   if (child.coins < price) throw new HttpError(409, 'NOT_ENOUGH_COINS');
   owned.push(itemId);
   (await db.prepare('UPDATE children SET coins = coins - ?, owned = ? WHERE id = ? AND coins >= ?').run(price, JSON.stringify(owned), child.id, price));
@@ -379,7 +419,10 @@ export async function buyCombo(db, child, comboId) {
   const combo = comboById.get(comboId);
   if (!combo) throw new HttpError(404, 'ITEM_NOT_FOUND');
   const owned = json(child.owned, FREE_ITEMS);
-  const { price, missing } = comboPrice(combo, combo.items.map((i) => shopById.get(i)), owned, activeEvents(dayKey()));
+  const events = activeEvents(dayKey());
+  // combo giới hạn (hoặc combo còn thiếu món giới hạn) chỉ mua được đúng đợt lễ
+  if (!forSale(combo, events) || combo.items.some((i) => !owned.includes(i) && !forSale(shopById.get(i), events))) throw new HttpError(409, 'NOT_IN_SEASON');
+  const { price, missing } = comboPrice(combo, combo.items.map((i) => shopById.get(i)), owned, events);
   if (!missing.length) throw new HttpError(409, 'ALREADY_OWNED');
   if (child.coins < price) throw new HttpError(409, 'NOT_ENOUGH_COINS');
   owned.push(...missing);
@@ -408,7 +451,8 @@ export async function claimEventGift(db, child, eventId) {
   return { item: giveItem ? { id: gift.id, slot: gift.slot, value: gift.value, name: gift.name } : null, coins, newBadges, state: (await stateOf(db, fresh)) };
 }
 export async function setLook(db, child, look) {
-  const safe = sanitizeLook({ ...json(child.look, DEFAULT_LOOK), ...look }, json(child.owned, FREE_ITEMS));
+  const cur = { ...DEFAULT_LOOK, ...json(child.look, {}) };
+  const safe = sanitizeLook({ ...cur, ...look }, json(child.owned, FREE_ITEMS), cur);
   (await db.prepare('UPDATE children SET look = ? WHERE id = ?').run(JSON.stringify(safe), child.id));
   return (await stateOf(db, (await db.prepare('SELECT * FROM children WHERE id = ?').get(child.id))));
 }

@@ -80,3 +80,26 @@ export function comboPrice(combo, items, owned = [], events = []) {
   const off = COMBO_DISCOUNT + (onSale(combo.tag, events) ? EVENT_DISCOUNT : 0);
   return { price: Math.min(full, round10(raw * (1 - off))), full, missing: missing.map((i) => i.id) };
 }
+
+// ---------------- Hàng giới hạn theo mùa lễ ----------------
+// Món/combo có `limited: true` luôn hiện trong cửa hàng nhưng chỉ mua được khi đang có sự kiện cùng `tag`.
+// Hết đợt thì khoá lại (ai đã mua vẫn giữ), năm sau đúng dịp lại mở bán.
+/** Món/combo này đang mua được không. */
+export const forSale = (entry, events) => !entry || !entry.limited || onSale(entry.tag, events);
+/**
+ * Đợt bán của một chủ đề tính từ ngày `day`:
+ * { open: true, start, end } nếu đang mở bán, hoặc { open: false, start, end } là đợt gần nhất sắp tới; null nếu chủ đề không có dịp lễ.
+ */
+export function saleWindow(tag, day) {
+  const now = activeEvents(day).filter((e) => e.tag === tag).sort((a, b) => (a.end < b.end ? 1 : -1))[0];
+  if (now) return { open: true, start: now.start, end: now.end, event: now.id };
+  const y = Number(day.slice(0, 4));
+  let best = null;
+  for (const e of EVENTS) if (e.tag === tag) for (const yy of [y, y + 1]) {
+    const w = e.when(yy);
+    if (w && w[0] > day && (!best || w[0] < best.start)) best = { open: false, start: w[0], end: w[1], event: e.id };
+  }
+  return best;
+}
+/** Số ngày từ `day` tới `to` (cả hai dạng YYYY-MM-DD). */
+export const daysBetween = (day, to) => Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${day}T12:00:00Z`)) / 864e5);

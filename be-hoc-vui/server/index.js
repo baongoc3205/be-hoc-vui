@@ -217,6 +217,7 @@ export function createApp(db) {
         leaderboard: s.leaderboard !== undefined ? !!s.leaderboard : cur.leaderboard,
         social: s.social !== undefined ? !!s.social : cur.social,
         publicBoard: s.publicBoard !== undefined ? !!s.publicBoard : cur.publicBoard,
+        gifts: s.gifts !== undefined ? !!s.gifts : cur.gifts,
       };
       (await db.prepare('UPDATE children SET settings = ? WHERE id = ?').run(JSON.stringify(next), c.id));
     }
@@ -269,10 +270,14 @@ export function createApp(db) {
   r.post('/api/children/:id/combo/:comboId', async (req, res, { id, comboId }) => [200, (await G.buyCombo(db, await childOf(req, id), comboId))]);
   r.post('/api/children/:id/events/:eventId/gift', async (req, res, { id, eventId }) => [200, (await G.claimEventGift(db, await childOf(req, id), eventId))]);
   r.post('/api/children/:id/look', async (req, res, { id }) => [200, (await G.setLook(db, await childOf(req, id), (await readJson(req)).look ?? {}))]);
+  r.post('/api/children/:id/pet/feed', async (req, res, { id }) => [200, (await G.feedPet(db, await childOf(req, id)))]);
   r.get('/api/children/:id/report', async (req, res, { id }) => [200, (await G.reportFor(db, await childOf(req, id)))]);
   // ---------- Bạn bè, tin nhắn, bảng xếp hạng, phòng chơi chung ----------
   const notLimited = async (c) => { const st = await G.stateOf(db, c); if (st.today.limit > 0 && st.today.minutes >= st.today.limit) throw new HttpError(423, 'DAILY_LIMIT'); };
   r.get('/api/children/:id/social', async (req, res, { id }) => [200, await S.summary(db, await childOf(req, id))]);
+  r.get('/api/children/:id/gifts', async (req, res, { id }) => [200, await S.giftInbox(db, await childOf(req, id))]);
+  r.post('/api/children/:id/gifts', async (req, res, { id }) => [200, await S.sendGift(db, await childOf(req, id), await readJson(req))]);
+  r.post('/api/children/:id/gifts/:mid/open', async (req, res, { id, mid }) => [200, await S.openGift(db, await childOf(req, id), mid)]);
   r.get('/api/children/:id/friends', async (req, res, { id }) => [200, await S.friendsOf(db, await childOf(req, id))]);
   r.post('/api/children/:id/friends', async (req, res, { id }) => { const b = await readJson(req); return [200, await S.requestFriend(db, await childOf(req, id), { code: b.code ? String(b.code) : null, childId: b.childId ? Number(b.childId) : null })]; });
   r.post('/api/children/:id/friends/:fid/accept', async (req, res, { id, fid }) => [200, await S.respondFriend(db, await childOf(req, id), fid, true)]);

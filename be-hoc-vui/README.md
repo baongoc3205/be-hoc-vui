@@ -181,7 +181,7 @@ Ba trò chơi tự do, chơi với 1–9 bạn bot:
   - Giới hạn 15 tin mỗi phút, 30 lời mời kết bạn mỗi ngày.
   - Có nút chặn (hai bên không thấy và không nhắn được cho nhau) và báo cáo.
 - **Phụ huynh** (trong Góc phụ huynh, cho từng bé): bật/tắt kết bạn & nhắn tin & chơi cùng bạn, bật/tắt hiện trên bảng xếp hạng toàn app, xem tin nhắn gần đây và các báo cáo bé đã gửi. File tải dữ liệu gia đình có kèm tin nhắn và danh sách bạn.
-- Kiểm thử học kết hợp: `npm run test:ui:learn`.
+- Kiểm thử học kết hợp: `npm run test:ui:learn`. Tặng quà, thú cưng, hàng giới hạn: `npm run test:ui:gifts`. Vui học kiểu mới: `npm run test:ui:fun`.
 - Kiểm thử: `test/social.test.js` (máy chủ) và `npm run test:ui:social` (hai trình duyệt kết bạn, nhắn tin, mời và chơi cùng nhau).
 
 ### Nhạc nền và cảnh nền
@@ -219,19 +219,41 @@ Cửa hàng có **4 cách mua sắm**:
 | 💐 Ngày Nhà giáo | 13–21/11 | Bó hoa tặng cô |
 | 🎄 Giáng sinh | 10–31/12 | Kẹo gậy |
 
+**Hàng giới hạn ngày lễ** (nhãn tím *Giới hạn*): 24 món và 25 combo riêng cho từng dịp, ví dụ Áo gấm Tết, Bánh chưng, Kính trái tim, Mặt nạ thỏ ngọc, Trống lân, Đồ bộ xương, Xô kẹo bí ngô, Bánh quy gừng, Quả cầu tuyết và thú cưng Mèo đen phù thuỷ, Tuần lộc con, Kỳ lân Tết.
+- Luôn hiện trong cửa hàng, bé **mặc thử** được bất cứ lúc nào, nhưng chỉ **mua được đúng đợt lễ** của món. Ngoài đợt, thẻ có ổ khoá kèm "Mở bán sau 23 ngày" hoặc "Mở bán 10/12", nút mua đổi thành *Chưa mở bán*.
+- Trong đợt, thẻ đếm ngược "Còn 5 ngày" hoặc "Ngày cuối!". Hết đợt thì khoá lại, ai đã mua vẫn giữ và mặc bình thường. **Năm sau đúng dịp lại mở bán.**
+- Thẻ **Sắp mở bán** gom hàng giới hạn theo từng đợt, sắp theo ngày gần nhất.
+- Máy chủ tự chặn việc mua (và tặng) ngoài đợt, quà điểm danh không bao giờ ra hàng giới hạn. Món nào có `limited: true` thì chỉ bán khi đang có sự kiện cùng `tag` (`shared/shop.js → forSale, saleWindow`).
+
+### Bé trai, bé gái và thú cưng
+- Khi tạo hồ sơ bé chọn **Bé gái / Bé trai**, đổi được trong *Nhân vật → Trang phục*. Bé trai có lông mày rõ, má hồng nhạt và dáng mặc định tóc ngắn, áo sơ mi quần soóc.
+- **Cửa hàng dùng chung**: mọi bé mặc được mọi món. Có thêm 8 kiểu tóc ngắn, 10 bộ đồ (polo, bomber, bóng rổ, gi-lê thắt nơ, áo dài nam, hướng đạo sinh, nhà thám hiểm, người máy, cá mập…), mũ lưỡi trai ngược, mũ len, tai nghe có mic, khăn xếp, giày cổ cao, giày đá bóng, ván trượt, con diều… và chủ đề mới *Năng động*.
+- Các bạn bot trong Bài Màu Sắc, Cá ngựa, Ma sói có cả bạn trai lẫn bạn gái.
+- **Thú cưng** đứng cạnh chân nhân vật ở mọi nơi (sảnh, màn chơi, hồ sơ, bảng xếp hạng) và nhảy mừng khi bé vui. Có 15 loài: Gà con (miễn phí, chọn được khi tạo hồ sơ), mèo, cún, thỏ, hamster, rùa, chim cánh cụt, cáo, gấu trúc, rồng con và kỳ lân con (hiếm), cùng 3 loài giới hạn theo mùa lễ.
+- Thú cưng **lớn lên** theo điểm thân thiết: mỗi ngôi sao bé học được là 1 điểm, mỗi ngày bấm *Cho ăn* một lần được thêm 2 điểm. Từ 30 điểm thì lớn, từ 120 điểm thì *lấp lánh* (có vương miện và lấp lánh). Bé đặt được tên cho thú cưng (lọc từ xấu, chặn số điện thoại).
+- Thú cưng **không bao giờ ốm, đói hay buồn** khi bé nghỉ học, để bé không bị áp lực. Điểm thân thiết do máy chủ tự tính, trình duyệt không sửa được.
+
+### Tặng quà cho bạn
+- Chọn một món trong cửa hàng → **🎁 Tặng bạn**, hoặc bấm 🎁 cạnh tên bạn ở màn Bạn bè rồi chọn món. Chọn bạn, chọn lời chúc có sẵn hoặc tự gõ (qua bộ lọc) và trả xu theo giá cửa hàng.
+- Món vào tủ đồ của bạn ngay. Bạn thấy thanh báo *"Bé có 1 món quà chưa mở!"* và **Hộp quà** ở màn Bạn bè, mở quà có hiệu ứng rồi bấm *Mặc ngay*.
+- **Luật an toàn:** chỉ tặng cho bạn bè đã kết bạn hoặc anh chị em cùng nhà, tối đa 3 quà mỗi ngày, không tặng món bạn đã có, đồ giới hạn chỉ tặng đúng đợt, không có chuyển xu trực tiếp. Bị chặn thì không tặng được.
+- **Phụ huynh**: nút *Cho phép tặng và nhận quà* cho từng bé trong Góc phụ huynh; quà tặng và lời chúc hiện trong nhật ký tin nhắn.
+
 | Nhóm | Số món | Ví dụ |
 |---|:---:|---|
-| 💇 Kiểu tóc | 9 | Tóc ngắn, Buộc hai bên, Tóc dựng, Tóc dài, Búi tóc, Đuôi ngựa, Xoăn bồng, Tết hai bên, Tóc tém |
+| 💇 Kiểu tóc | 17 | Tóc ngắn, Buộc hai bên, Tóc dựng, Tóc dài, Búi tóc, Đuôi ngựa, Xoăn bồng, Tết hai bên, Tóc tém, Húi cua, Đầu đinh, Rẽ ngôi, Tóc vuốt, Mào gà… |
 | 🎨 Màu tóc | 17 | Nâu ca cao, Đen, Kem sữa, Mật ong, Hồng phấn, Bạc hà, Trắng tuyết, Tím nho, Xanh đại dương, Vàng kim… |
 | 🐾 Tai thú & sừng | 18 | Mèo, Thỏ, Gấu, Cáo, Gấu trúc, Hổ, Gấu túi, Ếch, Cú mèo, Sừng tuần lộc, Sừng kỳ lân, Sừng rồng, Tai tiên… |
-| 👗 Trang phục | 46 | Áo dài, Áo bà ba, Áo dài Tết hoa mai, Áo cờ đỏ sao vàng, Đồ múa lân, Bác sĩ, Lính cứu hoả, Phi công, Hoạ sĩ, Hiệp sĩ, Pháp sư, Nàng tiên có cánh, Tiên cá, Siêu anh hùng, Cướp biển, Ninja, Khủng long, Ong, Phù thuỷ, Bí ngô, Ma cà rồng, Ông già Noel, Chú lùn, Người tuyết… |
+| 👗 Trang phục | 59 | Áo dài, Áo bà ba, Áo dài Tết hoa mai, Áo cờ đỏ sao vàng, Đồ múa lân, Bác sĩ, Lính cứu hoả, Phi công, Hoạ sĩ, Hiệp sĩ, Pháp sư, Nàng tiên có cánh, Tiên cá, Siêu anh hùng, Cướp biển, Ninja, Khủng long, Ong, Phù thuỷ, Bí ngô, Ma cà rồng, Ông già Noel, Chú lùn, Người tuyết… |
 | 🌈 Màu áo | 21 | Xanh lá mạ, Đào, Đỏ may mắn, Vàng kim, Cam bí ngô, Tím đêm, Xanh thông, Xanh hoàng gia… |
-| 🎀 Phụ kiện | 35 | Nón lá, Khăn vấn Tết, Đầu lân, Mũ phù thuỷ, Mũ Noel, Mũ cử nhân, Mũ cứu hoả, Mũ phi công, Kính râm, Mặt nạ siêu nhân, Vòng hào quang… |
-| 👟 Giày dép | 14 | Guốc mộc, Giày ba lê, Giày trượt patin, Chân vịt, Bốt lông, Giày pha lê, Giày chú lùn, Giày giáp… |
-| 🌷 Đồ cầm tay | 30 | Đèn ông sao, Đèn cá chép, Bánh trung thu, Bao lì xì, Cành mai, Lá cờ, Đèn bí ngô, Chổi bay, Kẹo gậy, Hộp quà, Kiếm gỗ, Bóng đá… |
+| 🎀 Phụ kiện | 48 | Nón lá, Khăn vấn Tết, Đầu lân, Mũ phù thuỷ, Mũ Noel, Mũ cử nhân, Mũ cứu hoả, Mũ phi công, Kính râm, Mặt nạ siêu nhân, Vòng hào quang… |
+| 👟 Giày dép | 17 | Guốc mộc, Giày ba lê, Giày trượt patin, Chân vịt, Bốt lông, Giày pha lê, Giày chú lùn, Giày giáp… |
+| 🌷 Đồ cầm tay | 47 | Đèn ông sao, Đèn cá chép, Bánh trung thu, Bao lì xì, Cành mai, Lá cờ, Đèn bí ngô, Chổi bay, Kẹo gậy, Hộp quà, Kiếm gỗ, Bóng đá… |
 | 🏞️ Cảnh nền sảnh | 13 | Đồng hoa, Bờ biển, Đáy đại dương, Làng quê, Đêm sao, Lâu đài, Vũ trụ, Hoa anh đào, Tuyết, Phố hoa ngày Tết, Đêm rước đèn, Đêm bí ngô, Đêm Giáng sinh |
 
-Tổng cộng **203 món**, **56 combo**, **19 chủ đề**. Ngoài ra bé chọn được **5 màu da** khi tạo nhân vật.
+| 🐶 Thú cưng | 15 | Gà con, Mèo con, Cún con, Thỏ, Hamster, Rùa, Chim cánh cụt, Cáo, Gấu trúc, Rồng con, Kỳ lân con, Mèo đen, Tuần lộc, Kỳ lân Tết |
+
+Tổng cộng **272 món**, **95 combo**, **21 chủ đề**. Ngoài ra bé chọn được **5 màu da** khi tạo nhân vật.
 
 Muốn thêm món mới:
 1. Khai báo món trong `SHOP` ở `server/content/shop.js` (kèm `tag` = chủ đề). Combo khai báo trong `COMBOS` cùng file.
@@ -252,7 +274,22 @@ Bám theo Chương trình GDPT 2018 ở mức khái quát.
 | Tiếng Anh | 18 | Ngân hàng câu hỏi soạn sẵn, có bài đọc tự viết |
 | Khoa học | 18 | Ngân hàng câu hỏi soạn sẵn (song ngữ), có bài đọc khoa học |
 
-Tổng cộng: 99 chủ đề soạn sẵn (1289 câu) + 510 chặng luyện tập sinh theo mẫu, hơn 5.100 màn chơi và 609 rương báu, cộng các ván mini game trong Khu vui chơi.
+Tổng cộng: 99 chủ đề soạn sẵn (1289 câu) + 36 chủ đề *Vui học kiểu mới* + 510 chặng luyện tập sinh theo mẫu, tổng cộng hơn 6.000 màn chơi (kể cả 645 rương báu), cộng các ván mini game trong Khu vui chơi.
+
+### Vui học kiểu mới (chống nhàm chán)
+Mỗi môn mỗi lớp có thêm chủ đề **Vui học kiểu mới** (nằm sau các chủ đề cũ, trước chặng luyện tập) với các dạng câu hỏi tương tác mới. Đề sinh tự động, máy chủ chấm lại từng câu (`shared/logic.js → gradeRound`):
+
+| Trò | Môn | Cách chơi |
+|---|---|---|
+| 📏 **Tia số** | Toán 1–9 | Kéo hoặc chạm để đặt số lên tia số: 0–10, 0–100, 0–1000, số thập phân 0–1, số âm −10…10 tuỳ lớp |
+| ⚖️ **Cân thăng bằng** | Toán 1–9 | Chọn quả cân cho ô trống (□ + a = b, a × □ = b), cán cân nghiêng theo lựa chọn |
+| 🍕 **Bánh pizza phân số** | Toán 2–9 | Chạm từng miếng để tô đúng n/d chiếc bánh; lớp 5+ có phân số bằng nhau (tô 1/2 bánh chia 8) |
+| 🛒 **Đi chợ tính tiền** | Toán 1–9 | Chọn tờ tiền Việt Nam (1.000 → 100.000 đồng) để trả đúng tổng giá các món hàng |
+| 🔍 **Tìm lỗi sai** | Tiếng Việt, Tiếng Anh | Chạm chữ viết sai chính tả (l/n, ch/tr, s/x, dấu hỏi/ngã…) hoặc dùng sai ngữ pháp tiếng Anh; xem chữ đúng sau khi trả lời |
+| 🧩 **Xếp câu** | Tiếng Việt, Tiếng Anh | Chạm các mảnh chữ theo đúng thứ tự để thành câu |
+| 🎣 **Câu cá đáp án** | Mọi môn | Cá bơi mang các đáp án, chạm đúng chú cá để câu lên (bấm phím 1–4 cũng được) |
+
+Thêm câu: danh sách câu chính tả và câu tiếng Anh nằm ở `server/content/fun.js` (`VI_SPELL`, `EN_SPOT`, `EN_ORDER`).
 
 ### Chủ đề giao diện và nhạc nền
 

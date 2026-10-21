@@ -10,3 +10,7 @@ export function giftKey(ev: { id: string; start: string }): string;
 export function onSale(tag: string | undefined, events: { tag: string }[]): boolean;
 export function itemPrice(item: { price: number; tag?: string } | undefined, events?: { tag: string }[]): number;
 export function comboPrice(combo: { tag?: string }, items: { id: string; price: number; tag?: string }[], owned?: string[], events?: { tag: string }[]): { price: number; full: number; missing: string[] };
+export interface SaleWindow { open: boolean; start: string; end: string; event: string }
+export function forSale(entry: { limited?: boolean; tag?: string } | undefined, events: { tag: string }[]): boolean;
+export function saleWindow(tag: string, day: string): SaleWindow | null;
+export function daysBetween(day: string, to: string): number;

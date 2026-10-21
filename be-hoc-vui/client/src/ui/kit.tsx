@@ -172,7 +172,14 @@ export const Spinner = () => <div className="spinner" role="status"><i /><i /><i
 export function Toast() {
   const toast = useApp((s) => s.toast);
   if (!toast) return null;
-  return <div key={toast.id} className={`toast ${toast.tone}`} role="status">{toast.text}</div>;
+  const warn = toast.tone === 'warn';
+  return (
+    <div key={toast.id} className={`toast ${warn ? 'warn' : 'ok'}`} role="status" aria-live="polite">
+      <span className="toast-ico" aria-hidden>{warn ? '!' : '✓'}</span>
+      <span className="toast-text">{toast.text}</span>
+      <i className="toast-bar" aria-hidden />
+    </div>
+  );
 }
 
 export function SpeechBubble({ children, className = '' }: { children: ReactNode; className?: string }) {

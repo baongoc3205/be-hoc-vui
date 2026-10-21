@@ -9,7 +9,7 @@ import { Glyph } from '../ui/Icons';
 import { Consent, errText, RecoveryCodeDialog } from './Auth';
 import { sfx } from '../lib/sfx';
 
-interface ChatLog { messages: { id: number; from: string; to: string; mine: boolean; kind: string; text: string | null; at: number }[]; friends: { id: number; nickname: string }[]; reports: { target: string; reason: string; at: number }[] }
+interface ChatLog { messages: { id: number; from: string; to: string; mine: boolean; kind: string; text: string | null; item?: { vi: string; en: string } | null; at: number }[]; friends: { id: number; nickname: string }[]; reports: { target: string; reason: string; at: number }[] }
 
 let gateUntil = 0; // mở khoá cổng phụ huynh trong 10 phút
 
@@ -173,6 +173,7 @@ export function Parents() {
                 <div className="setting-row"><span>{T.t('boardOn')}</span><Toggle on={child.settings.leaderboard} onChange={(v) => patch({ settings: { leaderboard: v } })} label="leaderboard" /></div>
                 <div className="setting-row"><span>{T.t('publicBoardOn')}</span><Toggle on={child.settings.publicBoard !== false} onChange={(v) => patch({ settings: { publicBoard: v } })} label="publicBoard" /></div>
                 <div className="setting-row"><span>{T.t('socialOn')}</span><Toggle on={child.settings.social !== false} onChange={(v) => patch({ settings: { social: v } })} label="social" /></div>
+                <div className="setting-row"><span>{T.t('giftsOn')}</span><Toggle on={child.settings.gifts !== false} onChange={(v) => patch({ settings: { gifts: v } })} label="gifts" /></div>
                 <p className="muted" style={{ margin: 0, fontSize: 14 }}>{T.t('socialNote')}</p>
                 <div className="panel-actions" style={{ justifyContent: 'flex-start' }}><Btn tone="cream" onClick={() => setChatLog(child)}>💬 {T.t('viewChats')}</Btn></div>
                 <div className="panel-actions">
@@ -250,7 +251,7 @@ function ChatLogDialog({ child, onClose }: { child: Child; onClose: () => void }
           {d.reports.length > 0 && <div className="th-rule">🚩 {T.t('chatReports')}: {d.reports.map((r) => `${r.target} (${r.reason}, ${when(r.at)})`).join(' · ')}</div>}
           {!d.messages.length ? <p className="muted">{T.t('noData')}</p> : (
             <table className="recent-table"><tbody>{d.messages.map((m) => (
-              <tr key={m.id}><td><b>{m.from}</b> → {m.to}<br /><small className="muted">{when(m.at)}</small></td><td>{m.kind === 'invite' ? '🎲' : m.text}</td></tr>
+              <tr key={m.id}><td><b>{m.from}</b> → {m.to}<br /><small className="muted">{when(m.at)}</small></td><td>{m.kind === 'invite' ? '🎲' : m.kind === 'gift' ? `🎁 ${m.item ? T.tx(m.item) : ''}${m.text ? ` — ${m.text}` : ''}` : m.text}</td></tr>
             ))}</tbody></table>
           )}
         </div>

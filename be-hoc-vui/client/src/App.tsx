@@ -28,6 +28,7 @@ import { Arcade } from './screens/Arcade';
 import { Board, type BoardId } from './screens/Board';
 import { Theory } from './screens/Theory';
 import { Friends, Chat, InviteBanner } from './screens/Friends';
+import { GiftBanner } from './ui/Gifts';
 import { Room } from './screens/Room';
 
 
@@ -127,7 +128,7 @@ export function App() {
     case 'worlds': view = <Worlds grade={Number(rest[0]) || cs.child.grade} />; break;
     case 'map': view = <MapScreen subject={rest[0]} grade={Number(rest[1]) || cs.child.grade} />; break;
     case 'play': view = <Play key={rest[0]} lessonId={rest[0].split('?')[0]} />; break;
-    case 'character': view = <Character tab={rest[0]} />; break;
+    case 'character': view = <Character key={route} tab={rest[0]} />; break;
     case 'shop': view = <Shop />; break;
     case 'rewards': view = <Rewards tab={rest[0]} />; break;
     case 'ranking': view = <Ranking />; break;
@@ -146,7 +147,7 @@ export function App() {
       {view}
       {showDock && <Dock active={head} />}
       {settings && <SettingsDialog onClose={() => setSettings(false)} />}
-      {showDock && <InviteBanner />}
+      {showDock && <div className="notice-stack"><InviteBanner />{!['friends', 'shop'].includes(head) && <GiftBanner />}</div>}
       <Toast />
     </>
   );

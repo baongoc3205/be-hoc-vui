@@ -7,6 +7,7 @@ import type { FinishResult, Round, SessionStart } from '../lib/types';
 import { Bar, Btn, Dialog, Panel, Spinner, SpeechBubble } from '../ui/kit';
 import { Scene, type SceneName } from '../ui/Scene';
 import { Chibi, MASCOTS, type Mood } from '../ui/Chibi';
+import { BalanceScale, Fishing, Market, NumberLine, Pizza, SentenceBuild, SpotMistake, fmtNum, moneyText } from '../games/FunGames';
 import { BadgeMedal, CoinIcon, Glyph, HeartIcon, StarIcon } from '../ui/Icons';
 import { CatchFall, ClockGame, FillBlank, Match, Memory, MultiPick, Passage, Quiz, SortOrder, TrueFalse, TypeAnswer, WordBuilder } from '../games/StepGames';
 import { BalloonPop, MathRace } from '../games/FlowGames';
@@ -73,6 +74,12 @@ export function Play({ lessonId }: { lessonId: string }) {
       case 'clock': return `${r.h}:${String(r.m).padStart(2, '0')}`;
       case 'input': return `${String(r.answer)}${r.unit ? ` ${T.tx(r.unit)}` : ''}`;
       case 'multi': return (r.answer as number[]).map((i) => T.tx(r.options![i])).join(' · ');
+      case 'numberline': return fmtNum(r.target ?? 0, T.lang);
+      case 'balance': return fmtNum(Number(r.answer), T.lang);
+      case 'fraction': return `${r.need}/${r.parts}`;
+      case 'money': return moneyText(r.target ?? 0, T.lang);
+      case 'spot': return `${(r.spot ?? [])[Number(r.answer)] ?? ''} → ${r.fix ?? ''}`;
+      case 'sentence': return String(r.answer);
       default: return '';
     }
   };
@@ -154,6 +161,13 @@ export function Play({ lessonId }: { lessonId: string }) {
               if (round.kind === 'trace') return <DrawTrace {...p} />;
               if (round.kind === 'input') return <TypeAnswer {...p} />;
               if (round.kind === 'multi') return <MultiPick {...p} />;
+              if (round.kind === 'numberline') return <NumberLine {...p} />;
+              if (round.kind === 'balance') return <BalanceScale {...p} />;
+              if (round.kind === 'fraction') return <Pizza {...p} />;
+              if (round.kind === 'money') return <Market {...p} />;
+              if (round.kind === 'spot') return <SpotMistake {...p} />;
+              if (round.kind === 'sentence') return <SentenceBuild {...p} />;
+              if (sess.game === 'fishing') return <Fishing {...p} />;
               if (sess.game === 'fruit-slice') return <FruitSlice {...p} />;
               if (sess.game === 'candy-match') return <CandyMatch {...p} />;
               if (sess.game === 'slingshot') return <Slingshot {...p} />;
@@ -217,6 +231,7 @@ function ResultDialog({ r, subject, grade, lessonId, arcade }: { r: FinishResult
           <div className="reward" style={{ animationDelay: '1.35s' }}><span className="lv-text" style={{ fontSize: 22 }}>EXP</span>+{r.xp}</div>
         </div>
         {r.levelUp && <div className="title-out" style={{ fontSize: 36 }}>{T.t('levelUp', { n: r.levelUp })}</div>}
+        {r.pet && <div className={`pet-gain ${r.pet.grew ? 'grew' : ''}`}>{(() => { const nm = cs.child.look.petName || T.t('slot_pet'); return r.pet.grew ? `🎉 ${T.t('petGrew', { name: nm })}` : `🐾 ${T.t('petResult', { name: nm, n: r.pet.after - r.pet.before })}`; })()}</div>}
         {r.newBadges.map((b) => (
           <div key={b.id} className="badge-new"><BadgeMedal icon={b.icon} size={58} /><div><div className="muted" style={{ fontSize: 16 }}>{T.t('newBadge')}</div><div>{T.tx(b.name)}</div></div></div>
         ))}

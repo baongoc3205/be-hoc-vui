@@ -3,12 +3,16 @@
 // Hình vẽ của từng món nằm ở client/src/ui/Chibi.tsx và client/src/ui/Scene.tsx.
 const L = (vi, en) => ({ vi, en: en ?? vi });
 const I = (slot, value, price, vi, en, tag) => ({ id: `${slot}:${value}`, slot, value, price, name: L(vi, en), tag });
+/** Đồ giới hạn theo mùa lễ: luôn hiện trong cửa hàng nhưng chỉ mua được đúng đợt lễ của chủ đề `tag`. */
+const LIM = (slot, value, price, vi, en, tag) => ({ ...I(slot, value, price, vi, en, tag), limited: true });
 const C = (slot, key, hex, price, vi, en, tag) => ({ id: `${slot}:${key}`, slot, value: hex, price, name: L(vi, en), tag });
 
 // ---------------- Chủ đề / bộ sưu tập ----------------
 // holiday: chủ đề gắn với một dịp lễ trong năm
 export const COLLECTIONS = [
   { id: 'daily', icon: '🏡', name: L('Thường ngày', 'Everyday') },
+  { id: 'pet', icon: '🐶', name: L('Thú cưng', 'Pets') },
+  { id: 'cool', icon: '😎', name: L('Năng động', 'Cool & sporty') },
   { id: 'school', icon: '🎒', name: L('Đến trường', 'School'), holiday: true },
   { id: 'job', icon: '🧑‍🚒', name: L('Nghề nghiệp', 'Jobs') },
   { id: 'fairy', icon: '🪄', name: L('Cổ tích & phép thuật', 'Fairy tales & magic') },
@@ -40,6 +44,14 @@ export const SHOP = [
   I('hair', 'curly', 100, 'Tóc xoăn bồng', 'Curly cloud', 'daily'),
   I('hair', 'braids', 110, 'Tóc tết hai bên', 'Braids', 'daily'),
   I('hair', 'pixie', 60, 'Tóc tém', 'Pixie cut', 'daily'),
+  I('hair', 'crew', 0, 'Tóc ngắn gọn gàng', 'Short crew cut', 'daily'),
+  I('hair', 'buzz', 40, 'Đầu đinh', 'Buzz cut', 'cool'),
+  I('hair', 'sidepart', 60, 'Tóc rẽ ngôi', 'Side part', 'daily'),
+  I('hair', 'messy', 70, 'Tóc rối tinh nghịch', 'Messy hair', 'cool'),
+  I('hair', 'fringe', 80, 'Tóc mái lệch', 'Side fringe', 'cool'),
+  I('hair', 'quiff', 90, 'Tóc vuốt ngược', 'Quiff', 'cool'),
+  I('hair', 'curlyshort', 90, 'Tóc xoăn ngắn', 'Short curls', 'daily'),
+  I('hair', 'fauxhawk', 110, 'Tóc mào gà', 'Faux-hawk', 'cool'),
   // ---------- màu tóc ----------
   C('hairColor', 'cocoa', '#6B4A3A', 0, 'Nâu ca cao', 'Cocoa', 'daily'),
   C('hairColor', 'black', '#2F2A2E', 0, 'Đen', 'Black', 'daily'),
@@ -124,6 +136,16 @@ export const SHOP = [
   I('outfit', 'vampire', 210, 'Áo choàng ma cà rồng', 'Vampire cape', 'halloween'),
   I('outfit', 'santa', 220, 'Đồ ông già Noel', 'Santa suit', 'noel'),
   I('outfit', 'elf', 180, 'Đồ chú lùn', 'Elf outfit', 'noel'),
+  I('outfit', 'shirtshorts', 0, 'Áo sơ mi quần soóc', 'Shirt & shorts', 'daily'),
+  I('outfit', 'polo', 80, 'Áo polo', 'Polo shirt', 'daily'),
+  I('outfit', 'bomber', 130, 'Áo khoác bomber', 'Bomber jacket', 'cool'),
+  I('outfit', 'basketball', 120, 'Áo bóng rổ số 23', 'Basketball jersey', 'sport'),
+  I('outfit', 'suit', 180, 'Áo gi-lê thắt nơ', 'Waistcoat & bow tie', 'school'),
+  I('outfit', 'aodainam', 170, 'Áo dài nam', 'Men’s áo dài', 'vietnam'),
+  I('outfit', 'explorer', 150, 'Đồ nhà thám hiểm', 'Explorer outfit', 'hero'),
+  I('outfit', 'scout', 140, 'Đồ hướng đạo sinh', 'Scout uniform', 'school'),
+  I('outfit', 'robot', 200, 'Đồ người máy', 'Robot costume', 'space'),
+  I('outfit', 'shark', 190, 'Đồ cá mập con', 'Baby shark onesie', 'animal'),
   // ---------- màu trang phục ----------
   C('outfitColor', 'sage', '#B8C98A', 0, 'Xanh lá mạ', 'Sage', 'daily'),
   C('outfitColor', 'peach', '#F0B48E', 0, 'Đào', 'Peach', 'daily'),
@@ -182,6 +204,12 @@ export const SHOP = [
   I('acc', 'witchhat', 150, 'Mũ phù thuỷ', 'Witch hat', 'halloween'),
   I('acc', 'santahat', 120, 'Mũ Noel', 'Santa hat', 'noel'),
   I('acc', 'elfhat', 110, 'Mũ chú lùn', 'Elf hat', 'noel'),
+  I('acc', 'capback', 80, 'Mũ lưỡi trai đội ngược', 'Backwards cap', 'cool'),
+  I('acc', 'beanie', 90, 'Mũ len chỏm bông', 'Bobble beanie', 'winter'),
+  I('acc', 'gamerset', 110, 'Tai nghe có mic', 'Headset with mic', 'cool'),
+  I('acc', 'bandana', 70, 'Khăn buộc đầu', 'Bandana', 'cool'),
+  I('acc', 'aviator', 100, 'Kính phi công', 'Aviator goggles', 'hero'),
+  I('acc', 'khanxep', 120, 'Khăn xếp', 'Khăn xếp headwrap', 'vietnam'),
   // ---------- giày ----------
   I('shoes', 'maryjane', 0, 'Giày búp bê đỏ', 'Red Mary Janes', 'daily'),
   I('shoes', 'sneakers', 0, 'Giày thể thao', 'Sneakers', 'sport'),
@@ -197,6 +225,9 @@ export const SHOP = [
   I('shoes', 'glass', 160, 'Giày pha lê', 'Glass slippers', 'fairy'),
   I('shoes', 'clogs', 70, 'Guốc mộc', 'Wooden clogs', 'tet'),
   I('shoes', 'armor', 120, 'Giày giáp', 'Armoured boots', 'hero'),
+  I('shoes', 'hightops', 100, 'Giày cổ cao', 'High-tops', 'cool'),
+  I('shoes', 'loafers', 90, 'Giày da lười', 'Loafers', 'school'),
+  I('shoes', 'cleats', 100, 'Giày đá bóng', 'Football boots', 'sport'),
   // ---------- đồ cầm tay ----------
   I('hold', 'none', 0, 'Không cầm gì', 'Nothing', 'daily'),
   I('hold', 'pencil', 0, 'Bút chì', 'Pencil', 'school'),
@@ -228,6 +259,12 @@ export const SHOP = [
   I('hold', 'broom', 130, 'Chổi bay', 'Flying broom', 'halloween'),
   I('hold', 'candycane', 60, 'Kẹo gậy', 'Candy cane', 'noel'),
   I('hold', 'gift', 90, 'Hộp quà', 'Gift box', 'noel'),
+  I('hold', 'skateboard', 140, 'Ván trượt', 'Skateboard', 'cool'),
+  I('hold', 'basketball', 80, 'Quả bóng rổ', 'Basketball', 'sport'),
+  I('hold', 'robotoy', 110, 'Rô-bốt đồ chơi', 'Toy robot', 'space'),
+  I('hold', 'kite', 90, 'Con diều', 'Kite', 'summer'),
+  I('hold', 'dinotoy', 100, 'Khủng long đồ chơi', 'Toy dinosaur', 'animal'),
+  I('hold', 'cartoy', 90, 'Ô tô đồ chơi', 'Toy car', 'daily'),
   // ---------- cảnh nền sảnh ----------
   I('scene', 'meadow', 0, 'Đồng hoa', 'Flower meadow', 'daily'),
   I('scene', 'beach', 150, 'Bờ biển', 'Seaside', 'summer'),
@@ -242,15 +279,72 @@ export const SHOP = [
   I('scene', 'lantern', 220, 'Đêm rước đèn', 'Lantern night', 'moon'),
   I('scene', 'halloween', 220, 'Đêm bí ngô', 'Pumpkin night', 'halloween'),
   I('scene', 'christmas', 220, 'Đêm Giáng sinh', 'Christmas Eve', 'noel'),
+  // ---------- thú cưng (đứng cạnh bé, lớn lên khi bé học) ----------
+  I('pet', 'none', 0, 'Không dẫn thú cưng', 'No pet', 'pet'),
+  I('pet', 'chick', 0, 'Gà con', 'Chick', 'pet'),
+  I('pet', 'cat', 150, 'Mèo con', 'Kitten', 'pet'),
+  I('pet', 'puppy', 150, 'Cún con', 'Puppy', 'pet'),
+  I('pet', 'bunny', 160, 'Thỏ trắng', 'Bunny', 'pet'),
+  I('pet', 'hamster', 140, 'Chuột hamster', 'Hamster', 'pet'),
+  I('pet', 'turtle', 170, 'Rùa con', 'Little turtle', 'pet'),
+  I('pet', 'penguin', 200, 'Chim cánh cụt', 'Penguin', 'pet'),
+  I('pet', 'fox', 200, 'Cáo nhỏ', 'Little fox', 'pet'),
+  I('pet', 'panda', 220, 'Gấu trúc con', 'Panda cub', 'pet'),
+  I('pet', 'dragon', 400, 'Rồng con (hiếm)', 'Baby dragon (rare)', 'pet'),
+  I('pet', 'unicorn', 400, 'Kỳ lân con (hiếm)', 'Baby unicorn (rare)', 'pet'),
+  // ---------- hàng giới hạn ngày lễ (chỉ bán đúng đợt, năm sau mở bán lại) ----------
+  LIM('outfit', 'gam', 240, 'Áo gấm Tết', 'Brocade New Year tunic', 'tet'),
+  LIM('hold', 'banhchung', 90, 'Bánh chưng', 'Bánh chưng rice cake', 'tet'),
+  LIM('acc', 'heartglasses', 90, 'Kính trái tim', 'Heart glasses', 'love'),
+  LIM('hold', 'chocobox', 80, 'Hộp sô-cô-la', 'Box of chocolates', 'love'),
+  LIM('hold', 'sunflower', 80, 'Hoa hướng dương', 'Sunflower', 'women'),
+  LIM('acc', 'pearlband', 90, 'Băng đô ngọc trai', 'Pearl headband', 'women'),
+  LIM('hold', 'bubblewand', 70, 'Que thổi bong bóng', 'Bubble wand', 'party'),
+  LIM('acc', 'papercrown', 70, 'Vương miện giấy', 'Paper crown', 'party'),
+  LIM('hold', 'watermelon', 60, 'Miếng dưa hấu', 'Watermelon slice', 'summer'),
+  LIM('acc', 'snorkel', 90, 'Kính lặn', 'Snorkel mask', 'summer'),
+  LIM('hold', 'globe', 100, 'Quả địa cầu', 'Globe', 'school'),
+  LIM('hold', 'lotus', 80, 'Hoa sen', 'Lotus flower', 'vietnam'),
+  LIM('acc', 'flagband', 70, 'Băng đô cờ đỏ sao vàng', 'Red-flag headband', 'vietnam'),
+  LIM('hold', 'drum', 90, 'Trống lân', 'Lion-dance drum', 'moon'),
+  LIM('acc', 'bunnymask', 110, 'Mặt nạ thỏ ngọc', 'Moon-rabbit mask', 'moon'),
+  LIM('outfit', 'skeleton', 200, 'Đồ bộ xương vui nhộn', 'Funny skeleton suit', 'halloween'),
+  LIM('hold', 'candybucket', 80, 'Xô kẹo bí ngô', 'Pumpkin candy bucket', 'halloween'),
+  LIM('acc', 'batclip', 70, 'Kẹp dơi nhỏ', 'Little bat clip', 'halloween'),
+  LIM('hold', 'card', 60, 'Thiệp cảm ơn thầy cô', 'Thank-you card', 'teacher'),
+  LIM('outfit', 'gingerbread', 200, 'Đồ bánh quy gừng', 'Gingerbread suit', 'noel'),
+  LIM('hold', 'snowglobe', 110, 'Quả cầu tuyết', 'Snow globe', 'noel'),
+  LIM('pet', 'blackcat', 260, 'Mèo đen phù thuỷ', 'Witch’s black cat', 'halloween'),
+  LIM('pet', 'reindeer', 280, 'Tuần lộc con', 'Baby reindeer', 'noel'),
+  LIM('pet', 'kylan', 280, 'Kỳ lân Tết', 'New Year qilin', 'tet'),
 ];
 export const shopById = new Map(SHOP.map((s) => [s.id, s]));
-export const DEFAULT_LOOK = { skin: '#F7D9C4', hair: 'bob', hairColor: '#6B4A3A', ears: 'cat', outfit: 'dress', outfitColor: '#B8C98A', acc: 'none', shoes: 'maryjane', hold: 'none', scene: 'meadow' };
+export const DEFAULT_LOOK = { skin: '#F7D9C4', hair: 'bob', hairColor: '#6B4A3A', ears: 'cat', outfit: 'dress', outfitColor: '#B8C98A', acc: 'none', shoes: 'maryjane', hold: 'none', scene: 'meadow', gender: 'girl', pet: 'none', petName: null, petXp: 0, petFed: null };
+/** Dáng mặc định khi bé chọn "Bé trai" lúc tạo hồ sơ (bé vẫn mặc được mọi món trong cửa hàng). */
+export const BOY_LOOK = { ...DEFAULT_LOOK, gender: 'boy', hair: 'crew', hairColor: '#2F2A2E', ears: 'none', outfit: 'shirtshorts', outfitColor: '#B8C98A', shoes: 'sneakers' };
 export const FREE_ITEMS = SHOP.filter((s) => s.price === 0).map((s) => s.id);
 
 // ---------------- Combo: cả bộ trang phục phối sẵn ----------------
 // items: mã món; mua combo chỉ trả tiền những món còn thiếu, rẻ hơn mua lẻ (xem shared/shop.js → comboPrice).
 const K = (id, tag, vi, en, items) => ({ id, tag, name: L(vi, en), items });
+const KL = (id, tag, vi, en, items) => ({ ...K(id, tag, vi, en, items), limited: true });
 export const COMBOS = [
+  // năng động (gợi ý cho bé trai, ai mặc cũng được)
+  K('skateboarder', 'cool', 'Dân trượt ván', 'Skater kid', ['outfit:bomber', 'outfitColor:charcoal', 'acc:capback', 'shoes:hightops', 'hold:skateboard', 'hair:messy']),
+  K('gamer', 'cool', 'Game thủ nhí', 'Little gamer', ['outfit:hoodie', 'outfitColor:navy', 'acc:gamerset', 'hold:robotoy', 'hair:fringe']),
+  K('hoops', 'sport', 'Ngôi sao bóng rổ', 'Basketball star', ['outfit:basketball', 'outfitColor:orange', 'hold:basketball', 'shoes:hightops', 'acc:bandana']),
+  K('striker', 'sport', 'Tiền đạo nhí', 'Little striker', ['outfit:soccer', 'outfitColor:red', 'shoes:cleats', 'hold:ball', 'hair:buzz']),
+  K('gentleman', 'school', 'Quý ông nhỏ', 'Little gentleman', ['outfit:suit', 'outfitColor:navy', 'shoes:loafers', 'hair:sidepart', 'hold:book']),
+  K('scout', 'school', 'Hướng đạo sinh', 'Junior scout', ['outfit:scout', 'acc:bandana', 'shoes:boots', 'hold:kite']),
+  K('explorer', 'hero', 'Nhà thám hiểm rừng xanh', 'Jungle explorer', ['outfit:explorer', 'acc:aviator', 'shoes:boots', 'hold:dinotoy', 'pet:turtle']),
+  K('robot', 'space', 'Kỹ sư người máy', 'Robot engineer', ['outfit:robot', 'acc:aviator', 'hold:robotoy', 'scene:space']),
+  K('shark', 'animal', 'Cá mập con', 'Baby shark', ['outfit:shark', 'outfitColor:sky', 'shoes:flippers', 'scene:ocean']),
+  K('aodainam', 'vietnam', 'Áo dài khăn xếp', 'Áo dài & khăn xếp', ['outfit:aodainam', 'outfitColor:royal', 'acc:khanxep', 'shoes:loafers', 'hair:crew']),
+  K('winterboy', 'winter', 'Mũ len ngày đông', 'Winter beanie', ['outfit:bomber', 'outfitColor:red', 'acc:beanie', 'shoes:furboots', 'scene:snow']),
+  // bạn đồng hành
+  K('petcat', 'pet', 'Đôi bạn mèo con', 'Kitten buddies', ['pet:cat', 'ears:cat', 'outfit:hoodie', 'outfitColor:peach']),
+  K('petpuppy', 'pet', 'Đi dạo cùng cún', 'Walk the puppy', ['pet:puppy', 'ears:puppy', 'outfit:polo', 'outfitColor:sky', 'shoes:sneakers']),
+  K('petpanda', 'pet', 'Gấu trúc tròn ủm', 'Panda pals', ['pet:panda', 'ears:panda', 'outfit:pajamas', 'outfitColor:snow']),
   // thường ngày
   K('rainy', 'daily', 'Ngày mưa vui', 'Rainy day', ['outfit:raincoat', 'outfitColor:butter', 'shoes:rainboots', 'hold:umbrella']),
   K('sleepy', 'daily', 'Chúc ngủ ngon', 'Good night', ['outfit:pajamas', 'outfitColor:sky', 'shoes:slippers', 'hold:teddy', 'acc:none']),
@@ -319,5 +413,31 @@ export const COMBOS = [
   K('santa', 'noel', 'Ông già Noel nhí', 'Little Santa', ['outfit:santa', 'acc:santahat', 'shoes:furboots', 'hold:gift', 'scene:christmas']),
   K('elf', 'noel', 'Chú lùn xưởng quà', 'Workshop elf', ['outfit:elf', 'acc:elfhat', 'ears:elf', 'shoes:elfshoes', 'hold:candycane']),
   K('reindeer', 'noel', 'Tuần lộc kéo xe', 'Reindeer', ['ears:deer', 'outfit:sweater', 'outfitColor:cocoa', 'shoes:furboots', 'scene:christmas']),
+  // ---------- combo giới hạn ngày lễ (chỉ bán đúng đợt) ----------
+  KL('tet-gam', 'tet', 'Áo gấm du xuân', 'Brocade spring outing', ['outfit:gam', 'outfitColor:red', 'hold:banhchung', 'shoes:clogs', 'scene:tet']),
+  KL('tet-wish', 'tet', 'Bé chúc Tết', 'New Year wishes', ['outfit:gam', 'outfitColor:gold', 'acc:maiclip', 'hold:lixi', 'hairColor:cherry']),
+  KL('love-sweet', 'love', 'Ngọt ngào 14/2', 'Sweet Valentine', ['outfit:hoodie', 'outfitColor:berry', 'acc:heartglasses', 'hold:chocobox', 'shoes:sneakers']),
+  KL('love-cupid', 'love', 'Thần tình yêu nhí', 'Little cupid', ['outfit:fairy', 'outfitColor:rose', 'acc:heartglasses', 'hold:heart', 'hairColor:rose']),
+  KL('women-sun', 'women', 'Hướng dương tặng mẹ', 'Sunflowers for mum', ['outfit:flowerdress', 'outfitColor:butter', 'acc:pearlband', 'hold:sunflower', 'shoes:maryjane']),
+  KL('women-aodai', 'women', 'Áo dài ngọc trai', 'Pearl áo dài', ['outfit:aodai', 'outfitColor:rose', 'acc:pearlband', 'hold:sunflower', 'scene:sakura']),
+  KL('party-bubble', 'party', 'Thổi bong bóng', 'Bubble fun', ['outfit:tshirt', 'outfitColor:sky', 'acc:papercrown', 'hold:bubblewand', 'shoes:sneakers']),
+  KL('party-king', 'party', 'Vua của bữa tiệc', 'Party king', ['outfit:party', 'outfitColor:lilac', 'acc:papercrown', 'hold:balloon', 'shoes:skates']),
+  KL('summer-dive', 'summer', 'Thợ lặn nhí', 'Little diver', ['outfit:swimsuit', 'outfitColor:teal', 'acc:snorkel', 'shoes:flippers', 'scene:ocean']),
+  KL('summer-melon', 'summer', 'Dưa hấu mát lạnh', 'Cool watermelon', ['outfit:tshirt', 'outfitColor:mint', 'hold:watermelon', 'acc:sunglasses', 'shoes:sandals', 'scene:beach']),
+  KL('school-globe', 'school', 'Nhà thám hiểm địa lý', 'Little geographer', ['outfit:school', 'hold:globe', 'acc:glasses', 'shoes:sneakers']),
+  KL('school-new', 'school', 'Chào năm học mới', 'Hello new school year', ['outfit:sailor', 'outfitColor:navy', 'hold:globe', 'acc:starclip', 'shoes:maryjane']),
+  KL('vn-lotus', 'vietnam', 'Hoa sen Việt Nam', 'Lotus of Vietnam', ['outfit:aodai', 'outfitColor:snow', 'hold:lotus', 'acc:nonla', 'scene:village']),
+  KL('vn-cheer', 'vietnam', 'Cổ vũ Việt Nam', 'Go Vietnam!', ['outfit:redstar', 'acc:flagband', 'hold:flag', 'shoes:sneakers']),
+  KL('moon-rabbit', 'moon', 'Thỏ ngọc cung trăng', 'Moon rabbit', ['outfit:aodai', 'outfitColor:snow', 'acc:bunnymask', 'hold:mooncake', 'scene:lantern']),
+  KL('moon-drum', 'moon', 'Đội lân nhí', 'Lion-dance drummer', ['outfit:lion', 'outfitColor:red', 'hold:drum', 'acc:bunnymask', 'shoes:boots']),
+  KL('hw-skeleton', 'halloween', 'Bộ xương vui nhộn', 'Silly skeleton', ['outfit:skeleton', 'acc:batclip', 'hold:candybucket', 'shoes:boots', 'scene:halloween']),
+  KL('hw-trick', 'halloween', 'Đi xin kẹo', 'Trick or treat', ['outfit:witch', 'outfitColor:night', 'acc:batclip', 'hold:candybucket', 'hairColor:ginger']),
+  KL('teacher-card', 'teacher', 'Thiệp tặng cô', 'A card for my teacher', ['outfit:school', 'hold:card', 'acc:glasses', 'shoes:sneakers']),
+  KL('teacher-aodai', 'teacher', 'Áo dài tri ân', 'Thank-you áo dài', ['outfit:aodai', 'outfitColor:lilac', 'hold:card', 'acc:flower', 'shoes:maryjane']),
+  KL('noel-ginger', 'noel', 'Bánh quy gừng', 'Gingerbread kid', ['outfit:gingerbread', 'acc:santahat', 'hold:candycane', 'shoes:elfshoes', 'scene:christmas']),
+  KL('hw-blackcat', 'halloween', 'Phù thuỷ và mèo đen', 'Witch & black cat', ['pet:blackcat', 'outfit:witch', 'acc:witchhat', 'hold:broom']),
+  KL('noel-reindeer', 'noel', 'Cưỡi tuần lộc', 'Reindeer friend', ['pet:reindeer', 'outfit:santa', 'acc:santahat', 'shoes:furboots']),
+  KL('tet-kylan', 'tet', 'Kỳ lân chúc Tết', 'Qilin New Year', ['pet:kylan', 'outfit:gam', 'outfitColor:red', 'hold:lixi']),
+  KL('noel-snow', 'noel', 'Quả cầu tuyết', 'Snow-globe wonder', ['outfit:sweater', 'outfitColor:pine', 'acc:earmuffs', 'hold:snowglobe', 'scene:snow']),
 ];
 export const comboById = new Map(COMBOS.map((c) => [c.id, c]));

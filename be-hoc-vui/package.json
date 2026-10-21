@@ -20,7 +20,9 @@
     "audit:content": "node scripts/audit-content.mjs",
     "export:content": "node scripts/export-content.mjs",
     "test:ui:social": "node test/ui/social.mjs",
-    "test:ui:learn": "node test/ui/learn.mjs"
+    "test:ui:learn": "node test/ui/learn.mjs",
+    "test:ui:gifts": "node test/ui/gifts.mjs",
+    "test:ui:fun": "node test/ui/fun.mjs"
   },
   "devDependencies": {
     "@types/react": "^18.3.18",

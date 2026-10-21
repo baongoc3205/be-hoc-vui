@@ -6,10 +6,11 @@
 import { randomBytes } from 'node:crypto';
 import { HttpError } from './http.js';
 import { levelInfo } from '../shared/logic.js';
-import { DEFAULT_LOOK } from './content/index.js';
+import { DEFAULT_LOOK, FREE_ITEMS, shopById } from './content/index.js';
+import { activeEvents, forSale, itemPrice } from '../shared/shop.js';
 
 const json = (s, fb) => { try { return JSON.parse(s); } catch { return fb; } };
-export const SOCIAL_DEFAULTS = { social: true, publicBoard: true };
+export const SOCIAL_DEFAULTS = { social: true, publicBoard: true, gifts: true };
 const settingsOf = (c) => ({ ...SOCIAL_DEFAULTS, ...json(c.settings, {}) });
 const pair = (x, y) => (x < y ? [x, y] : [y, x]);
 const MAX_FRIENDS = 100;
@@ -224,7 +225,8 @@ export async function summary(db, me) {
   const requests = Number((await db.prepare("SELECT COUNT(*) n FROM friends WHERE (a = ? OR b = ?) AND status = 'pending' AND by_id <> ?").get(me.id, me.id, me.id)).n);
   const inv = await db.prepare("SELECT m.id, m.body, m.created_at, m.from_id FROM messages m WHERE m.to_id = ? AND m.kind = 'invite' AND m.read_at IS NULL AND m.created_at > ? ORDER BY m.id DESC LIMIT 1").get(me.id, Date.now() - 10 * 60e3);
   const from = inv ? await child(db, inv.from_id) : null;
-  return { unread, requests, invite: inv && from ? { id: inv.id, from: from.nickname, fromId: from.id, ...json(inv.body, {}) } : null };
+  const gifts = Number((await db.prepare("SELECT COUNT(*) n FROM messages m WHERE m.to_id = ? AND m.kind = 'gift' AND m.body LIKE '%\"opened\":false%' AND NOT EXISTS (SELECT 1 FROM blocks WHERE child_id = ? AND blocked_id = m.from_id)").get(me.id, me.id)).n);
+  return { unread, requests, gifts, invite: inv && from ? { id: inv.id, from: from.nickname, fromId: from.id, ...json(inv.body, {}) } : null };
 }
 
 /** Phụ huynh xem tin nhắn gần đây của bé (cả gửi và nhận) và các báo cáo bé đã gửi. */
@@ -233,9 +235,66 @@ export async function parentView(db, c) {
   const names = new Map();
   const nameOf = async (id) => { if (!names.has(id)) names.set(id, (await child(db, id))?.nickname ?? '?'); return names.get(id); };
   const msgs = [];
-  for (const m of rows) msgs.push({ id: m.id, from: await nameOf(m.from_id), to: await nameOf(m.to_id), mine: m.from_id === c.id, kind: m.kind, text: m.kind === 'text' ? m.body : null, at: m.created_at });
+  for (const m of rows) msgs.push({ id: m.id, from: await nameOf(m.from_id), to: await nameOf(m.to_id), mine: m.from_id === c.id, kind: m.kind, text: m.kind === 'text' ? m.body : m.kind === 'gift' ? (json(m.body, {}).note ?? null) : null, item: m.kind === 'gift' ? shopById.get(json(m.body, {}).item)?.name ?? null : null, at: m.created_at });
   const friends = (await friendsOf(db, c)).friends.map((f) => ({ id: f.id, nickname: f.nickname }));
   const reports = [];
   for (const r of await db.prepare('SELECT * FROM reports WHERE reporter_id = ? ORDER BY id DESC LIMIT 50').all(c.id)) reports.push({ target: await nameOf(r.target_id), reason: r.reason, at: r.created_at });
   return { messages: msgs, friends, reports };
+}
+
+// ---------------- Tặng quà (trang phục, thú cưng) ----------------
+// Người tặng trả xu theo giá cửa hàng; món vào tủ đồ của bạn ngay. Không chuyển xu trực tiếp để tránh xin/ép xu.
+export const GIFTS_PER_DAY = 3;
+const NOTE_MAX = 60;
+const vnDay = (ms = Date.now()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(ms));
+const dayStart = (ms = Date.now()) => Date.parse(`${vnDay(ms)}T00:00:00+07:00`);
+async function giftsToday(db, me) {
+  return Number((await db.prepare("SELECT COUNT(*) n FROM messages WHERE from_id = ? AND kind = 'gift' AND created_at >= ?").get(me.id, dayStart())).n);
+}
+export async function sendGift(db, me, { to, itemId, note } = {}) {
+  const sm = settingsOf(me);
+  if (!sm.social) throw new HttpError(403, 'SOCIAL_OFF');
+  if (!sm.gifts) throw new HttpError(403, 'GIFTS_OFF');
+  const other = await child(db, to);
+  if (!other) throw new HttpError(404, 'FRIEND_NOT_FOUND');
+  const rel = await relation(db, me, other);
+  if (rel !== 'friends' && rel !== 'family') throw new HttpError(403, 'NOT_FRIENDS');
+  const so = settingsOf(other);
+  if (!so.social || !so.gifts) throw new HttpError(403, 'FRIEND_UNAVAILABLE');
+  const item = shopById.get(String(itemId));
+  if (!item || !item.price) throw new HttpError(404, 'ITEM_NOT_FOUND');
+  const owned = json(other.owned, FREE_ITEMS);
+  if (owned.includes(item.id)) throw new HttpError(409, 'FRIEND_HAS_IT');
+  const events = activeEvents(vnDay());
+  if (!forSale(item, events)) throw new HttpError(409, 'NOT_IN_SEASON');
+  if ((await giftsToday(db, me)) >= GIFTS_PER_DAY) throw new HttpError(429, 'GIFT_LIMIT');
+  const price = itemPrice(item, events);
+  const f = filterText(String(note ?? '').slice(0, NOTE_MAX));
+  const body = JSON.stringify({ item: item.id, note: f.text || null, opened: false });
+  await db.tx(async (t) => {
+    const r = await t.prepare('UPDATE children SET coins = coins - ? WHERE id = ? AND coins >= ?').run(price, me.id, price);
+    if (!r.changes) throw new HttpError(409, 'NOT_ENOUGH_COINS');
+    const cur = json((await t.prepare('SELECT owned FROM children WHERE id = ?').get(other.id)).owned, FREE_ITEMS);
+    if (cur.includes(item.id)) throw new HttpError(409, 'FRIEND_HAS_IT');
+    cur.push(item.id);
+    await t.prepare('UPDATE children SET owned = ? WHERE id = ?').run(JSON.stringify(cur), other.id);
+    await t.prepare('INSERT INTO messages (from_id, to_id, kind, body, created_at) VALUES (?, ?, ?, ?, ?)').run(me.id, other.id, 'gift', body, Date.now());
+  });
+  const coins = (await child(db, me.id)).coins;
+  return { ok: true, paid: price, coins, left: GIFTS_PER_DAY - (await giftsToday(db, me)), masked: f.masked };
+}
+/** Hộp quà: quà bé nhận (mới nhất trước) và số quà còn tặng được hôm nay. */
+export async function giftInbox(db, me) {
+  const rows = await db.prepare("SELECT m.* FROM messages m WHERE m.to_id = ? AND m.kind = 'gift' AND NOT EXISTS (SELECT 1 FROM blocks WHERE child_id = ? AND blocked_id = m.from_id) ORDER BY m.id DESC LIMIT 30").all(me.id, me.id);
+  const out = [];
+  for (const m of rows) { const b = json(m.body, {}); const from = await child(db, m.from_id); out.push({ id: m.id, from: from?.nickname ?? '?', fromId: m.from_id, item: b.item, note: b.note ?? null, opened: !!b.opened, at: m.created_at }); }
+  return { gifts: out, unopened: out.filter((g) => !g.opened).length, left: Math.max(0, GIFTS_PER_DAY - (await giftsToday(db, me))), enabled: settingsOf(me).social && settingsOf(me).gifts };
+}
+/** Mở hộp quà (món đã vào tủ đồ từ lúc bạn gửi; mở chỉ để xem hiệu ứng và đánh dấu đã xem). */
+export async function openGift(db, me, mid) {
+  const m = await db.prepare("SELECT * FROM messages WHERE id = ? AND to_id = ? AND kind = 'gift'").get(Number(mid), me.id);
+  if (!m) throw new HttpError(404, 'ITEM_NOT_FOUND');
+  const b = json(m.body, {});
+  if (!b.opened) { b.opened = true; await db.prepare('UPDATE messages SET body = ?, read_at = COALESCE(read_at, ?) WHERE id = ?').run(JSON.stringify(b), Date.now(), m.id); }
+  return { item: b.item };
 }

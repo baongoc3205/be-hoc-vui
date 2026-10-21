@@ -8,13 +8,15 @@ export type SubjectId = 'math' | 'vietnamese' | 'english' | 'science';
 export type GameType =
   | 'quiz' | 'true-false' | 'balloon-pop' | 'math-race' | 'fill-blank' | 'listen-pick'
   | 'drag-match' | 'memory' | 'sort-order' | 'word-builder' | 'clock' | 'catch-fall' | 'boss' | 'chest'
-  | 'fruit-slice' | 'candy-match' | 'slingshot' | 'draw-trace' | 'type-answer' | 'multi-pick' | 'reading';
+  | 'fruit-slice' | 'candy-match' | 'slingshot' | 'draw-trace' | 'type-answer' | 'multi-pick' | 'reading'
+  | 'number-line' | 'balance' | 'pizza' | 'market' | 'spot-mistake' | 'sentence' | 'fishing';
 
 export interface Look {
   skin: string; hair: string; hairColor: string; ears: string; outfit: string; outfitColor: string; acc: string; shoes: string; hold: string; scene: string;
+  gender?: "girl" | "boy"; pet?: string; petName?: string | null; petXp?: number; petFed?: string | null;
 }
 export interface Parent { id: number; name: string; email: string | null; isGuest: boolean; hasRecovery?: boolean }
-export interface ChildSettings { dailyLimitMin: number; energy: boolean; leaderboard: boolean; social: boolean; publicBoard: boolean }
+export interface ChildSettings { dailyLimitMin: number; energy: boolean; leaderboard: boolean; social: boolean; publicBoard: boolean; gifts?: boolean }
 export interface Child { id: number; nickname: string; grade: number; ageTheme: 'sprout' | 'bud' | 'wing'; look: Look; settings: ChildSettings }
 export interface Quest { id: string; name: LText; target: number; coins: number; progress: number; done: boolean; claimed: boolean }
 export interface Checkin {
@@ -31,9 +33,9 @@ export interface ChildState {
   next?: { subject: SubjectId; done: number; total: number; lesson: { id: string; index: number; game: GameType; kind: string; name: LText } | null; topic: LText | null } | null;
 }
 export interface Subject { id: SubjectId; name: LText; world: LText; mascot: string; color: string }
-export interface ShopItem { id: string; slot: keyof Look; value: string; price: number; name: LText; tag?: string }
+export interface ShopItem { id: string; slot: keyof Look; value: string; price: number; name: LText; tag?: string; limited?: boolean }
 export interface Collection { id: string; icon: string; name: LText; holiday?: boolean }
-export interface Combo { id: string; tag: string; name: LText; items: string[] }
+export interface Combo { id: string; tag: string; name: LText; items: string[]; limited?: boolean }
 export type ActiveEvent = ShopEvent & { claimed: boolean };
 export interface Badge { id: string; icon: string; name: LText; desc: LText }
 export interface Catalog { subjects: Subject[]; topics: { id: string; subject: SubjectId; grade: number; title: LText }[]; games: Record<GameType, { name: LText; icon: string }>; shop: ShopItem[]; collections: Collection[]; combos: Combo[]; badges: Badge[]; lessonCount: number }
@@ -45,7 +47,7 @@ export interface SessionStart {
 }
 export interface FinishResult {
   accuracy: number; stars: number; coins: number; xp: number; correct: number; total: number; prevStars: number; maxCombo: number;
-  levelUp: number | null; newBadges: Badge[]; next: { id: string; kind: string } | null; state: ChildState;
+  levelUp: number | null; newBadges: Badge[]; pet?: { before: number; after: number; grew: boolean } | null; next: { id: string; kind: string } | null; state: ChildState;
 }
 
 // ---------- Bạn bè & tương tác ----------
@@ -56,4 +58,6 @@ export type Relation = 'self' | 'family' | 'friends' | 'sent' | 'received' | 'bl
 export interface Profile extends FriendCard { stars: number; badges: string[]; streak: number; xpWeek: number; relation: Relation; canChat: boolean; social: boolean }
 export interface RankRow extends FriendCard { xp: number; stars: number; me: boolean }
 export interface ChatMsg { id: number; mine: boolean; kind: 'text' | 'invite'; body: string | { room: string; code: string; game: string }; at: number; read: boolean }
-export interface SocialSummary { unread: number; requests: number; invite: { id: number; from: string; fromId: number; room: string; code: string; game: string } | null }
+export interface SocialSummary { unread: number; requests: number; gifts?: number; invite: { id: number; from: string; fromId: number; room: string; code: string; game: string } | null }
+export interface GiftRow { id: number; from: string; fromId: number; item: string; note: string | null; opened: boolean; at: number }
+export interface GiftInbox { gifts: GiftRow[]; unopened: number; left: number; enabled: boolean }

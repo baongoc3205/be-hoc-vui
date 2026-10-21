@@ -11,6 +11,7 @@ import { Avatar } from '../games/board/common';
 import { ProfileDialog, ReportDialog } from '../ui/ProfileDialog';
 import { errText } from './Auth';
 import { sfx } from '../lib/sfx';
+import { GiftInboxDialog, setGiftTarget } from '../ui/Gifts';
 
 type Tr = (vi: string, en: string) => string;
 export const ROOM_GAMES: { id: 'cards' | 'ludo' | 'quiz'; icon: string; name: [string, string] }[] = [
@@ -52,6 +53,8 @@ export function Friends({ tab }: { tab?: string }) {
   const [roomCode, setRoomCode] = useState('');
   const [profile, setProfile] = useState<number | null>(null);
   const [picker, setPicker] = useState<FriendCard | null | undefined>(undefined);
+  const [inbox, setInbox] = useState(false);
+  const giftN = useApp((s) => s.social?.gifts ?? 0);
   const load = () => api.get<FriendsData>(`/children/${childId}/friends`).then((x) => { setD(x); void refreshSocial(); }).catch(() => setD(null));
   useEffect(() => { void load(); const iv = setInterval(load, 12_000); return () => clearInterval(iv); }, [childId]); // eslint-disable-line react-hooks/exhaustive-deps
   const add = async () => {
@@ -82,6 +85,7 @@ export function Friends({ tab }: { tab?: string }) {
                   <Btn tone="orange" disabled={roomCode.length < 5} onClick={() => joinRoomByCode(roomCode).catch((e) => toast(errText(T, e), 'warn'))}>{tr('Vào phòng', 'Join')}</Btn>
                 </div>
                 <Btn tone="cream" onClick={() => setPicker(null)}>🎲 {tr('Tạo phòng chơi', 'Create a room')}</Btn>
+                <Btn tone="cream" onClick={() => setInbox(true)}>🎁 {tr('Hộp quà', 'Gift box')}{giftN > 0 ? ` (${giftN})` : ''}</Btn>
                 {d.incoming.length > 0 && <><div className="section-title">{tr('Lời mời kết bạn', 'Friend requests')}</div>
                   {d.incoming.map((f) => <div key={f.id} className="friend-row"><button type="button" className="fr-main" onClick={() => setProfile(f.id)}><Avatar look={f.look} size={46} /><span><b>{f.nickname}</b><small>{T.t('gradeN', { n: f.grade })} · Lv. {f.level}</small></span></button><Btn tone="lime" size="sm" onClick={() => respond(f.id, true)}>{tr('Đồng ý', 'Accept')}</Btn><Btn tone="gray" size="sm" onClick={() => respond(f.id, false)}>{tr('Từ chối', 'Decline')}</Btn></div>)}</>}
                 {d.outgoing.length > 0 && <><div className="section-title">{tr('Đang chờ bạn đồng ý', 'Waiting for reply')}</div>
@@ -98,6 +102,7 @@ export function Friends({ tab }: { tab?: string }) {
                     {f.unread > 0 && <i className="badge-n">{f.unread}</i>}
                   </button>
                   <Btn tone="orange" size="sm" disabled={!d.social || !f.social} onClick={() => setPicker(f)}>{tr('Mời chơi', 'Play')}</Btn>
+                  <Btn tone="cream" size="sm" disabled={!d.social || !f.social} aria-label={tr(`Tặng quà cho ${f.nickname}`, `Send ${f.nickname} a gift`)} onClick={() => { setGiftTarget({ id: f.id, nickname: f.nickname }); go('shop'); }}>🎁</Btn>
                   <Btn tone="gray" size="sm" onClick={() => setProfile(f.id)}>{tr('Hồ sơ', 'Profile')}</Btn>
                 </div>
               ))}
@@ -107,6 +112,7 @@ export function Friends({ tab }: { tab?: string }) {
         )}
       </div>
       {profile && <ProfileDialog id={profile} onClose={() => { setProfile(null); void load(); }} />}
+      {inbox && <GiftInboxDialog onClose={() => { setInbox(false); void load(); }} />}
       {picker !== undefined && <GamePicker friend={picker ?? undefined} onClose={() => setPicker(undefined)} />}
     </div>
   );
@@ -195,10 +201,13 @@ export function InviteBanner() {
   if (!inv || dismissed.has(inv.id)) return null;
   const close = () => { dismissed.add(inv.id); force((n) => n + 1); };
   return (
-    <div className="invite-banner" role="status">
-      <span>🎲 <b>{inv.from}</b> {tr('mời bé chơi', 'invites you to')} {gameName(inv.game, tr)}</span>
-      <Btn tone="orange" size="sm" onClick={() => { close(); joinRoomByCode(inv.code).catch((e) => toast(errText(T, e), 'warn')); }}>{tr('Vào phòng', 'Join')}</Btn>
-      <Btn tone="gray" size="sm" onClick={close}>{tr('Để sau', 'Later')}</Btn>
+    <div className="invite-banner notice" role="status">
+      <span className="nb-ico" aria-hidden>🎲</span>
+      <span className="nb-text"><b>{tr(`${inv.from} mời bé chơi`, `${inv.from} invites you`)}</b><small>{gameName(inv.game, tr)}</small></span>
+      <div className="nb-btns">
+        <Btn tone="orange" size="sm" onClick={() => { close(); joinRoomByCode(inv.code).catch((e) => toast(errText(T, e), 'warn')); }}>{tr('Vào phòng', 'Join')}</Btn>
+        <Btn tone="gray" size="sm" onClick={close}>{tr('Để sau', 'Later')}</Btn>
+      </div>
     </div>
   );
 }

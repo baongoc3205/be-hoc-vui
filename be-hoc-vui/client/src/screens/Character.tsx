@@ -3,10 +3,10 @@ import { api } from '../lib/api';
 import { go, setChildState, toast, useApp } from '../lib/store';
 import { useT } from '../lib/hooks';
 import type { ChildState, Look } from '../lib/types';
-import { Bar, Btn, Inset, LvPill, Notch, Panel, SideTabs, TopBar } from '../ui/kit';
+import { Bar, Btn, Field, Inset, LvPill, Notch, Panel, Segmented, SideTabs, TopBar } from '../ui/kit';
 import { BadgeGrid } from '../ui/Badges';
 import { Scene, type SceneName } from '../ui/Scene';
-import { Chibi } from '../ui/Chibi';
+import { Chibi, PET_STAGE_XP, PetSprite, petStage } from '../ui/Chibi';
 import { Glyph, LockIcon, SkillTile, StarIcon, TulipIcon } from '../ui/Icons';
 import { errText } from './Auth';
 import { ComboCard, ItemThumb, SLOTS, TagChips, comboHave, comboLook } from '../ui/ShopCards';
@@ -21,7 +21,7 @@ export function Character({ tab = 'info' }: { tab?: string }) {
   const cs = useApp((s) => s.cs)!;
   const catalog = useApp((s) => s.catalog)!;
   const childId = useApp((s) => s.childId);
-  const [cur, setCur] = useState<'info' | 'outfit' | 'achievements'>((['info', 'outfit', 'achievements'].includes(tab) ? tab : 'info') as 'info');
+  const [cur, setCur] = useState<'info' | 'outfit' | 'pet' | 'achievements'>((['info', 'outfit', 'pet', 'achievements'].includes(tab) ? tab : 'info') as 'info');
   const [rep, setRep] = useState<Report | null>(null);
   const [draft, setDraft] = useState<Look>(cs.child.look);
   const [slot, setSlot] = useState<keyof Look | 'combo'>('hair');
@@ -56,7 +56,7 @@ export function Character({ tab = 'info' }: { tab?: string }) {
         <TopBar title={T.t('character')} to="lobby" />
         <div className="layout3">
           <div className="col-left">
-            <SideTabs tabs={[{ key: 'info', label: T.t('info') }, { key: 'outfit', label: T.t('outfit') }, { key: 'achievements', label: T.t('achievements') }]} value={cur} onChange={(k) => { setCur(k); if (k !== 'outfit') setDraft(child.look); }} />
+            <SideTabs tabs={[{ key: 'info', label: T.t('info') }, { key: 'outfit', label: T.t('outfit') }, { key: 'pet', label: T.t('slot_pet') }, { key: 'achievements', label: T.t('achievements') }]} value={cur} onChange={(k) => { setCur(k); if (k !== 'outfit') setDraft(child.look); }} />
           </div>
           <div className="col-center"><div className="char-stage"><Chibi look={draft} mood={cur === 'outfit' ? 'happy' : 'idle'} size={420} title={child.nickname} /></div></div>
           <div className="col-right">
@@ -81,7 +81,9 @@ export function Character({ tab = 'info' }: { tab?: string }) {
                   <Btn tone="lime" onClick={() => go(cs.next?.lesson ? `map/${cs.next.subject}/${child.grade}` : 'worlds')}>{T.t('keepLearning')}</Btn>
                 </div>
               </>)}
+              {cur === 'pet' && <PetPanel />}
               {cur === 'outfit' && (<>
+                <div className="setting-row gender-row"><span>{T.t('genderLabel')}</span><Segmented options={[{ key: 'girl', label: `👧 ${T.t('girl')}` }, { key: 'boy', label: `👦 ${T.t('boy')}` }]} value={draft.gender ?? 'girl'} onChange={(g) => { sfx.tap(); setDraft({ ...draft, gender: g as 'girl' | 'boy' }); }} /></div>
                 <div className="chips slot-chips">
                   <button type="button" className={`chip ${slot === 'combo' ? 'on' : ''}`} onClick={() => { sfx.tap(); setSlot('combo'); setTag('all'); }}>{T.t('tabCombo')}</button>
                   {SLOTS.map((s) => <button key={s} type="button" className={`chip ${slot === s ? 'on' : ''}`} onClick={() => { sfx.tap(); setSlot(s); setTag('all'); }}>{T.t(`slot_${s}` as 'slot_hair')}</button>)}
@@ -119,4 +121,51 @@ export function Character({ tab = 'info' }: { tab?: string }) {
       </div>
     </div>
   );
+}
+
+/** Thú cưng: đặt tên, cho ăn mỗi ngày, xem bậc tiến hoá. Không có cơ chế buồn/đói khi bé nghỉ. */
+function PetPanel() {
+  const T = useT();
+  const cs = useApp((s) => s.cs)!;
+  const catalog = useApp((s) => s.catalog)!;
+  const childId = useApp((s) => s.childId);
+  const look = cs.child.look;
+  const [name, setName] = useState(look.petName ?? '');
+  const [busy, setBusy] = useState(false);
+  const pets = catalog.shop.filter((i) => i.slot === 'pet' && i.value !== 'none' && (i.price === 0 || cs.owned.includes(i.id)));
+  const kind = look.pet && look.pet !== 'none' ? look.pet : null;
+  const xp = look.petXp ?? 0, st = petStage(xp);
+  const label = name.trim() || (kind ? T.tx(catalog.shop.find((i) => i.id === `pet:${kind}`)?.name ?? { vi: kind, en: kind }) : '');
+  const fedToday = look.petFed === cs.events?.today;
+  const post = async (body: Partial<Look>) => { const st2 = await api.post<ChildState>(`/children/${childId}/look`, { look: body }); setChildState(st2); return st2; };
+  const feed = async (el: HTMLElement) => {
+    setBusy(true);
+    try { const r = await api.post<{ state: ChildState; grew: boolean }>(`/children/${childId}/pet/feed`); setChildState(r.state); sfx.correct(); burstAt(el, 'sparkle', 14); toast(r.grew ? T.t('petGrew', { name: label }) : T.t('petYum', { name: label })); if (r.grew) sfx.levelup(); }
+    catch (e) { toast(errText(T, e), 'warn'); } finally { setBusy(false); }
+  };
+  const next = PET_STAGE_XP[st + 1];
+  return (<>
+    {kind ? (<>
+      <div className="pet-hero">
+        <PetSprite kind={kind} xp={xp} size={150} name={label} />
+        <div className="pet-info">
+          <b>{label}</b>
+          <span className={`pet-stage s${st}`}>{T.t(`petStage${st}` as 'petStage0')}</span>
+          {next != null ? <Bar label={T.t('petNext', { n: next - xp })} right={`${xp}/${next}`} value={xp - PET_STAGE_XP[st]} max={next - PET_STAGE_XP[st]} /> : <small className="muted">{T.t('petMax')}</small>}
+        </div>
+      </div>
+      <form className="pet-name-row" onSubmit={async (e) => { e.preventDefault(); try { await post({ petName: name.trim() || null }); sfx.pop(); toast(T.t('saved')); } catch (err) { toast(errText(T, err), 'warn'); } }}>
+        <Field label={T.t('petName')} placeholder={T.t('petNamePh')} value={name} maxLength={12} onChange={(e) => setName(e.target.value.slice(0, 12))} />
+        <Btn tone="gray" size="sm" type="submit" disabled={(name.trim() || null) === (look.petName ?? null)}>{T.t('petSave')}</Btn>
+      </form>
+      <Btn tone="orange" wide disabled={busy || fedToday} onClick={(e) => feed(e.currentTarget)}>{fedToday ? `✓ ${T.t('petFed')}` : `🍪 ${T.t('petFeed')}`}</Btn>
+      <p className="shop-note small">{T.t('petHow')}</p>
+    </>) : <p className="shop-note">{T.t('petNone')}</p>}
+    {pets.length > 0 && <div className="item-grid pet-grid">
+      {pets.map((p) => <button key={p.id} type="button" className={`item-card ${kind === p.value ? 'on' : ''}`} onClick={async () => { sfx.tap(); try { await post({ pet: kind === p.value ? 'none' : p.value }); } catch (e) { toast(errText(T, e), 'warn'); } }}>
+        <div className="thumb pet-thumb"><PetSprite kind={p.value} xp={xp} size={80} /></div><span>{T.tx(p.name)}</span>{kind === p.value && <span className="owned">{T.t('equipped')}</span>}
+      </button>)}
+    </div>}
+    <div className="panel-actions"><Btn tone="gray" onClick={() => go('shop')}>{T.t('shop')}</Btn></div>
+  </>);
 }

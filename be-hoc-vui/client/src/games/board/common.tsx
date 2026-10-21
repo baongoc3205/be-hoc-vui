@@ -10,6 +10,8 @@ const HAIRC = ['#6B4A3A', '#2F2A2E', '#D9A55B', '#C9565E', '#9CC3E0', '#8E5A3C',
 const EARS = ['cat', 'bunny', 'bear', 'fox', 'panda', 'mouse', 'puppy', 'tiger', 'koala', 'frog', 'none'];
 const OUT = ['hoodie', 'tshirt', 'overall', 'dress', 'sailor', 'pajamas', 'tracksuit', 'baba'];
 const OUTC = ['#9FC3DD', '#F0B48E', '#C2A9D6', '#B8C98A', '#F2D57E', '#D97B8A', '#9CD3BE', '#5D6E9A'];
+const BOY_HAIR = ['crew', 'sidepart', 'messy', 'quiff', 'buzz', 'curlyshort', 'fringe', 'spiky'];
+const BOY_OUT = ['shirtshorts', 'polo', 'hoodie', 'tshirt', 'bomber', 'overall', 'tracksuit', 'basketball'];
 const SKIN = ['#F7D9C4', '#F4D3BC', '#F8DCCB', '#E8C2A4', '#D9A988'];
 const MASC = Object.values(MASCOTS);
 
@@ -17,6 +19,7 @@ const MASC = Object.values(MASCOTS);
 export function botLook(i: number): Look {
   if (i < MASC.length) return MASC[i];
   const k = i * 7 + 3;
+  if (i % 2 === 1) return { skin: SKIN[k % SKIN.length], hair: BOY_HAIR[k % BOY_HAIR.length], hairColor: HAIRC[(k * 3) % 3], ears: EARS[(k * 5) % EARS.length], outfit: BOY_OUT[(k * 3) % BOY_OUT.length], outfitColor: OUTC[(k * 5) % OUTC.length], acc: 'none', shoes: 'sneakers', hold: 'none', scene: 'meadow', gender: 'boy' };
   return { skin: SKIN[k % SKIN.length], hair: HAIR[k % HAIR.length], hairColor: HAIRC[(k * 3) % HAIRC.length], ears: EARS[(k * 5) % EARS.length], outfit: OUT[(k * 3) % OUT.length], outfitColor: OUTC[(k * 5) % OUTC.length], acc: 'none', shoes: 'sneakers', hold: 'none', scene: 'meadow' };
 }
 

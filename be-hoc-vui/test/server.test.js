@@ -21,6 +21,11 @@ function perfect(r) {
     case 'clock': return [r.h, r.m];
     case 'classify': return { hits: r.items.filter((i) => i.ok).length, wrong: 0 };
     case 'trace': return { cover: 0.95, stray: 0.05, pick: r.quiz ? r.quiz.answer : undefined };
+    case 'numberline': return r.target;
+    case 'balance': case 'spot': return r.answer;
+    case 'fraction': return r.need;
+    case 'money': { const out = []; let left = r.target; for (const n of [...r.notes].sort((a, b) => b - a)) while (left >= n) { out.push(n); left -= n; } return out; }
+    case 'sentence': { const used = new Set(); return r.answer.split(' ').map((w) => { const t = r.words.find((x) => x.w === w && !used.has(x.id)); used.add(t.id); return t.id; }); }
   }
 }
 
@@ -188,7 +193,8 @@ test('logic điểm, cấp độ, năng lượng', () => {
   assert.equal(computeRewards({ qualities: [0, 0, 1], maxCombo: 1, baseCoins: 15, baseXp: 60, prevStars: 0 }).stars, 0);
   assert.equal(levelInfo(0).level, 1); assert.equal(levelInfo(50).level, 2);
   const e = currentEnergy(3, 0, ENERGY_MS * 2 + 5); assert.equal(e.value, 5);
-  assert.equal(TOPICS.filter((t) => !t.practice).length, 99);
+  assert.equal(TOPICS.filter((t) => !t.practice && !t.fun).length, 99);
+  assert.equal(TOPICS.filter((t) => t.fun).length, 36, 'mỗi môn mỗi lớp một chủ đề Vui học kiểu mới');
 });
 
 async function apiFlow(db) {
@@ -414,4 +420,25 @@ test('luồng API đầy đủ (Turso qua HTTP — máy chủ giả lập giao t
     // sai token → lỗi
     await assert.rejects(openDb({ tursoUrl: fake.url, tursoToken: 'sai' }));
   } finally { fake.close(); }
+});
+
+test('dạng câu mới: tia số, cân, pizza, đi chợ, tìm lỗi, xếp câu — chấm đúng/sai trên máy chủ', () => {
+  const nl = { kind: 'numberline', min: 0, max: 10, step: 1, target: 7, tol: 0 };
+  assert.equal(gradeRound(nl, 7), 1); assert.equal(gradeRound(nl, 6), 0); assert.equal(gradeRound(nl, 'x'), 0);
+  assert.equal(gradeRound({ kind: 'balance', answer: 5 }, 5), 1); assert.equal(gradeRound({ kind: 'balance', answer: 5 }, 4), 0);
+  assert.equal(gradeRound({ kind: 'fraction', parts: 4, need: 3 }, 3), 1); assert.equal(gradeRound({ kind: 'fraction', parts: 4, need: 3 }, 2), 0);
+  const mo = { kind: 'money', target: 8000, notes: [1000, 2000, 5000, 10000] };
+  assert.equal(gradeRound(mo, [5000, 2000, 1000]), 1);
+  assert.equal(gradeRound(mo, [5000, 2000]), 0, 'thiếu tiền');
+  assert.equal(gradeRound(mo, [8000]), 0, 'không có tờ 8.000');
+  assert.equal(gradeRound(mo, [10000]), 0, 'trả dư');
+  assert.equal(gradeRound({ kind: 'spot', answer: 2 }, 2), 1); assert.equal(gradeRound({ kind: 'spot', answer: 2 }, 1), 0);
+  const se = { kind: 'sentence', answer: 'I like apples', words: [{ id: 'w2', w: 'apples' }, { id: 'w0', w: 'I' }, { id: 'w1', w: 'like' }] };
+  assert.equal(gradeRound(se, ['w0', 'w1', 'w2']), 1);
+  assert.equal(gradeRound(se, ['w1', 'w0', 'w2']), 0);
+  assert.equal(gradeRound(se, ['w0', 'w0', 'w2']), 0, 'không dùng một mảnh hai lần');
+  // mỗi môn mỗi lớp có chủ đề Vui học kiểu mới, game Toán đúng dạng
+  const fun = LESSONS.filter((l) => l.topicId.startsWith('fun-') && l.kind !== 'chest');
+  for (const g of ['number-line', 'balance', 'pizza', 'market', 'spot-mistake', 'sentence', 'fishing']) assert.ok(fun.some((l) => l.game === g), `thiếu game ${g}`);
+  for (const l of fun) { const { game, rounds } = buildRounds(l, 42); assert.equal(game, l.game, `${l.id} bị đổi game`); assert.ok(rounds.length >= 3, `${l.id} ít vòng`); }
 });

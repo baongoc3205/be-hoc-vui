@@ -23,12 +23,12 @@ const base = `http://127.0.0.1:${PORT}`;
 for (let i = 0; i < 50; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch { /* chờ */ } await new Promise((r) => setTimeout(r, 200)); }
 
 const SIZES = [[1366, 768, 'laptop'], [1920, 1080, 'fullhd'], [1024, 768, 'tablet-ngang'], [768, 1024, 'tablet-doc'], [390, 844, 'iphone'], [360, 740, 'android-nho'], [844, 390, 'dien-thoai-ngang']];
-const PAGES = ['lobby', 'worlds', 'map/math/3', 'character', 'character/outfit', 'shop', 'rewards', 'rewards/checkin', 'rewards/badges', 'ranking', 'arcade', 'board/cards', 'board/ludo', 'board/werewolf', 'theory', 'theory/m-times', 'theory/m-inequality', 'theory/s-atoms', 'theory/e-past', 'friends'];
+const PAGES = ['lobby', 'worlds', 'map/math/3', 'character', 'character/outfit', 'character/pet', 'shop', 'rewards', 'rewards/checkin', 'rewards/badges', 'ranking', 'arcade', 'board/cards', 'board/ludo', 'board/werewolf', 'theory', 'theory/m-times', 'theory/m-inequality', 'theory/s-atoms', 'theory/e-past', 'friends'];
 // màn được phép cuộn cả trang (dành cho người lớn, nhiều chữ)
 const SCROLL_OK = new Set(['privacy', 'parents']);
-const GAMES = { quiz: 'm1a-1', 'balloon-pop': 'm1a-2', 'drag-match': 'm1a-3', 'true-false': 'm1a-4', 'math-race': 'm1a-5', boss: 'm1a-6', 'sort-order': 'm1b-2', 'catch-fall': 'm1b-3', memory: 'm1b-5', 'draw-trace': 'm1c-2', 'fruit-slice': 'm1c-3', 'candy-match': 'm1c-4', slingshot: 'm1d-3', clock: 'm2b-1', 'listen-pick': 'v1-1', 'word-builder': 'v1-2', 'fill-blank': 'v2-4', 'type-answer': 'm3r-1', 'multi-pick': 'm3r-2', reading: 'v3b-1', 'reading-en': 'e9b-1', 'type-text': 'e5b-3', 'multi-text': 's8b-4', 'practice-quiz': 'e3p-jobs-1', 'practice-boss': 'm3p-word-2-9' };
+const GAMES = { 'number-line': 'fun-math2-1', pizza: 'fun-math2-2', market: 'fun-math2-3', balance: 'fun-math2-4', fishing: 'fun-math2-5', 'spot-mistake': 'fun-vietnamese3-1', sentence: 'fun-english4-1', quiz: 'm1a-1', 'balloon-pop': 'm1a-2', 'drag-match': 'm1a-3', 'true-false': 'm1a-4', 'math-race': 'm1a-5', boss: 'm1a-6', 'sort-order': 'm1b-2', 'catch-fall': 'm1b-3', memory: 'm1b-5', 'draw-trace': 'm1c-2', 'fruit-slice': 'm1c-3', 'candy-match': 'm1c-4', slingshot: 'm1d-3', clock: 'm2b-1', 'listen-pick': 'v1-1', 'word-builder': 'v1-2', 'fill-blank': 'v2-4', 'type-answer': 'm3r-1', 'multi-pick': 'm3r-2', reading: 'v3b-1', 'reading-en': 'e9b-1', 'type-text': 'e5b-3', 'multi-text': 's8b-4', 'practice-quiz': 'e3p-jobs-1', 'practice-boss': 'm3p-word-2-9' };
 // trò chọn đáp án bằng phím số 1–4
-const KEY_GAMES = new Set(['quiz', 'boss', 'practice-quiz', 'practice-boss', 'fill-blank', 'listen-pick', 'fruit-slice', 'candy-match', 'slingshot', 'reading', 'reading-en']);
+const KEY_GAMES = new Set(['fishing', 'quiz', 'boss', 'practice-quiz', 'practice-boss', 'fill-blank', 'listen-pick', 'fruit-slice', 'candy-match', 'slingshot', 'reading', 'reading-en']);
 // trò phải chọn/gõ rồi bấm Enter để nộp
 const ENTER_GAMES = new Set(['type-answer', 'multi-pick', 'type-text', 'multi-text']);
 
@@ -71,21 +71,21 @@ try {
     await page.goto(base + '/#/privacy'); await page.waitForTimeout(500); await check('privacy');
     // cửa hàng: các thẻ Ngày lễ / Combo / lọc chủ đề, thử cả bộ; tủ đồ: thẻ Combo
     await page.goto(base + '/#/shop'); await page.waitForTimeout(700);
-    for (const label of ['Combo', 'Ngày lễ', 'Trang phục']) {
+    for (const label of ['Combo', 'Ngày lễ', 'Sắp mở bán', 'Thú cưng', 'Trang phục']) {
       const tab = page.locator('.side-tab', { hasText: label }).first();
       if (!(await tab.count())) { fails.push(`${name} shop: thiếu thẻ "${label}"`); continue; }
       await tab.click(); await page.waitForTimeout(400);
       if (label !== 'Ngày lễ') { const chip = page.locator('.tag-chips .chip').nth(1); if (await chip.count()) { await chip.click(); await page.waitForTimeout(250); } }
       const card = page.locator('.item-grid .item-card').first();
       if (await card.count()) { await card.click(); await page.waitForTimeout(250); }
-      else if (label !== 'Ngày lễ') fails.push(`${name} shop ${label}: không có món nào`);
+      else if (label !== 'Ngày lễ' && label !== 'Sắp mở bán') fails.push(`${name} shop ${label}: không có món nào`);
       await check(`shop-${label}`);
     }
     // trò chơi cùng bot: vào ván, thao tác vài bước
     for (const g of ['cards', 'ludo', 'werewolf']) {
       await page.goto(`${base}/#/board/${g}?r=${Date.now()}`); await page.waitForTimeout(600);
       await page.locator('.bg-setup .btn-orange').click(); await page.waitForTimeout(700);
-      if (g === 'cards') { const c = page.locator('.hand .pcard.lift').first(); if (await c.count()) await c.click(); else await page.locator('.cards-pile .pcard').click(); await page.waitForTimeout(400); const col = page.locator('.color-pick button').first(); if (await col.count()) await col.click(); await page.waitForTimeout(2600); if (!(await page.locator('.hand .pcard').count())) fails.push(`${name} board-cards: không thấy bài trên tay`); }
+      if (g === 'cards') { const quiz = async () => { for (let k = 0; k < 3; k++) { const o = page.locator('.lq-opt:not([disabled])').first(); if (!(await o.count())) break; await o.click(); await page.waitForTimeout(1800); } }; await quiz(); const c = page.locator('.hand .pcard.lift').first(); if (await c.count()) await c.click({ timeout: 4000 }).catch(() => undefined); else await page.locator('.cards-pile .pcard').click({ timeout: 4000 }).catch(() => undefined); await page.waitForTimeout(400); await quiz(); const col = page.locator('.color-pick button').first(); if (await col.count()) await col.click(); await page.waitForTimeout(2600); if (!(await page.locator('.hand .pcard').count())) fails.push(`${name} board-cards: không thấy bài trên tay`); }
       if (g === 'ludo') { await page.locator('.dice-btn').click(); await page.waitForTimeout(1500); if (!(await page.locator('.horse').count())) fails.push(`${name} board-ludo: không thấy ngựa`); }
       if (g === 'werewolf') {
         await page.locator('.ww-actions .btn').first().click(); await page.waitForTimeout(500);
@@ -107,7 +107,7 @@ try {
         const ok = await page.locator('.play-main').count();
         if (!ok) { fails.push(`${name} ${game}: không vào được màn chơi`); continue; }
         if (KEY_GAMES.has(game)) {
-          await page.keyboard.press('1'); await page.waitForTimeout(game === 'fruit-slice' || game === 'slingshot' ? 1000 : 500);
+          await page.keyboard.press('1'); await page.waitForTimeout(['fruit-slice', 'slingshot', 'fishing'].includes(game) ? 1200 : 500);
           if (!(await page.locator('.feedback').count())) fails.push(`${name} ${game}: chọn đáp án bằng phím 1 không có phản hồi`);
         } else if (ENTER_GAMES.has(game)) {
           await page.keyboard.press('1'); await page.waitForTimeout(250); await page.keyboard.press('Enter'); await page.waitForTimeout(500);

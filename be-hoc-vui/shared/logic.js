@@ -66,6 +66,30 @@ export function normAnswer(s) {
  */
 export function gradeRound(round, given) {
   switch (round.kind) {
+    // ---- dạng mới ----
+    case 'numberline': {
+      const g = Number(given);
+      if (!Number.isFinite(g)) return 0;
+      return Math.abs(g - round.target) <= (round.tol ?? 0) + 1e-9 ? 1 : 0;
+    }
+    case 'balance':
+      return Number(given) === round.answer ? 1 : 0;
+    case 'fraction':
+      return Number(given) === round.need ? 1 : 0;
+    case 'money': {
+      if (!Array.isArray(given) || given.length > 20) return 0;
+      const notes = new Set(round.notes);
+      if (!given.every((v) => notes.has(Number(v)))) return 0;
+      return given.reduce((a, v) => a + Number(v), 0) === round.target ? 1 : 0;
+    }
+    case 'spot':
+      return Number(given) === round.answer ? 1 : 0;
+    case 'sentence': {
+      if (!Array.isArray(given) || given.length !== round.words.length) return 0;
+      const byId = new Map(round.words.map((t) => [t.id, t.w]));
+      if (new Set(given).size !== given.length || !given.every((id) => byId.has(id))) return 0;
+      return norm(given.map((id) => byId.get(id)).join(' ')) === norm(round.answer) ? 1 : 0;
+    }
     case 'mc':
       return Number(given) === round.answer ? 1 : 0;
     case 'tf':
@@ -204,6 +228,13 @@ export const GAME_ROUNDS = {
   'multi-pick': 5,
   reading: 5,
   boss: 10,
+  'number-line': 6,
+  balance: 6,
+  pizza: 6,
+  market: 5,
+  'spot-mistake': 6,
+  sentence: 5,
+  fishing: 8,
 };
 
 /** Dạng câu hỏi mà mỗi game dùng. */
@@ -228,4 +259,11 @@ export const GAME_KIND = {
   'multi-pick': 'multi',
   reading: 'mc',
   boss: 'mc',
+  'number-line': 'numberline',
+  balance: 'balance',
+  pizza: 'fraction',
+  market: 'money',
+  'spot-mistake': 'spot',
+  sentence: 'sentence',
+  fishing: 'mc',
 };

@@ -148,3 +148,44 @@ test('phòng thi đố: chấm trên máy chủ, giấu đáp án, ai nhiều đ
   assert.deepEqual(res.map((x) => x.won).sort(), [false, true]);
   assert.throws(() => R.actRoom(na, room.id, { type: 'answer', q: 0, choice: 0 }), { code: 'GAME_OVER' });
 });
+
+test('tặng quà: chỉ cho bạn bè/anh chị em, người tặng trả xu, tối đa 3 quà/ngày, đồ lễ chỉ tặng đúng đợt', async (t) => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-25T03:00:00Z').getTime() });
+  const db = await openDb({ file: ':memory:' });
+  const na = await family(db, 'Na'), bin = await family(db, 'Bin'), su = await family(db, 'Su');
+  await db.prepare('UPDATE children SET coins = 2000 WHERE id = ?').run(na.id);
+  await assert.rejects(S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'outfit:witch' }), { code: 'NOT_FRIENDS' });
+  await S.requestFriend(db, na, { code: await S.friendCode(db, bin.id) });
+  await S.respondFriend(db, bin, na.id, true);
+  const before = (await fresh(db, na)).coins;
+  const r = await S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'outfit:witch', note: 'Tặng Bin nè! gọi 0912345678' });
+  assert.equal(before - (await fresh(db, na)).coins, r.paid, 'người tặng trả xu');
+  assert.ok(JSON.parse((await fresh(db, bin)).owned).includes('outfit:witch'), 'món vào tủ đồ của bạn');
+  assert.ok(!JSON.parse((await fresh(db, na)).owned).includes('outfit:witch'), 'người tặng không nhận món');
+  await assert.rejects(S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'outfit:witch' }), { code: 'FRIEND_HAS_IT' });
+  await assert.rejects(S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'outfit:gingerbread' }), { code: 'NOT_IN_SEASON' }, 'đồ Giáng sinh chưa tới đợt');
+  await assert.rejects(S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'outfit:dress' }), { code: 'ITEM_NOT_FOUND' }, 'đồ miễn phí không tặng');
+  const inbox = await S.giftInbox(db, await fresh(db, bin));
+  assert.equal(inbox.unopened, 1); assert.equal(inbox.gifts[0].item, 'outfit:witch'); assert.equal(inbox.gifts[0].from, 'Na');
+  assert.ok(!inbox.gifts[0].note.includes('345'), 'lời chúc được lọc');
+  assert.equal((await S.summary(db, await fresh(db, bin))).gifts, 1);
+  await S.openGift(db, await fresh(db, bin), inbox.gifts[0].id);
+  assert.equal((await S.giftInbox(db, await fresh(db, bin))).unopened, 0);
+  // giới hạn 3 quà mỗi ngày
+  await S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'pet:cat' });
+  await S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'outfit:skeleton' });
+  await assert.rejects(S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'hold:broom' }), { code: 'GIFT_LIMIT' });
+  t.mock.timers.setTime(new Date('2026-10-26T03:00:00Z').getTime());
+  await S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'hold:broom' });
+  // anh chị em cùng nhà tặng nhau được dù chưa kết bạn
+  const sib = await G.createChild(db, na.parent_id, { nickname: 'Em', grade: 1 });
+  await S.sendGift(db, await fresh(db, na), { to: sib.id, itemId: 'hold:teddy' });
+  // phụ huynh tắt tặng quà; thiếu xu; bị chặn
+  await db.prepare('UPDATE children SET settings = ? WHERE id = ?').run(JSON.stringify({ ...JSON.parse(su.settings), gifts: false }), su.id);
+  await assert.rejects(S.sendGift(db, await fresh(db, su), { to: na.id, itemId: 'hold:teddy' }), { code: 'GIFTS_OFF' });
+  await db.prepare('UPDATE children SET coins = 0 WHERE id = ?').run(na.id);
+  await assert.rejects(S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'acc:crown' }), { code: 'NOT_ENOUGH_COINS' });
+  assert.ok(!JSON.parse((await fresh(db, bin)).owned).includes('acc:crown'), 'thiếu xu thì bạn không nhận được món');
+  await S.block(db, bin, na.id, true);
+  await assert.rejects(S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'acc:crown' }), { code: 'NOT_FRIENDS' });
+});

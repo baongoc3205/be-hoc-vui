@@ -42,7 +42,7 @@ export function Profiles() {
   );
 }
 
-const STARTER_LOOKS: Partial<Look>[] = [
+const GIRL_LOOKS: Partial<Look>[] = [
   { ears: 'cat', hair: 'bob', hairColor: '#6B4A3A', outfit: 'dress', outfitColor: '#B8C98A' },
   { ears: 'cat', hair: 'twin', hairColor: '#2F2A2E', outfit: 'dress', outfitColor: '#F0B48E' },
   { ears: 'none', hair: 'bob', hairColor: '#2F2A2E', outfit: 'overall', outfitColor: '#B8C98A' },
@@ -50,8 +50,16 @@ const STARTER_LOOKS: Partial<Look>[] = [
   { ears: 'none', hair: 'bob', hairColor: '#2F2A2E', outfit: 'school', outfitColor: '#B8C98A', shoes: 'sneakers', hold: 'pencil' },
   { ears: 'cat', hair: 'bob', hairColor: '#6B4A3A', outfit: 'school', outfitColor: '#F0B48E', shoes: 'maryjane', hold: 'pencil' },
 ];
+const BOY_LOOKS: Partial<Look>[] = [
+  { ears: 'none', hair: 'crew', hairColor: '#2F2A2E', outfit: 'shirtshorts', outfitColor: '#F0B48E', shoes: 'sneakers' },
+  { ears: 'none', hair: 'crew', hairColor: '#6B4A3A', outfit: 'shirtshorts', outfitColor: '#B8C98A', shoes: 'sneakers' },
+  { ears: 'cat', hair: 'crew', hairColor: '#2F2A2E', outfit: 'overall', outfitColor: '#B8C98A', shoes: 'sneakers' },
+  { ears: 'none', hair: 'crew', hairColor: '#6B4A3A', outfit: 'overall', outfitColor: '#F0B48E', shoes: 'sneakers' },
+  { ears: 'none', hair: 'crew', hairColor: '#2F2A2E', outfit: 'school', outfitColor: '#B8C98A', shoes: 'sneakers', hold: 'pencil' },
+  { ears: 'none', hair: 'bob', hairColor: '#2F2A2E', outfit: 'shirtshorts', outfitColor: '#F0B48E', shoes: 'sneakers', hold: 'pencil' },
+];
 const SKINS = ['#F7D9C4', '#F1C9A8', '#E2AE88', '#C98D68', '#A8704F'];
-const BASE: Look = { skin: '#F7D9C4', hair: 'bob', hairColor: '#6B4A3A', ears: 'cat', outfit: 'dress', outfitColor: '#B8C98A', acc: 'none', shoes: 'maryjane', hold: 'none', scene: 'meadow' };
+const BASE: Look = { skin: '#F7D9C4', hair: 'bob', hairColor: '#6B4A3A', ears: 'cat', outfit: 'dress', outfitColor: '#B8C98A', acc: 'none', shoes: 'maryjane', hold: 'none', scene: 'meadow', gender: 'girl', pet: 'chick' };
 
 export function Onboarding() {
   const T = useT();
@@ -107,9 +115,17 @@ export function Onboarding() {
             )}
             {step === 3 && (
               <>
+                <div className="section-title">{T.t('obGender')}</div>
+                <div className="gender-pick">
+                  {(['girl', 'boy'] as const).map((g) => (
+                    <button key={g} type="button" className={`gender-btn ${look.gender === g ? 'on' : ''}`} onClick={() => { sfx.tap(); setLook({ ...look, gender: g, ...(g === 'boy' ? BOY_LOOKS : GIRL_LOOKS)[0], acc: 'none', hold: 'none' }); }}>
+                      <span aria-hidden>{g === 'boy' ? '👦' : '👧'}</span>{T.t(g === 'boy' ? 'boy' : 'girl')}
+                    </button>
+                  ))}
+                </div>
                 <div className="section-title">{T.t('obLook')}</div>
                 <div className="chips">
-                  {STARTER_LOOKS.map((l, i) => (
+                  {(look.gender === 'boy' ? BOY_LOOKS : GIRL_LOOKS).map((l, i) => (
                     <button key={i} type="button" className="item-card" style={{ width: 110 }} onClick={() => { sfx.tap(); setLook({ ...look, ...l }); }}>
                       <div className="thumb"><Chibi look={{ ...look, ...l }} size={120} /></div>
                     </button>
@@ -118,6 +134,12 @@ export function Onboarding() {
                 <div className="section-title">{T.t('slot_skin')}</div>
                 <div className="swatches">
                   {SKINS.map((s) => <button key={s} type="button" aria-label={s} className={`swatch ${look.skin === s ? 'on' : ''}`} style={{ background: s }} onClick={() => { sfx.tap(); setLook({ ...look, skin: s }); }} />)}
+                </div>
+                <div className="section-title">{T.t('obPet')}</div>
+                <div className="gender-pick">
+                  {['chick', 'none'].map((pk) => (
+                    <button key={pk} type="button" className={`gender-btn ${look.pet === pk ? 'on' : ''}`} onClick={() => { sfx.tap(); setLook({ ...look, pet: pk }); }}>{pk === 'chick' ? <><span aria-hidden>🐥</span>{T.t('obPetChick')}</> : T.t('obPetNone')}</button>
+                  ))}
                 </div>
                 <div className="form-error">{err}</div>
                 <Btn tone="lime" wide disabled={busy} onClick={finish}>{T.t('obDone')}</Btn>

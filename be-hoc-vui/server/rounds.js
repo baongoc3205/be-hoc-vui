@@ -62,6 +62,22 @@ function toRound(rnd, item, idx, game, grade = 3) {
     }
     case 'clock':
       return { ...base, h: item.h, m: item.m };
+    case 'numberline':
+      return { ...base, min: item.min, max: item.max, step: item.step, target: item.target, tol: item.tol ?? 0, labels: item.labels ?? [item.min, item.max] };
+    case 'balance':
+      return { ...base, op: item.op, left: item.left, right: item.right, answer: item.answer, weights: shuffle(rnd, item.weights) };
+    case 'fraction':
+      return { ...base, parts: item.parts, need: item.need };
+    case 'money':
+      return { ...base, target: item.target, notes: item.notes, goods: item.goods };
+    case 'spot':
+      return { ...base, spot: item.spot, answer: item.answer, fix: item.fix ?? null };
+    case 'sentence': {
+      const ws = item.answer.split(' ');
+      let order = shuffle(rnd, ws.map((_, i) => i));
+      if (ws.length > 1 && order.every((v, i) => v === i)) order = [...order.slice(1), order[0]];
+      return { ...base, answer: item.answer, words: order.map((i) => ({ id: `w${i}`, w: ws[i] })) };
+    }
     case 'classify':
       return { ...base, items: shuffle(rnd, item.items) };
     case 'trace':

@@ -212,6 +212,13 @@ export function SkillTile({ kind, size = 72, round = true, children }: { kind: s
 
 /** Icon game hiển thị trong ô (dùng glyph trắng lớn). */
 const GAME_GLYPH: Record<string, ReactNode> = {
+  'number-line': <g fill="#fff"><rect x="10" y="52" width="72" height="6" rx="3" />{[18, 34, 50, 66].map((x) => <rect key={x} x={x - 2} y="44" width="4" height="22" rx="2" />)}<path d="M50 40l-9-16h18z" /></g>,
+  balance: <g fill="#fff"><rect x="43" y="22" width="6" height="50" rx="3" /><rect x="14" y="26" width="64" height="6" rx="3" /><path d="M8 52l12-20 12 20zM60 52l12-20 12 20z" opacity=".9" /><rect x="30" y="70" width="32" height="6" rx="3" /></g>,
+  pizza: <g><circle cx="46" cy="46" r="30" fill="#fff" /><path d="M46 46V16a30 30 0 0 1 26 15z" fill="#F27B6E" /><path d="M46 46L72 31a30 30 0 0 1 0 30z" fill="#F27B6E" opacity=".75" /><circle cx="36" cy="56" r="4" fill="#E2B57A" /><circle cx="54" cy="62" r="3" fill="#E2B57A" /></g>,
+  market: <g fill="#fff"><path d="M14 30h64l-6 32H22z" /><circle cx="28" cy="72" r="5" /><circle cx="64" cy="72" r="5" /><path d="M8 22h10l4 8" stroke="#fff" strokeWidth="5" fill="none" strokeLinecap="round" /><text x="46" y="54" textAnchor="middle" fontFamily="Baloo 2, sans-serif" fontWeight="800" fontSize="20" fill="#B49BC4">đ</text></g>,
+  'spot-mistake': <g><circle cx="40" cy="40" r="20" fill="none" stroke="#fff" strokeWidth="7" /><path d="M54 54l18 18" stroke="#fff" strokeWidth="9" strokeLinecap="round" /><path d="M33 33l14 14M47 33L33 47" stroke="#fff" strokeWidth="5" strokeLinecap="round" /></g>,
+  sentence: <g fill="#fff"><rect x="10" y="26" width="30" height="16" rx="5" /><rect x="46" y="26" width="36" height="16" rx="5" opacity=".8" /><rect x="18" y="50" width="40" height="16" rx="5" opacity=".9" /><rect x="62" y="50" width="20" height="16" rx="5" /></g>,
+  fishing: <g><path d="M24 14v28c0 8 12 8 12 0" stroke="#fff" strokeWidth="5" fill="none" strokeLinecap="round" /><path d="M74 58c0-10-12-16-24-16s-22 6-22 16 10 16 22 16 24-6 24-16z" fill="#fff" /><path d="M72 58l14-12v24z" fill="#fff" /><circle cx="40" cy="54" r="3.5" fill="#9FC3DD" /></g>,
   quiz: <text x="46" y="62" textAnchor="middle" fontFamily="Baloo 2, sans-serif" fontWeight="800" fontSize="48" fill="#fff">?</text>,
   'true-false': <g stroke="#fff" strokeWidth="8" strokeLinecap="round" fill="none"><path d="M18 46l9 9 15-18" /><path d="M54 34l20 20M74 34L54 54" /></g>,
   'balloon-pop': <g fill="#fff"><ellipse cx="38" cy="38" rx="14" ry="17" /><ellipse cx="58" cy="44" rx="12" ry="15" opacity=".8" /><path d="M38 55l-2 20M58 59l2 16" stroke="#fff" strokeWidth="2" /></g>,

@@ -7,13 +7,14 @@ import { Btn, Dialog, Panel, SideTabs, TopBar } from '../ui/kit';
 import { Scene, type SceneName } from '../ui/Scene';
 import { Chibi } from '../ui/Chibi';
 import { CoinIcon } from '../ui/Icons';
-import { ComboCard, ItemCard, SLOTS, TagChips, comboHave, comboLook } from '../ui/ShopCards';
+import { ComboCard, ItemCard, ItemThumb, SLOTS, TagChips, comboHave, comboLook, type LimitInfo } from '../ui/ShopCards';
 import { errText } from './Auth';
+import { GiftDialog, giftTarget, setGiftTarget } from '../ui/Gifts';
 import { sfx } from '../lib/sfx';
 import { burstAt } from '../lib/fx';
-import { COMBO_DISCOUNT, EVENT_DISCOUNT, comboPrice, itemPrice } from '../../../shared/shop.js';
+import { COMBO_DISCOUNT, EVENT_DISCOUNT, comboPrice, daysBetween, forSale, itemPrice, saleWindow } from '../../../shared/shop.js';
 
-type Tab = keyof Look | 'event' | 'combo';
+type Tab = keyof Look | 'event' | 'soon' | 'combo';
 type Sel = { kind: 'item'; id: string } | { kind: 'combo'; id: string } | null;
 const dm = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
 const pct = (x: number) => Math.round(x * 100);
@@ -29,9 +30,27 @@ export function Shop() {
   const [tryOn, setTryOn] = useState<Look>(cs.child.look);
   const [sel, setSel] = useState<Sel>(null);
   const [ask, setAsk] = useState<Sel>(null);
+  const [gift, setGift] = useState<ShopItem | null>(null);
+  const [gt, setGt] = useState(giftTarget());
   const byId = useMemo(() => new Map(catalog.shop.map((i) => [i.id, i])), [catalog]);
   const tags = useMemo(() => new Map((catalog.collections ?? []).map((c) => [c.id, c])), [catalog]);
   const combos = catalog.combos ?? [];
+  const today = cs.events?.today ?? new Date().toISOString().slice(0, 10);
+  // hàng giới hạn: đang mở bán thì đếm ngày còn lại, chưa tới đợt thì báo ngày mở bán
+  const limitOf = (e: { limited?: boolean; tag?: string } | undefined): LimitInfo | null => {
+    if (!e?.limited || !e.tag) return null;
+    const w = saleWindow(e.tag, today);
+    if (!w) return { open: false, text: T.t('limitedLocked') };
+    if (w.open) { const n = daysBetween(today, w.end); return { open: true, text: n <= 0 ? T.t('limitedLastDay') : T.t('limitedLeft', { n: n + 1 }) }; }
+    const n = daysBetween(today, w.start);
+    return { open: false, text: n === 1 ? T.t('limitedTomorrow') : n <= 30 ? T.t('limitedOpensIn', { n }) : T.t('limitedOpensOn', { date: dm(w.start) }) };
+  };
+  const comboOpen = (c: Combo) => forSale(c, events) && c.items.every((i) => cs.owned.includes(i) || forSale(byId.get(i), events));
+  // các đợt hàng giới hạn sắp mở, theo ngày gần nhất
+  const soon = useMemo(() => {
+    const tagsLim = [...new Set([...catalog.shop.filter((i) => i.limited).map((i) => i.tag!), ...combos.filter((c) => c.limited).map((c) => c.tag)])];
+    return tagsLim.map((t) => ({ tag: t, w: saleWindow(t, today) })).filter((x) => x.w && !x.w.open).sort((a, b) => (a.w!.start < b.w!.start ? -1 : 1));
+  }, [catalog, combos, today]);
 
   const priceOfCombo = (c: Combo) => {
     const items = c.items.map((i) => byId.get(i)).filter((x): x is ShopItem => !!x);
@@ -47,10 +66,10 @@ export function Shop() {
   const pickCombo = (c: Combo) => { sfx.tap(); setTryOn({ ...tryOn, ...comboLook(c, byId) }); setSel({ kind: 'combo', id: c.id }); };
 
   const itemCards = (list: ShopItem[]) => list.map((it) => (
-    <ItemCard key={it.id} item={it} look={tryOn} on={tryOn[it.slot] === it.value} owned={cs.owned.includes(it.id)} price={itemPrice(it, events)} tag={it.tag ? tags.get(it.tag) : undefined} onClick={() => pickItem(it)} />
+    <ItemCard key={it.id} item={it} look={tryOn} on={tryOn[it.slot] === it.value} owned={cs.owned.includes(it.id)} price={itemPrice(it, events)} tag={it.tag ? tags.get(it.tag) : undefined} limit={limitOf(it)} onClick={() => pickItem(it)} />
   ));
   const comboCards = (list: Combo[]) => list.map((c) => { const p = priceOfCombo(c); return (
-    <ComboCard key={c.id} combo={c} base={cs.child.look} byId={byId} owned={cs.owned} price={p.price} full={p.raw} on={sel?.kind === 'combo' && sel.id === c.id} tag={tags.get(c.tag)} onClick={() => pickCombo(c)} />
+    <ComboCard key={c.id} combo={c} base={cs.child.look} byId={byId} owned={cs.owned} price={p.price} full={p.raw} on={sel?.kind === 'combo' && sel.id === c.id} tag={tags.get(c.tag)} limit={limitOf(c)} locked={!comboOpen(c)} onClick={() => pickCombo(c)} />
   ); });
 
   // nút mua theo lựa chọn hiện tại
@@ -59,13 +78,17 @@ export function Shop() {
     if (sel.kind === 'combo') {
       const c = combos.find((x) => x.id === sel.id); if (!c) return null;
       const p = priceOfCombo(c); if (!p.missing.length) return null;
+      if (!comboOpen(c)) return { label: T.t('limitedLocked'), price: p.price, locked: true };
       return { label: T.t('buyCombo', { price: p.price }), price: p.price };
     }
-    const it = byId.get(sel.id); if (!it || cs.owned.includes(it.id) || tryOn[it.slot] !== it.value) return null;
+    const it = byId.get(sel.id); if (!it || cs.owned.includes(it.id) || (tryOn as unknown as Record<string, unknown>)[it.slot] !== it.value) return null;
     const price = itemPrice(it, events);
+    if (!forSale(it, events)) return { label: T.t('limitedLocked'), price, locked: true };
     return { label: `${T.t('buy')} ${price}`, price };
   })();
 
+  // món đang chọn có tặng bạn được không (món lẻ có giá, đang mở bán)
+  const giftable = (() => { if (sel?.kind !== 'item') return null; const it = byId.get(sel.id); return it && it.price > 0 && forSale(it, events) ? it : null; })();
   const doBuy = async (el: HTMLElement) => {
     const a = ask; setAsk(null);
     if (!a) return;
@@ -102,10 +125,11 @@ export function Shop() {
   const askCombo = ask?.kind === 'combo' ? combos.find((c) => c.id === ask.id) : null;
   const tabs = [
     { key: 'event' as Tab, label: T.t('tabEvent'), badge: events.some((e) => !e.claimed) },
+    ...(soon.length ? [{ key: 'soon' as Tab, label: T.t('tabSoon') }] : []),
     { key: 'combo' as Tab, label: T.t('tabCombo') },
     ...SLOTS.map((s) => ({ key: s as Tab, label: T.t(`slot_${s}` as 'slot_hair') })),
   ];
-  const head = tab === 'event' ? `🎉 ${T.t('tabEvent')}` : tab === 'combo' ? T.t('comboTitle') : T.t(`slot_${tab}` as 'slot_hair');
+  const head = tab === 'event' ? `🎉 ${T.t('tabEvent')}` : tab === 'soon' ? `🔒 ${T.t('tabSoon')}` : tab === 'combo' ? T.t('comboTitle') : T.t(`slot_${tab}` as 'slot_hair');
 
   return (
     <div className="screen">
@@ -122,8 +146,8 @@ export function Shop() {
                 {cs.events?.next && <p className="shop-note small">{cs.events.next.icon} {T.t('eventNext', { name: T.tx(cs.events.next.name), date: dm(cs.events.next.start) })}</p>}
                 {events.map((ev) => {
                   const theme = tags.get(ev.tag);
-                  const evCombos = combos.filter((c) => c.tag === ev.tag);
-                  const evItems = catalog.shop.filter((i) => i.tag === ev.tag && i.price > 0).sort((a, b) => a.price - b.price);
+                  const evCombos = combos.filter((c) => c.tag === ev.tag).sort((a, b) => Number(!a.limited) - Number(!b.limited));
+                  const evItems = catalog.shop.filter((i) => i.tag === ev.tag && i.price > 0).sort((a, b) => Number(!a.limited) - Number(!b.limited) || a.price - b.price);
                   const gift = byId.get(ev.gift);
                   return (
                     <section key={ev.id} className="event-block">
@@ -144,28 +168,56 @@ export function Shop() {
                   );
                 })}
               </>)}
+              {tab === 'soon' && (<>
+                <p className="shop-note small">{T.t('limitedNote')}</p>
+                {soon.map(({ tag: t, w }) => {
+                  const theme = tags.get(t);
+                  return (
+                    <section key={t} className="soon-group event-block">
+                      <div className="soon-head"><span className="event-ico" aria-hidden>{theme?.icon}</span><div><b>{theme ? T.tx(theme.name) : t}</b><small>{limitOf({ limited: true, tag: t })?.text} · {dm(w!.start)}–{dm(w!.end)}</small></div></div>
+                      <div className="item-grid">{comboCards(combos.filter((c) => c.limited && c.tag === t))}{itemCards(catalog.shop.filter((i) => i.limited && i.tag === t))}</div>
+                    </section>
+                  );
+                })}
+              </>)}
               {tab === 'combo' && (<>
                 <p className="shop-note small">{T.t('comboHint', { pct: pct(COMBO_DISCOUNT) })}</p>
                 <TagChips tags={comboTags} value={tag} onChange={setTag} />
-                <div className="item-grid">{comboCards(combos.filter((c) => tag === 'all' || c.tag === tag).sort((a, b) => Number(comboHave(a, byId, cs.owned).complete) - Number(comboHave(b, byId, cs.owned).complete)))}</div>
+                <div className="item-grid">{comboCards(combos.filter((c) => tag === 'all' || c.tag === tag).sort((a, b) => Number(comboHave(a, byId, cs.owned).complete) - Number(comboHave(b, byId, cs.owned).complete) || Number(!comboOpen(a)) - Number(!comboOpen(b))))}</div>
               </>)}
               {SLOTS.includes(tab as keyof Look) && (<>
                 <TagChips tags={slotTags} value={tag} onChange={setTag} />
                 <div className="item-grid">{itemCards(slotItems.filter((i) => tag === 'all' || i.tag === tag))}</div>
               </>)}
+              {gt && <div className="gift-target"><span>🎁 {T.lang === 'en' ? `Pick an item to give ${gt.nickname}` : `Chọn món để tặng ${gt.nickname}`}</span><button type="button" className="chip" onClick={() => { setGiftTarget(null); setGt(null); }}>✕</button></div>}
               <div className="panel-actions">
                 <Btn tone="gray" onClick={() => { setTryOn(cs.child.look); setSel(null); }}>{T.t('cancel')}</Btn>
-                <Btn tone="orange" disabled={!buyInfo} icon={<CoinIcon size={26} />} onClick={() => buyInfo && setAsk(sel)}>{buyInfo ? buyInfo.label : T.t('buy')}</Btn>
+                {giftable && <Btn tone="cream" className="btn-gift" aria-label={T.lang === 'en' ? 'Gift' : 'Tặng bạn'} onClick={() => setGift(giftable)}>🎁<span className="lbl"> {T.lang === 'en' ? 'Gift' : 'Tặng bạn'}</span></Btn>}
+                <Btn tone="orange" disabled={!buyInfo || !!buyInfo.locked} icon={<CoinIcon size={26} />} onClick={() => buyInfo && setAsk(sel)}>{buyInfo ? buyInfo.label : T.t('buy')}</Btn>
               </div>
             </Panel>
           </div>
         </div>
       </div>
+      {gift && <GiftDialog item={gift} price={itemPrice(gift, events)} onClose={() => { setGift(null); setGt(giftTarget()); }} />}
       {ask && (
-        <Dialog title={T.t('notice')} onClose={() => setAsk(null)}
+        <Dialog title={T.lang === 'en' ? 'Buy this?' : 'Mua món này nhé?'} icon="bag" onClose={() => setAsk(null)}
           actions={<><Btn tone="gray" icon={<span>✕</span>} onClick={() => setAsk(null)}>{T.t('cancel')}</Btn><Btn tone="orange" icon={<span>◯</span>} onClick={(e) => doBuy(e.currentTarget)}>{T.t('confirm')}</Btn></>}>
-          {askCombo ? (() => { const p = priceOfCombo(askCombo); return T.t('comboAsk', { name: T.tx(askCombo.name), n: p.missing.length, price: p.price }); })()
-            : askItem ? T.t('buyAsk', { name: T.tx(askItem.name), price: itemPrice(askItem, events) }) : null}
+          {(() => {
+            const price = askCombo ? priceOfCombo(askCombo).price : askItem ? itemPrice(askItem, events) : 0;
+            const name = askCombo ? T.tx(askCombo.name) : askItem ? T.tx(askItem.name) : '';
+            return (
+              <div className="buy-ask">
+                <div className="buy-thumb">{askCombo ? <div className="thumb full"><Chibi look={{ ...cs.child.look, ...comboLook(askCombo, byId) }} size={88} /></div> : askItem ? <ItemThumb item={askItem} look={tryOn} /> : null}</div>
+                <div className="buy-info">
+                  <b>{name}</b>
+                  {askCombo && <small>{T.t('comboHave', { a: comboHave(askCombo, byId, cs.owned).have, b: askCombo.items.length })}</small>}
+                  <span className="buy-price"><CoinIcon size={22} /> {price}</span>
+                  <small className={cs.coins < price ? 'buy-left bad' : 'buy-left'}>{cs.coins < price ? (T.lang === 'en' ? `You need ${price - cs.coins} more coins` : `Bé còn thiếu ${price - cs.coins} xu, học thêm để kiếm xu nhé!`) : (T.lang === 'en' ? `You have ${cs.coins} → ${cs.coins - price} after` : `Bé có ${cs.coins} xu → còn ${cs.coins - price} xu`)}</small>
+                </div>
+              </div>
+            );
+          })()}
         </Dialog>
       )}
     </div>

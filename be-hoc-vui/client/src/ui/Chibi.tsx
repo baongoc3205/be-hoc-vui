@@ -30,21 +30,88 @@ const SPLATS: [number, number, number, string][] = [[96, 214, 7, '#E86A4A'], [14
 const CONFETTI: [number, number, number, string][] = [[94, 196, 20, '#F27B8E'], [146, 200, -30, '#9FC3DD'], [104, 214, 45, '#F2C14B'], [136, 220, 10, '#9DB88A'], [120, 198, -15, '#fff'], [96, 228, 60, '#C2A9D6'], [148, 214, 35, '#F27B8E']];
 // màu tay áo theo trang phục (áo trắng thì tay áo trắng...)
 const WHITE_SLEEVE = ['school', 'chef', 'labcoat', 'sailor', 'doctor', 'karate', 'painter', 'pirate'];
-const SLEEVE: Record<string, string> = { astronaut: '#F1EEEC', firefighter: '#C9473F', santa: '#D9473E', pilot: '#3E4F7A', knight: '#C9CED6', ninja: '#3D3A4B', witch: '#4A3A5E', vampire: '#3B3432', bee: '#3B3432', elf: '#4FA37A', tet: '#D9473E', lion: '#E9B949', pumpkin: '#EE8A3C', snowman: '#F7F5F2', redstar: '#D9473E' };
-const SKIN_SLEEVE = ['swimsuit', 'mermaid'];
-const HATS = ['nonla', 'cap', 'beret', 'witchhat', 'santahat', 'elfhat', 'wizardhat', 'piratehat', 'gradcap', 'pilotcap', 'firehelmet', 'chefhat', 'sunhat', 'khandong', 'lionhead', 'earmuffs'];
+const SLEEVE: Record<string, string> = { robot: '#B8C0CA', explorer: '#D8C08E', scout: '#7E9A5C', suit: '#FBF6F2', skeleton: '#3B3432', gingerbread: '#C07A48', astronaut: '#F1EEEC', firefighter: '#C9473F', santa: '#D9473E', pilot: '#3E4F7A', knight: '#C9CED6', ninja: '#3D3A4B', witch: '#4A3A5E', vampire: '#3B3432', bee: '#3B3432', elf: '#4FA37A', tet: '#D9473E', lion: '#E9B949', pumpkin: '#EE8A3C', snowman: '#F7F5F2', redstar: '#D9473E' };
+const SKIN_SLEEVE = ['swimsuit', 'mermaid', 'basketball'];
+const HATS = ['capback', 'beanie', 'khanxep', 'nonla', 'cap', 'beret', 'witchhat', 'santahat', 'elfhat', 'wizardhat', 'piratehat', 'gradcap', 'pilotcap', 'firehelmet', 'chefhat', 'sunhat', 'khandong', 'lionhead', 'earmuffs'];
 
 export const MASCOTS: Record<string, Look> = {
   mimi: { skin: '#F7D9C4', hair: 'bob', hairColor: '#F1E4D6', ears: 'cat', outfit: 'dress', outfitColor: '#B8C98A', acc: 'flower', scene: 'meadow', shoes: 'maryjane', hold: 'tulip' },
-  bo: { skin: '#F4D3BC', hair: 'spiky', hairColor: '#7A6A60', ears: 'bear', outfit: 'overall', outfitColor: '#9FC3DD', acc: 'glasses', scene: 'meadow', shoes: 'sneakers', hold: 'pencil' },
+  bo: { gender: 'boy', skin: '#F4D3BC', hair: 'spiky', hairColor: '#7A6A60', ears: 'bear', outfit: 'overall', outfitColor: '#9FC3DD', acc: 'glasses', scene: 'meadow', shoes: 'sneakers', hold: 'pencil' },
   mochi: { skin: '#F8DCCB', hair: 'twin', hairColor: '#F3E6D8', ears: 'bunny', outfit: 'aodai', outfitColor: '#F0B48E', acc: 'none', scene: 'meadow', shoes: 'maryjane', hold: 'book' },
-  foxy: { skin: '#F4D3BC', hair: 'spiky', hairColor: '#D9864F', ears: 'fox', outfit: 'hoodie', outfitColor: '#C2A9D6', acc: 'none', scene: 'meadow', shoes: 'sneakers', hold: 'none' },
+  foxy: { gender: 'boy', skin: '#F4D3BC', hair: 'spiky', hairColor: '#D9864F', ears: 'fox', outfit: 'hoodie', outfitColor: '#C2A9D6', acc: 'none', scene: 'meadow', shoes: 'sneakers', hold: 'none' },
   kiwi: { skin: '#F7D9C4', hair: 'bob', hairColor: '#5E4A3A', ears: 'frog', outfit: 'raincoat', outfitColor: '#B8C98A', acc: 'none', scene: 'meadow', shoes: 'rainboots', hold: 'none' },
 };
 
-interface Props { look: Look; mood?: Mood; size?: number; className?: string; flip?: boolean; title?: string }
+// ---------- thú cưng (đứng cạnh chân nhân vật) ----------
+/** Bậc tiến hoá theo điểm thân thiết: 0 = bé xíu, 1 = lớn, 2 = lấp lánh. */
+export const petStage = (xp = 0) => (xp >= 120 ? 2 : xp >= 30 ? 1 : 0);
+export const PET_STAGE_XP = [0, 30, 120];
+type Critter = { fur: string; belly?: string; ears?: 'cat' | 'dog' | 'bunny' | 'round' | 'none'; earC?: string; tail?: 'cat' | 'fox' | 'puff' | 'none'; eye?: string };
+function critter(c: Critter, extra?: ReactElement) {
+  const d = shade(c.fur, -0.18);
+  return (<g>
+    {c.tail === 'cat' && <path d="M14 14c14-2 18-14 12-22" stroke={c.fur} strokeWidth="6" fill="none" strokeLinecap="round" />}
+    {c.tail === 'fox' && <path d="M12 14c18 4 26-10 20-24-10 2-18 12-20 24z" fill={c.fur} />}
+    {c.tail === 'fox' && <path d="M30 -8c-4 2-6 6-6 10 4 0 8-4 8-8z" fill="#FBF6F2" />}
+    {c.tail === 'puff' && <circle cx="16" cy="14" r="6" fill={c.belly ?? '#FBF6F2'} />}
+    <ellipse cx="0" cy="12" rx="17" ry="11" fill={c.fur} />
+    {c.belly && <ellipse cx="0" cy="15" rx="9" ry="7" fill={c.belly} />}
+    <ellipse cx="-9" cy="21" rx="5" ry="3" fill={d} /><ellipse cx="9" cy="21" rx="5" ry="3" fill={d} />
+    {c.ears === 'cat' && <><path d="M-14 -14l2-14 10 8z" fill={c.fur} /><path d="M14 -14l-2-14-10 8z" fill={c.fur} /><path d="M-11 -16l1-7 5 4z" fill="#F4B7C0" /><path d="M11 -16l-1-7-5 4z" fill="#F4B7C0" /></>}
+    {c.ears === 'bunny' && <><ellipse cx="-6" cy="-26" rx="4.5" ry="12" fill={c.fur} /><ellipse cx="6" cy="-26" rx="4.5" ry="12" fill={c.fur} /><ellipse cx="-6" cy="-25" rx="2" ry="8" fill="#F4B7C0" /><ellipse cx="6" cy="-25" rx="2" ry="8" fill="#F4B7C0" /></>}
+    {c.ears === 'round' && <><circle cx="-12" cy="-17" r="5.5" fill={c.earC ?? c.fur} /><circle cx="12" cy="-17" r="5.5" fill={c.earC ?? c.fur} /></>}
+    <circle cx="0" cy="-6" r="16" fill={c.fur} />
+    {c.ears === 'dog' && <><ellipse cx="-15" cy="-4" rx="5" ry="10" fill={c.earC ?? d} transform="rotate(14 -15 -4)" /><ellipse cx="15" cy="-4" rx="5" ry="10" fill={c.earC ?? d} transform="rotate(-14 15 -4)" /></>}
+    {extra}
+    <circle cx="-6" cy="-6" r="3" fill={c.eye ?? '#3B3432'} /><circle cx="6" cy="-6" r="3" fill={c.eye ?? '#3B3432'} />
+    <circle cx="-7" cy="-7.2" r="1.1" fill="#fff" /><circle cx="5" cy="-7.2" r="1.1" fill="#fff" />
+    <ellipse cx="-10" cy="0" rx="3" ry="1.8" fill="#F29A92" opacity=".55" /><ellipse cx="10" cy="0" rx="3" ry="1.8" fill="#F29A92" opacity=".55" />
+  </g>);
+}
+const nose = (c = '#8C4A44') => <path d="M-2 -1h4l-2 2.4z" fill={c} />;
+function petArt(kind: string): ReactElement | null {
+  switch (kind) {
+    case 'chick': return (<g><path d="M-2 -26c2-6 6-6 6 0" stroke="#E9B949" strokeWidth="2.5" fill="none" />
+      <ellipse cx="0" cy="6" rx="18" ry="17" fill="#F6D464" /><ellipse cx="-15" cy="8" rx="5" ry="8" fill="#EBC24B" transform="rotate(20 -15 8)" /><ellipse cx="15" cy="8" rx="5" ry="8" fill="#EBC24B" transform="rotate(-20 15 8)" />
+      <path d="M-4 0h8l-4 5z" fill="#EE8A3C" /><circle cx="-6" cy="-5" r="2.8" fill="#3B3432" /><circle cx="6" cy="-5" r="2.8" fill="#3B3432" /><ellipse cx="-11" cy="2" rx="3" ry="1.8" fill="#F29A92" opacity=".6" /><ellipse cx="11" cy="2" rx="3" ry="1.8" fill="#F29A92" opacity=".6" />
+      <path d="M-6 22v-3M6 22v-3" stroke="#EE8A3C" strokeWidth="3" strokeLinecap="round" /></g>);
+    case 'cat': return critter({ fur: '#F0B48E', belly: '#FBEFE6', ears: 'cat', tail: 'cat' }, <>{nose()}<path d="M-12 -10l-6-1M12 -10l6-1" stroke="#C88A60" strokeWidth="1.5" /></>);
+    case 'blackcat': return critter({ fur: '#4A4248', belly: '#5E5560', ears: 'cat', tail: 'cat', eye: '#E9B949' }, <>{nose('#F4B7C0')}<path d="M-10 -22l10-14 10 14z" fill="#5A4A70" /><rect x="-14" y="-23" width="28" height="4" rx="2" fill="#EE8A3C" /></>);
+    case 'puppy': return critter({ fur: '#E9D2B4', belly: '#FBF6F2', ears: 'dog', earC: '#B07A52', tail: 'cat' }, <><ellipse cx="0" cy="0" rx="6" ry="4" fill="#FBF6F2" />{nose('#3B3432')}<circle cx="8" cy="-12" r="4" fill="#C88A60" opacity=".7" /></>);
+    case 'bunny': return critter({ fur: '#FBF6F2', belly: '#F4E9E2', ears: 'bunny', tail: 'puff' }, nose('#E98AA0'));
+    case 'hamster': return critter({ fur: '#E8A86A', belly: '#FBF1E6', ears: 'round', earC: '#F4B7C0', tail: 'none' }, <><ellipse cx="-9" cy="0" rx="6" ry="5" fill="#FBF1E6" /><ellipse cx="9" cy="0" rx="6" ry="5" fill="#FBF1E6" />{nose()}</>);
+    case 'panda': return critter({ fur: '#FBF6F2', belly: '#FBF6F2', ears: 'round', earC: '#3B3432', tail: 'none' }, <><ellipse cx="-6" cy="-6" rx="5.5" ry="6.5" fill="#3B3432" transform="rotate(-20 -6 -6)" /><ellipse cx="6" cy="-6" rx="5.5" ry="6.5" fill="#3B3432" transform="rotate(20 6 -6)" />{nose('#3B3432')}</>);
+    case 'penguin': return (<g><ellipse cx="0" cy="4" rx="17" ry="20" fill="#4A4F66" /><ellipse cx="0" cy="8" rx="11" ry="14" fill="#FBF6F2" /><ellipse cx="-16" cy="8" rx="4" ry="10" fill="#3B3F52" transform="rotate(16 -16 8)" /><ellipse cx="16" cy="8" rx="4" ry="10" fill="#3B3F52" transform="rotate(-16 16 8)" />
+      <circle cx="-5" cy="-6" r="2.8" fill="#3B3432" /><circle cx="5" cy="-6" r="2.8" fill="#3B3432" /><circle cx="-6" cy="-7" r="1" fill="#fff" /><circle cx="4" cy="-7" r="1" fill="#fff" /><path d="M-4 -2h8l-4 4z" fill="#EE8A3C" /><ellipse cx="-6" cy="23" rx="5" ry="2.5" fill="#EE8A3C" /><ellipse cx="6" cy="23" rx="5" ry="2.5" fill="#EE8A3C" /></g>);
+    case 'fox': return critter({ fur: '#E8884A', belly: '#FBF6F2', ears: 'cat', tail: 'fox' }, <><path d="M-10 0c4 6 16 6 20 0-4-4-16-4-20 0z" fill="#FBF6F2" />{nose('#3B3432')}</>);
+    case 'turtle': return (<g><ellipse cx="-17" cy="8" rx="7" ry="6" fill="#9DB88A" /><ellipse cx="12" cy="20" rx="5" ry="3" fill="#8DA87A" /><ellipse cx="-10" cy="20" rx="5" ry="3" fill="#8DA87A" />
+      <path d="M-14 14c0-20 8-28 20-28s20 8 20 28z" fill="#6E9A55" /><path d="M-4 -6l10 0 5 8-5 8h-10l-5-8z" fill="#8DB86B" /><path d="M-14 14h40" stroke="#5E8A48" strokeWidth="3" />
+      <circle cx="-19" cy="5" r="2.2" fill="#3B3432" /><path d="M-21 11c2 1 4 1 5 0" stroke="#3B3432" strokeWidth="1.2" fill="none" /></g>);
+    case 'dragon': return critter({ fur: '#8FC58A', belly: '#F6D98A', ears: 'none', tail: 'fox' }, <><path d="M-8 -20l-3-9 7 5zM8 -20l3-9-7 5z" fill="#F2C14B" /><path d="M-16 4c-10-6-14-16-10-22 4 6 8 10 12 12zM16 4c10-6 14-16 10-22-4 6-8 10-12 12z" fill="#B7DDB0" />{nose('#5E8A48')}</>);
+    case 'unicorn': return critter({ fur: '#FBF6F2', belly: '#F4E9F2', ears: 'cat', tail: 'fox' }, <><path d="M-4 -20l4-16 4 16z" fill="#F2C14B" /><path d="M-14 -16c-4 6-4 14 0 20M-10 -20c-6 4-8 12-6 18" stroke="#C2A9D6" strokeWidth="4" fill="none" strokeLinecap="round" /><path d="M-12 -18c-2 4 0 8 2 10" stroke="#F4B7C0" strokeWidth="4" fill="none" strokeLinecap="round" />{nose('#E98AA0')}</>);
+    case 'reindeer': return critter({ fur: '#B07A52', belly: '#E9D2B4', ears: 'dog', earC: '#9C6440', tail: 'puff' }, <><path d="M-8 -20l-6-12M-11 -26l-6 0M8 -20l6-12M11 -26l6 0" stroke="#8C5A3A" strokeWidth="3" strokeLinecap="round" /><circle cx="0" cy="0" r="3.5" fill="#E0403A" /></>);
+    case 'kylan': return critter({ fur: '#D9473E', belly: '#F2C14B', ears: 'round', earC: '#F2C14B', tail: 'puff' }, <><path d="M-4 -20l4-10 4 10z" fill="#F2C14B" />{[-16, -10, 10, 16].map((x) => <circle key={x} cx={x} cy={-14 + Math.abs(x) / 3} r="4" fill="#F2C14B" />)}<path d="M-8 2c4 4 12 4 16 0" stroke="#FBF6F2" strokeWidth="2.5" fill="none" /></>);
+    default: return null;
+  }
+}
+export function PetSprite({ kind, xp = 0, size = 80, name }: { kind: string; xp?: number; size?: number; name?: string }) {
+  const st = petStage(xp);
+  return <svg viewBox="-34 -44 68 72" width={size} height={size * 72 / 68} className={`pet-sprite stage-${st}`} role="img" aria-label={name || kind}>{petBody(kind, st)}</svg>;
+}
+function petBody(kind: string, st: number) {
+  const art = petArt(kind); if (!art) return null;
+  return (<g className="pet-bob">
+    <ellipse cx="0" cy="24" rx="16" ry="3.5" fill="#3A2A2A" opacity=".15" />
+    <g transform={`scale(${[0.78, 0.94, 1.04][st]}) translate(0 ${[6, 1, -1][st]})`}>{art}</g>
+    {st === 2 && <g className="pet-sparkle" fill="#F6D464"><path d={star(-22, -24, 4)} /><path d={star(22, -18, 3)} /><path d={star(-18, 6, 2.5)} /></g>}
+    {st === 2 && <path d="M-7 -34l3 6 4-8 4 8 3-6 1 8h-16z" fill="#F2C14B" />}
+  </g>);
+}
 
-export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = false, title }: Props) {
+interface Props { look: Look; mood?: Mood; size?: number; className?: string; flip?: boolean; title?: string; noPet?: boolean }
+
+export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = false, title, noPet = false }: Props) {
+  const boy = look.gender === 'boy';
   const uid = useId().replace(/[:]/g, '');
   const id = (s: string) => `${uid}-${s}`;
   const hair = look.hairColor, hairD = shade(hair, -0.22), hairL = shade(hair, 0.35);
@@ -56,7 +123,7 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
   const sleeve = SKIN_SLEEVE.includes(o) ? `url(#${id('skin')})` : SLEEVE[o] ?? (WHITE_SLEEVE.includes(o) ? '#FBF6F2' : `url(#${id('cloth')})`);
   const hatCovers = HATS.includes(look.acc);
   const noLegs = o === 'mermaid';
-  const legFill = o === 'swimsuit' ? skin : '#ECE3DE';
+  const legFill = o === 'swimsuit' || boy ? skin : '#ECE3DE';
 
   const mouth = (() => {
     switch (mood) {
@@ -131,6 +198,10 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
   // ---------- tóc sau ----------
   const backHair = (() => {
     switch (look.hair) {
+      // ---- tóc ngắn (bé trai) ----
+      case 'crew': case 'sidepart': case 'messy': case 'quiff': case 'fringe': case 'fauxhawk': return <path d="M52 110c-2-48 30-78 68-78s70 30 68 78l-4 12c-8 5-120 5-128 0z" fill={`url(#${id('hair')})`} />;
+      case 'buzz': return <path d="M56 104c0-44 28-70 64-70s64 26 64 70l-4 8c-8 4-112 4-120 0z" fill={`url(#${id('hair')})`} />;
+      case 'curlyshort': return (<g fill={`url(#${id('hair')})`}>{[[56, 104, 18], [62, 76, 20], [86, 54, 22], [120, 44, 24], [154, 54, 22], [178, 76, 20], [184, 104, 18]].map(([x, y, r], k) => <circle key={k} cx={x} cy={y} r={r} />)}</g>);
       case 'long': return <path d="M44 110c-4-56 34-86 76-86s80 30 76 86l4 104c0 14-18 18-30 10-6 8-26 10-50 10s-44-2-50-10c-12 8-30 4-30-10z" fill={`url(#${id('hair')})`} />;
       case 'twin': return (<g>
         <path d="M46 112c-4-54 32-84 74-84s78 30 74 84l-2 40c-10 10-134 10-144 0z" fill={`url(#${id('hair')})`} />
@@ -154,6 +225,15 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
   // ---------- tóc mái ----------
   const bangs = (() => {
     switch (look.hair) {
+      // ---- tóc ngắn (bé trai) ----
+      case 'crew': return <path d="M50 100c0-42 30-68 70-68s70 26 70 68c-6-8-10-16-12-26-16 8-40 11-58 9s-38-4-52-12c-4 11-10 21-18 29z" fill={`url(#${id('hair')})`} />;
+      case 'sidepart': return (<g><path d="M50 104c0-46 30-72 70-72s70 26 70 70c-6-6-10-14-12-24-22 4-52-2-72-18-14 16-32 30-56 44z" fill={`url(#${id('hair')})`} /><path d="M102 38c4 10 12 18 22 24" stroke={hairD} strokeWidth="3" fill="none" strokeLinecap="round" opacity=".8" /></g>);
+      case 'messy': return <path d="M50 104c0-44 30-72 70-72s70 28 70 72l-14-20-4 14-12-22-8 16-12-20-8 16-12-20-8 18-12-18-4 16-10-12z" fill={`url(#${id('hair')})`} />;
+      case 'quiff': return (<g><path d="M50 102c0-40 26-64 60-70 16-16 54-16 70 2-14-2-26 2-32 8 22 6 40 26 42 58-8-12-20-20-34-22-20-4-44-2-62 4-16 4-30 12-44 20z" fill={`url(#${id('hair')})`} /><path d="M118 30c14-8 34-8 46 2" stroke={hairL} strokeWidth="4" fill="none" strokeLinecap="round" opacity=".7" /></g>);
+      case 'buzz': return (<g><path d="M54 96c4-40 32-62 66-62s62 22 66 62c-20-14-42-20-66-20s-46 6-66 20z" fill={`url(#${id('hair')})`} />{[[80, 60], [100, 50], [120, 47], [140, 50], [160, 60], [90, 70], [150, 70]].map(([x, y]) => <circle key={x * y} cx={x} cy={y} r="1.8" fill={hairD} opacity=".6" />)}</g>);
+      case 'curlyshort': return <g fill={`url(#${id('hair')})`}>{[[70, 78, 15], [92, 66, 16], [120, 62, 17], [148, 66, 16], [170, 78, 15]].map(([x, y, r], k) => <circle key={k} cx={x} cy={y} r={r} />)}</g>;
+      case 'fauxhawk': return (<g><path d="M52 98c4-40 32-64 68-64s64 24 68 64c-20-14-44-20-68-20s-48 6-68 20z" fill={`url(#${id('hair')})`} /><path d="M102 74c-2-20 6-40 18-58 12 18 20 38 18 58-12-4-24-4-36 0z" fill={`url(#${id('hair')})`} /><path d="M112 60c2-12 4-22 8-30" stroke={hairL} strokeWidth="3" fill="none" strokeLinecap="round" opacity=".7" /></g>);
+      case 'fringe': return <path d="M48 108c0-48 30-76 72-76s72 26 72 70c-30-2-62-12-86-34-4 22-20 38-44 50-4-2-10-6-14-10z" fill={`url(#${id('hair')})`} />;
       case 'spiky': return <path d="M52 100c2-40 30-66 68-66s66 26 68 66c-10-6-16-18-18-26-6 10-18 16-28 16 2-6 2-12 0-16-8 10-22 14-34 12 2-4 2-10 0-14-8 10-20 18-34 18-4 4-12 8-22 10z" fill={`url(#${id('hair')})`} />;
       case 'curly': return <g fill={`url(#${id('hair')})`}>{[[66, 76, 18], [90, 60, 20], [120, 54, 21], [150, 60, 20], [174, 76, 18]].map(([x, y, r], k) => <circle key={k} cx={x} cy={y} r={r} />)}</g>;
       case 'pixie': return <path d="M50 104c0-44 30-72 70-72s70 26 70 70c-30 0-70-6-100-36-6 18-20 30-40 38z" fill={`url(#${id('hair')})`} />;
@@ -165,6 +245,7 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
   // ---------- phần sau lưng của trang phục (cánh, áo choàng, đuôi) ----------
   const outfitBack = (() => {
     switch (o) {
+      case 'shark': return <path d="M80 206c-16-4-26-16-28-32 14 2 24 10 30 20z" fill={clothD} />;
       case 'fairy': return (<g opacity=".85" fill={clothL} stroke="#fff" strokeWidth="3">
         <ellipse cx="64" cy="174" rx="36" ry="24" transform="rotate(-30 64 174)" /><ellipse cx="176" cy="174" rx="36" ry="24" transform="rotate(30 176 174)" />
         <ellipse cx="74" cy="218" rx="24" ry="15" transform="rotate(20 74 218)" /><ellipse cx="166" cy="218" rx="24" ry="15" transform="rotate(-20 166 218)" /></g>);
@@ -183,6 +264,91 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
   // ---------- trang phục ----------
   const outfit = (() => {
     switch (o) {
+      // ---- trang phục mới (dùng chung, gợi ý cho bé trai) ----
+      case 'shirtshorts': case 'polo': { const polo = o === 'polo'; return (<g>
+        <path d="M84 222h72l4 26c0 4-4 6-8 6h-22l-10-14-10 14H88c-4 0-8-2-8-6z" fill={polo ? '#F3E6D2' : '#5D6E9A'} />
+        <path d="M82 186c0-12 14-18 38-18s38 6 38 18l2 40H80z" fill={`url(#${id('cloth')})`} />
+        {polo ? <><path d="M104 170l16 10 16-10-2 10-14 8-14-8z" fill={clothL} /><rect x="117" y="180" width="6" height="22" rx="2" fill={clothL} /><path d="M80 214h80" stroke={clothD} strokeWidth="5" opacity=".5" /></>
+          : <><path d="M104 170l16 12 16-12-4 12-12 6-12-6z" fill="#FBF6F2" />{[194, 206, 218].map((y) => <circle key={y} cx="120" cy={y} r="2.6" fill="#FBF6F2" />)}<rect x="136" y="190" width="12" height="10" rx="2" fill={clothD} opacity=".5" /></>}
+      </g>); }
+      case 'bomber': return (<g>
+        <path d="M84 224h72l4 32c0 4-4 6-8 6h-24l-8-24-8 24H88c-4 0-8-2-8-6z" fill="#5E7FC9" />
+        <path d="M80 186c0-12 14-18 40-18s40 6 40 18l2 42H78z" fill={`url(#${id('cloth')})`} />
+        <path d="M108 170h24l-4 58h-16z" fill="#FBF6F2" /><path d="M110 178c4 6 16 6 20 0" stroke="#E2D8D2" strokeWidth="3" fill="none" />
+        <path d="M110 176v52M130 176v52" stroke={clothD} strokeWidth="3" />
+        <rect x="78" y="222" width="84" height="8" rx="4" fill={clothD} /><path d="M80 226h80" stroke={clothL} strokeWidth="2" strokeDasharray="4 4" />
+        <path d="M100 170c4 4 10 6 20 6s16-2 20-6" stroke={clothD} strokeWidth="6" fill="none" strokeLinecap="round" />
+      </g>);
+      case 'suit': return (<g>
+        <path d="M84 224h72l4 36c0 4-4 6-8 6h-24l-8-26-8 26H88c-4 0-8-2-8-6z" fill="#3B3432" />
+        <path d="M82 186c0-12 14-18 38-18s38 6 38 18l2 42H80z" fill="#FBF6F2" />
+        <path d="M82 188c0-10 10-16 22-18l16 26 16-26c12 2 22 8 22 18l2 40H80z" fill={`url(#${id('cloth')})`} />
+        {[204, 216].map((y) => <circle key={y} cx="120" cy={y} r="3" fill={clothD} />)}
+        <path d="M120 178l-12-7v14zM120 178l12-7v14z" fill="#D9473E" /><circle cx="120" cy="178" r="3.5" fill="#B5382F" />
+      </g>);
+      case 'aodainam': return (<g>
+        <path d="M86 236h68l4 26c0 4-4 6-8 6h-24l-6-20-6 20H90c-4 0-8-2-8-6z" fill="#FBF6F2" />
+        <path d="M82 186c0-12 14-18 38-18s38 6 38 18l6 66c0 4-4 6-8 6H84c-4 0-8-2-8-6z" fill={`url(#${id('cloth')})`} />
+        <path d="M106 170h28v8c-6 5-22 5-28 0z" fill="#F2C14B" /><path d="M120 178c6 8 14 12 26 14" stroke="#F2C14B" strokeWidth="3" fill="none" />
+        <g opacity=".5">{[[100, 210], [140, 222], [104, 238]].map(([x, y]) => <path key={x} d={star(x, y, 5)} fill="#F2C14B" />)}</g>
+      </g>);
+      case 'basketball': return (<g>
+        <path d="M84 222h72l4 30c0 4-4 6-8 6h-22l-10-14-10 14H88c-4 0-8-2-8-6z" fill={`url(#${id('cloth')})`} />
+        <path d="M90 176c4-6 8-8 12-8 4 10 32 10 36 0 4 0 8 2 12 8l2 52H88z" fill={`url(#${id('cloth')})`} />
+        <path d="M102 168c4 10 32 10 36 0" stroke="#FBF6F2" strokeWidth="4" fill="none" /><path d="M90 178v48M150 178v48" stroke="#FBF6F2" strokeWidth="3" />
+        <text x="120" y="214" textAnchor="middle" fontFamily="Baloo 2, sans-serif" fontWeight="800" fontSize="24" fill="#FBF6F2">23</text>
+        <path d="M84 244h72" stroke="#FBF6F2" strokeWidth="3" />
+      </g>);
+      case 'robot': return (<g>
+        <rect x="88" y="226" width="64" height="34" rx="6" fill="#8E97A3" />
+        <rect x="78" y="172" width="84" height="60" rx="12" fill="#B8C0CA" /><rect x="92" y="184" width="56" height="34" rx="6" fill="#4A5463" />
+        {[[104, 196, '#F27B8E'], [120, 196, '#F2C14B'], [136, 196, '#9CD3BE']].map(([x, y, c]) => <circle key={String(x)} cx={x as number} cy={y as number} r="4.5" fill={c as string} />)}
+        <path d="M100 208h40" stroke="#9FC3DD" strokeWidth="3" strokeDasharray="5 3" /><circle cx="86" cy="180" r="3" fill="#8E97A3" /><circle cx="154" cy="180" r="3" fill="#8E97A3" />
+      </g>);
+      case 'shark': return (<g>
+        <path d="M84 224h72l3 36c0 4-4 6-8 6h-24l-7-26-7 26H89c-4 0-8-2-8-6z" fill={`url(#${id('cloth')})`} />
+        <path d="M80 186c0-12 14-18 40-18s40 6 40 18l2 44H78z" fill={`url(#${id('cloth')})`} />
+        <path d="M98 184c0-6 10-10 22-10s22 4 22 10l2 50c-6 6-42 6-48 0z" fill="#F4F1EE" />
+        <path d="M102 174l5 7 5-7 5 7 5-7 5 7 5-7 5 7" stroke="#FBF6F2" strokeWidth="3" fill="none" />
+        <path d="M80 200l8 4-8 4M80 212l8 4-8 4" stroke={clothD} strokeWidth="2.5" fill="none" />
+      </g>);
+      case 'explorer': return (<g>
+        <path d="M84 222h72l4 26c0 4-4 6-8 6h-22l-10-14-10 14H88c-4 0-8-2-8-6z" fill="#9C6B4E" />
+        <path d="M82 186c0-12 14-18 38-18s38 6 38 18l2 40H80z" fill="#D8C08E" />
+        <path d="M104 170l16 12 16-12-4 12-12 6-12-6z" fill="#C2A774" /><path d="M120 184v40" stroke="#C2A774" strokeWidth="2" />
+        <rect x="92" y="192" width="18" height="14" rx="3" fill="#C2A774" /><rect x="130" y="192" width="18" height="14" rx="3" fill="#C2A774" />
+        <rect x="80" y="220" width="80" height="7" rx="3" fill="#6B4A3A" /><rect x="114" y="219" width="12" height="9" rx="2" fill="#F2C14B" />
+      </g>);
+      case 'scout': return (<g>
+        <path d="M84 222h72l4 26c0 4-4 6-8 6h-22l-10-14-10 14H88c-4 0-8-2-8-6z" fill="#6B5A3E" />
+        <path d="M82 186c0-12 14-18 38-18s38 6 38 18l2 40H80z" fill="#7E9A5C" />
+        <path d="M100 170l20 30 20-30z" fill="#D9473E" /><circle cx="120" cy="190" r="4" fill="#F2C14B" />
+        <circle cx="96" cy="208" r="6" fill="#F2C14B" /><path d={star(96, 208, 4)} fill="#D9473E" /><rect x="138" y="202" width="12" height="12" rx="3" fill="#9FC3DD" />
+      </g>);
+      // ---- đồ ngày lễ giới hạn ----
+      case 'gam': return (<g>
+        <path d="M86 226h68l4 34c0 4-4 6-8 6h-24l-6-24-6 24H90c-4 0-8-2-8-6z" fill="#3B3432" />
+        <path d="M80 186c0-12 14-18 40-18s40 6 40 18l4 56c0 6-4 8-8 8H84c-4 0-8-2-8-8z" fill={`url(#${id('cloth')})`} />
+        <g opacity=".6">{[[96, 198], [146, 202], [100, 232], [140, 234]].map(([x, y]) => <Blossom key={`${x}-${y}`} x={x} y={y} r={4.5} c="#F2C14B" center="#E3A43A" />)}</g>
+        <path d="M78 240c14 6 70 6 84 0" stroke="#F2C14B" strokeWidth="4" fill="none" />
+        <path d="M120 176v66" stroke="#F2C14B" strokeWidth="3" />
+        {[188, 202, 216].map((y) => <circle key={y} cx="120" cy={y} r="3.2" fill="#F2C14B" />)}
+        <path d="M104 168h32v8c-6 5-26 5-32 0z" fill="#F2C14B" />
+      </g>);
+      case 'skeleton': return (<g>
+        <path d="M84 224h72l3 36c0 4-4 6-8 6h-24l-7-26-7 26H89c-4 0-8-2-8-6z" fill="#3B3432" />
+        <path d="M80 186c0-12 14-18 40-18s40 6 40 18l2 44H78z" fill="#3B3432" />
+        <rect x="116" y="176" width="8" height="50" rx="3" fill="#F4F1EE" />
+        {[188, 199, 210].map((y) => <path key={y} d={`M117 ${y}c-9-3-17-1-23 4M123 ${y}c9-3 17-1 23 4`} stroke="#F4F1EE" strokeWidth="5" fill="none" strokeLinecap="round" />)}
+        <path d="M104 226c4 9 28 9 32 0z" fill="#F4F1EE" />
+        <rect x="103" y="240" width="7" height="20" rx="3" fill="#F4F1EE" /><rect x="130" y="240" width="7" height="20" rx="3" fill="#F4F1EE" />
+      </g>);
+      case 'gingerbread': return (<g>
+        <path d="M80 186c0-12 14-18 40-18s40 6 40 18l4 64c0 8-6 12-14 12H90c-8 0-14-4-14-12z" fill="#C07A48" />
+        <path d="M80 246l8 6 8-6 8 6 8-6 8 6 8-6 8 6 8-6 8 6 8-6" stroke="#FBF6F2" strokeWidth="4" fill="none" strokeLinejoin="round" strokeLinecap="round" />
+        {[192, 210, 228].map((y, k) => <circle key={y} cx="120" cy={y} r="6" fill={['#D9473E', '#4F8F6A', '#D9473E'][k]} />)}
+        <path d="M106 172l14 8 14-8v12l-14-6-14 6z" fill="#D9473E" />
+      </g>);
       case 'tshirt': case 'redstar': { const red = o === 'redstar'; return (<g>
         <path d="M84 222h72l4 28c0 4-4 6-8 6h-22l-10-16-10 16H88c-4 0-8-2-8-6z" fill={red ? '#F3E6D2' : '#5D6E9A'} />
         <path d="M82 186c0-12 14-18 38-18s38 6 38 18l2 38H80z" fill={red ? '#D9473E' : `url(#${id('cloth')})`} />
@@ -488,6 +654,21 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
   // ---------- phụ kiện ----------
   const acc = (() => {
     switch (look.acc) {
+      // ---- phụ kiện mới (dùng chung, gợi ý cho bé trai) ----
+      case 'capback': return <g><path d="M58 70c0-36 26-50 62-50s62 14 62 50z" fill="#E86A4A" /><path d="M66 66c-18-6-38-2-50 8 10 6 34 4 52 0z" fill="#C9473F" /><circle cx="120" cy="22" r="6" fill="#C9473F" /><rect x="132" y="54" width="22" height="10" rx="4" fill="#FBF6F2" opacity=".7" /></g>;
+      case 'beanie': return <g><path d="M54 80c0-42 30-62 66-62s66 20 66 62z" fill="#5867B5" /><rect x="50" y="70" width="140" height="18" rx="9" fill="#7A88CE" />{[70, 90, 110, 130, 150, 170].map((x) => <path key={x} d={`M${x} 72v14`} stroke="#5867B5" strokeWidth="3" />)}<circle cx="120" cy="16" r="12" fill="#F2D57E" /></g>;
+      case 'gamerset': return <g><path d="M48 118c-6-70 150-70 144 0" stroke="#3B3432" strokeWidth="10" fill="none" /><rect x="32" y="102" width="28" height="42" rx="12" fill="#3B3432" /><rect x="180" y="102" width="28" height="42" rx="12" fill="#3B3432" /><rect x="186" y="110" width="16" height="26" rx="7" fill="#9CD3BE" /><rect x="38" y="110" width="16" height="26" rx="7" fill="#9CD3BE" /><path d="M46 140c4 20 20 30 44 32" stroke="#3B3432" strokeWidth="4" fill="none" strokeLinecap="round" /><circle cx="92" cy="172" r="5" fill="#F27B8E" /></g>;
+      case 'khanxep': return <g><path d="M52 86c0-34 30-52 68-52s68 18 68 52c-14 8-40 12-68 12s-54-4-68-12z" fill={`url(#${id('cloth')})`} />{[60, 70, 80].map((y, k) => <path key={y} d={`M${56 + k * 2} ${y + 4}c30 ${10 - k * 3} 98 ${10 - k * 3} 128 0`} stroke={clothD} strokeWidth="3" fill="none" />)}</g>;
+      case 'bandana': return <g><path d="M54 88c22-30 110-30 132 0l-4 10c-26-22-98-22-124 0z" fill="#D9473E" /><path d="M182 88l18-4-6 14 10 8-18 0z" fill="#B5382F" />{[80, 110, 140, 165].map((x) => <circle key={x} cx={x} cy="80" r="2.2" fill="#FBF6F2" />)}</g>;
+      case 'aviator': return <g><path d="M54 80c22-26 110-26 132 0" stroke="#9C6B4E" strokeWidth="9" fill="none" /><circle cx="98" cy="68" r="16" fill="#9FC3DD" stroke="#C9A34A" strokeWidth="5" /><circle cx="142" cy="68" r="16" fill="#9FC3DD" stroke="#C9A34A" strokeWidth="5" /><path d="M114 68h12" stroke="#C9A34A" strokeWidth="4" /><ellipse cx="93" cy="63" rx="4" ry="6" fill="#fff" opacity=".6" /><ellipse cx="137" cy="63" rx="4" ry="6" fill="#fff" opacity=".6" /></g>;
+      // ---- đồ ngày lễ giới hạn ----
+      case 'heartglasses': return <g><path d={heart(92, 124, 17)} fill="#F27B8E" opacity=".92" /><path d={heart(148, 124, 17)} fill="#F27B8E" opacity=".92" /><path d="M108 122c4-4 20-4 24 0" stroke="#D9566E" strokeWidth="4" fill="none" /><ellipse cx="84" cy="120" rx="4" ry="6" fill="#fff" opacity=".5" /><ellipse cx="140" cy="120" rx="4" ry="6" fill="#fff" opacity=".5" /></g>;
+      case 'pearlband': return <g><path d="M60 82c22-38 98-38 120 0" stroke="#E9E3EE" strokeWidth="6" fill="none" strokeLinecap="round" />{[200, 218, 236, 254, 270, 286, 304, 322, 340].map((a) => { const r = (a * Math.PI) / 180; return <circle key={a} cx={120 + 60 * Math.cos(r)} cy={84 + 30 * Math.sin(r)} r="5.5" fill="#FBF6F2" stroke="#D8CFE0" strokeWidth="1.5" />; })}</g>;
+      case 'papercrown': return <g transform="translate(120 40)"><path d="M-34 14l-4-28 14 12 10-20 14 18 14-18 10 20 14-12-4 28z" fill="#F2D57E" /><path d="M-34 12h68" stroke="#E9B949" strokeWidth="5" />{[[-24, 2, '#F27B8E'], [0, -6, '#9FC3DD'], [24, 2, '#9CD3BE']].map(([x, y, c]) => <circle key={String(x)} cx={x as number} cy={y as number} r="4" fill={c as string} />)}</g>;
+      case 'snorkel': return <g><path d="M56 118c-4-2-8 2-8 8M184 118c4-2 8 2 8 8" stroke="#3E9AA0" strokeWidth="5" fill="none" /><rect x="66" y="104" width="108" height="44" rx="20" fill="#C9EDF0" opacity=".5" stroke="#3E9AA0" strokeWidth="5" /><path d="M78 112l10 0" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity=".8" /><path d="M186 150V72c0-8 6-12 12-12" stroke="#F2C14B" strokeWidth="8" fill="none" strokeLinecap="round" /></g>;
+      case 'flagband': return <g><path d="M56 88c22-32 106-32 128 0" stroke="#D9473E" strokeWidth="11" fill="none" strokeLinecap="round" /><path d={star(120, 65, 9)} fill="#FFDD00" /></g>;
+      case 'bunnymask': return <g transform="translate(166 54) rotate(22)"><ellipse cx="-10" cy="-30" rx="7" ry="20" fill="#FBF6F2" /><ellipse cx="10" cy="-30" rx="7" ry="20" fill="#FBF6F2" /><ellipse cx="-10" cy="-30" rx="3" ry="13" fill="#F4B7C0" /><ellipse cx="10" cy="-30" rx="3" ry="13" fill="#F4B7C0" /><ellipse rx="24" ry="20" fill="#FBF6F2" stroke="#E2D8D2" strokeWidth="2" /><circle cx="-8" cy="-3" r="3" fill="#D9473E" /><circle cx="8" cy="-3" r="3" fill="#D9473E" /><ellipse cx="-14" cy="6" rx="5" ry="3" fill="#F4B7C0" /><ellipse cx="14" cy="6" rx="5" ry="3" fill="#F4B7C0" /><path d="M-4 6c2 3 6 3 8 0" stroke="#B5473F" strokeWidth="2" fill="none" /></g>;
+      case 'batclip': return <g transform="translate(164 62) rotate(14) scale(1.6)"><path d="M0 2c-6-8-14-10-22-8 4 4 4 9 2 13 6-2 11 0 13 4 2-4 4-6 7-9 3 3 5 5 7 9 2-4 7-6 13-4-2-4-2-9 2-13-8-2-16 0-22 8z" fill="#4E4566" /><circle cx="-3" cy="4" r="1.8" fill="#F2C14B" /><circle cx="3" cy="4" r="1.8" fill="#F2C14B" /></g>;
       case 'bow': return <g transform="translate(162 46) rotate(18)"><path d="M0 0l-20-12v24zM0 0l20-12v24z" fill="#E0605A" /><circle r="6" fill="#C9473F" /></g>;
       case 'flower': return <g transform="translate(166 70)">{[0, 72, 144, 216, 288].map((r) => <ellipse key={r} cx="0" cy="-9" rx="6" ry="9" fill="#F4B7C0" transform={`rotate(${r})`} />)}<circle r="5" fill="#F8CF1F" /></g>;
       case 'glasses': return <g fill="none" stroke="#5E4A4C" strokeWidth="3.5"><circle cx="92" cy="126" r="20" /><circle cx="148" cy="126" r="20" /><path d="M112 124c4-4 12-4 16 0" /></g>;
@@ -530,6 +711,10 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
   const shoes = (() => {
     const pair = (f: (x: number) => ReactElement) => <>{f(106)}{f(134)}</>;
     switch (look.shoes) {
+      // ---- giày mới ----
+      case 'hightops': return pair((x) => <g key={x}><rect x={x - 11} y="260" width="22" height="20" rx="7" fill="#D9473E" /><ellipse cx={x} cy="281" rx="15" ry="8" fill="#F1ECE8" /><circle cx={x} cy="266" r="5" fill="#FBF6F2" /><path d={`M${x - 6} 272h12`} stroke="#FBF6F2" strokeWidth="2" /><rect x={x - 15} y="284" width="30" height="5" rx="2.5" fill="#B9A6A5" /></g>);
+      case 'loafers': return pair((x) => <g key={x}><ellipse cx={x} cy="281" rx="15" ry="8" fill="#6B4A3A" /><path d={`M${x - 8} 276h14`} stroke="#4A3328" strokeWidth="3" strokeLinecap="round" /><ellipse cx={x - 5} cy="277" rx="5" ry="2.5" fill="#fff" opacity=".25" /></g>);
+      case 'cleats': return pair((x) => <g key={x}><ellipse cx={x} cy="280" rx="15" ry="8.5" fill="#3B3432" /><path d={`M${x - 10} 276c6-4 14-4 20 0`} stroke="#F2C14B" strokeWidth="3" fill="none" />{[-9, -3, 3, 9].map((d) => <rect key={d} x={x + d - 1.5} y="286" width="3" height="4" rx="1" fill="#9AA2AE" />)}</g>);
       case 'sneakers': return pair((x) => <g key={x}><ellipse cx={x} cy="280" rx="15" ry="8.5" fill="#F1ECE8" /><ellipse cx={x + 6} cy="281" rx="8" ry="6" fill="#8FB3C9" /><rect x={x - 15} y="284" width="30" height="5" rx="2.5" fill="#B9A6A5" /><path d={`M${x - 8} 275l6 3M${x - 4} 273l6 3`} stroke="#E2804F" strokeWidth="2.5" strokeLinecap="round" /></g>);
       case 'boots': return pair((x) => <g key={x}><rect x={x - 10} y="258" width="20" height="22" rx="6" fill="#9C6440" /><ellipse cx={x} cy="281" rx="15" ry="7" fill="#8A5636" /></g>);
       case 'rainboots': return pair((x) => <g key={x}><rect x={x - 10} y="254" width="20" height="26" rx="7" fill="#F2C14B" /><ellipse cx={x} cy="281" rx="15" ry="7" fill="#E0A92A" /><rect x={x - 10} y="256" width="20" height="5" rx="2" fill="#fff" opacity=".4" /></g>);
@@ -550,6 +735,25 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
   // ---------- đồ cầm tay (bên tay phải) ----------
   const hold = (() => {
     switch (look.hold) {
+      // ---- đồ cầm tay mới ----
+      case 'skateboard': return <g transform="rotate(-14 186 210)"><rect x="176" y="160" width="20" height="96" rx="10" fill="#F2C14B" /><rect x="180" y="166" width="12" height="84" rx="6" fill="#E86A4A" opacity=".7" />{[176, 240].map((y) => <g key={y}><circle cx="174" cy={y} r="5" fill="#7B6668" /><circle cx="198" cy={y} r="5" fill="#7B6668" /></g>)}</g>;
+      case 'basketball': return <g><circle cx="186" cy="212" r="18" fill="#EE8A3C" /><path d="M168 212h36M186 194v36M173 199c8 8 8 18 0 26M199 199c-8 8-8 18 0 26" stroke="#8C4A2A" strokeWidth="2" fill="none" /></g>;
+      case 'robotoy': return <g><rect x="174" y="178" width="26" height="20" rx="5" fill="#B8C0CA" /><circle cx="182" cy="188" r="3" fill="#4A5463" /><circle cx="192" cy="188" r="3" fill="#4A5463" /><path d="M187 178v-8" stroke="#8E97A3" strokeWidth="2" /><circle cx="187" cy="168" r="3" fill="#F27B8E" /><rect x="170" y="200" width="34" height="28" rx="6" fill="#9FC3DD" /><rect x="180" y="206" width="14" height="10" rx="2" fill="#F2C14B" /><rect x="174" y="228" width="8" height="10" rx="3" fill="#8E97A3" /><rect x="192" y="228" width="8" height="10" rx="3" fill="#8E97A3" /></g>;
+      case 'kite': return <g><path d="M172 228C182 190 190 160 196 130" stroke="#7B6668" strokeWidth="1.5" fill="none" /><path d="M196 80l26 30-26 40-26-40z" fill="#F27B8E" /><path d="M196 80v70M170 110h52" stroke="#FBF6F2" strokeWidth="2" /><path d="M196 150c-4 10 4 14 0 24-4 10 4 14 0 24" stroke="#F2C14B" strokeWidth="2" fill="none" />{[162, 182].map((y) => <path key={y} d={`M196 ${y}l-6-4v8zM196 ${y}l6-4v8z`} fill="#9FC3DD" />)}</g>;
+      case 'dinotoy': return <g><path d="M166 236c0-16 10-26 24-26 6-14 14-18 22-14 4 4 2 10-6 12 2 10 0 22-6 28z" fill="#9DB88A" /><circle cx="206" cy="200" r="2" fill="#3B3432" />{[[178, 210], [188, 206], [198, 206]].map(([x, y]) => <path key={x} d={`M${x - 4} ${y + 2}l4-8 4 8z`} fill="#F2C14B" />)}<rect x="172" y="234" width="7" height="8" rx="3" fill="#7FA06C" /><rect x="190" y="234" width="7" height="8" rx="3" fill="#7FA06C" /></g>;
+      case 'cartoy': return <g><path d="M164 222l6-14h28l8 14z" fill="#9FC3DD" /><rect x="160" y="220" width="52" height="16" rx="6" fill="#E86A4A" /><circle cx="172" cy="238" r="6" fill="#3B3432" /><circle cx="200" cy="238" r="6" fill="#3B3432" /><circle cx="172" cy="238" r="2.5" fill="#B9A6A5" /><circle cx="200" cy="238" r="2.5" fill="#B9A6A5" /><rect x="206" y="224" width="5" height="4" rx="1" fill="#F2D57E" /></g>;
+      // ---- đồ ngày lễ giới hạn ----
+      case 'banhchung': return <g transform="rotate(-8 182 214)"><rect x="162" y="194" width="40" height="40" rx="5" fill="#5E8A48" /><rect x="166" y="198" width="32" height="32" rx="3" fill="#8DB86B" /><path d="M175 194v40M189 194v40M162 207h40M162 221h40" stroke="#E9DDB8" strokeWidth="2.5" /></g>;
+      case 'chocobox': return <g><path d={heart(184, 208, 21)} fill="#B5473F" /><path d={heart(184, 208, 15)} fill="#7A3A30" /><path d="M164 196l40 26M204 196l-40 26" stroke="#F2C14B" strokeWidth="3" /><circle cx="184" cy="209" r="4" fill="#F2C14B" /></g>;
+      case 'sunflower': return <g><path d="M172 230c4-20 6-36 4-52" stroke="#6E9A55" strokeWidth="4" fill="none" /><ellipse cx="186" cy="208" rx="10" ry="5" fill="#6E9A55" transform="rotate(-40 186 208)" /><g transform="translate(176 166)">{Array.from({ length: 12 }, (_, k) => <ellipse key={k} cy="-13" rx="5" ry="10" fill="#F6C343" transform={`rotate(${k * 30})`} />)}<circle r="9" fill="#8E5A3C" /><circle r="5" fill="#6B4A3A" /></g></g>;
+      case 'bubblewand': return <g><path d="M172 230L188 178" stroke="#9FC3DD" strokeWidth="4" strokeLinecap="round" /><circle cx="191" cy="167" r="11" fill="#fff" fillOpacity=".3" stroke="#F27B8E" strokeWidth="4" />{[[210, 142, 10], [196, 124, 7], [220, 112, 6], [206, 98, 4]].map(([x, y, r]) => <g key={y}><circle cx={x} cy={y} r={r} fill="#fff" fillOpacity=".25" stroke="#9FC3DD" strokeWidth="2" /><circle cx={x - r / 3} cy={y - r / 3} r={r / 4} fill="#fff" /></g>)}</g>;
+      case 'watermelon': return <g transform="rotate(-20 184 210)"><path d="M158 200a26 26 0 0 0 52 0z" fill="#5E8A48" /><path d="M162 200a22 22 0 0 0 44 0z" fill="#FBF6F2" /><path d="M165 200a19 19 0 0 0 38 0z" fill="#F0606E" />{[[175, 206], [184, 212], [193, 206]].map(([x, y]) => <ellipse key={x} cx={x} cy={y} rx="1.8" ry="3" fill="#3B3432" />)}</g>;
+      case 'globe': return <g><rect x="172" y="236" width="26" height="6" rx="3" fill="#9C6B4E" /><path d="M185 236v-10" stroke="#9C6B4E" strokeWidth="4" /><circle cx="185" cy="204" r="19" fill="#9FC3DD" /><path d="M174 194c6 2 8 8 4 12s2 10 6 10M190 190c4 4 10 4 12 10M190 214c4-2 8 0 8 4" stroke="#6E9A55" strokeWidth="5" fill="none" strokeLinecap="round" /><path d="M163 196a24 24 0 0 0 38 26" stroke="#C9A34A" strokeWidth="3" fill="none" /><ellipse cx="178" cy="196" rx="4" ry="6" fill="#fff" opacity=".35" /></g>;
+      case 'lotus': return <g><path d="M172 230c4-20 6-36 4-50" stroke="#6E9A55" strokeWidth="4" fill="none" /><ellipse cx="188" cy="210" rx="12" ry="6" fill="#7FAE6A" transform="rotate(-30 188 210)" /><g transform="translate(176 176)"><path d="M0 6c-12-3-19-13-17-25 9 2 16 11 17 20z" fill="#F4B7C0" /><path d="M0 6c12-3 19-13 17-25-9 2-16 11-17 20z" fill="#F4B7C0" /><path d="M0 8c-6-9-6-22 0-31 6 9 6 22 0 31z" fill="#E98AA0" /></g></g>;
+      case 'drum': return <g><path d="M172 232L184 196" stroke="#9C6B4E" strokeWidth="4" strokeLinecap="round" /><g transform="translate(190 182) rotate(-20)"><rect x="-17" y="-11" width="34" height="22" rx="4" fill="#D9473E" /><path d="M-9 -11v22M0 -11v22M9 -11v22" stroke="#F2C14B" strokeWidth="2" /><ellipse cx="-17" rx="4" ry="11" fill="#F2D57E" /><ellipse cx="17" rx="4" ry="11" fill="#F2D57E" /><path d="M-17 0c-6-8-10-10-14-10M17 0c6 8 10 10 14 10" stroke="#7B6668" strokeWidth="1.5" fill="none" /><circle cx="-31" cy="-10" r="3.2" fill="#F2C14B" /><circle cx="31" cy="10" r="3.2" fill="#F2C14B" /></g></g>;
+      case 'candybucket': return <g><circle cx="174" cy="203" r="5" fill="#F27B8E" /><circle cx="186" cy="200" r="5" fill="#9CD3BE" /><circle cx="196" cy="204" r="4" fill="#F2D57E" /><path d="M166 204c0-24 36-24 36 0" stroke="#3B3432" strokeWidth="3" fill="none" /><path d="M164 206h40l-4 28c0 4-4 6-8 6h-16c-4 0-8-2-8-6z" fill="#EE8A3C" /><path d="M175 216l4-5 4 5zM185 216l4-5 4 5z" fill="#5A3A2E" /><path d="M175 224c4 4 14 4 18 0" stroke="#5A3A2E" strokeWidth="2.5" fill="none" /></g>;
+      case 'card': return <g transform="rotate(-10 182 214)"><rect x="160" y="190" width="44" height="34" rx="4" fill="#FBF6F2" stroke="#E2D8D2" strokeWidth="2" /><path d={heart(182, 204, 7)} fill="#F27B8E" /><path d="M167 218h30" stroke="#C2A9D6" strokeWidth="2.5" strokeLinecap="round" /></g>;
+      case 'snowglobe': return <g><path d="M167 232h36l-4-11h-28z" fill="#9C6B4E" /><circle cx="185" cy="203" r="19" fill="#DDEEF7" stroke="#fff" strokeWidth="2" /><path d="M175 214l10-17 10 17z" fill="#4F8F6A" /><path d={star(185, 196, 3)} fill="#F2C14B" />{[[176, 194], [194, 192], [180, 206], [196, 208], [186, 188]].map(([x, y]) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.6" fill="#fff" />)}<ellipse cx="178" cy="194" rx="4" ry="7" fill="#fff" opacity=".5" /></g>;
       case 'tulip': return <g><path d="M172 226c4-20 8-34 6-48" stroke="#6E9A55" strokeWidth="4" fill="none" /><ellipse cx="186" cy="206" rx="10" ry="5" fill="#6E9A55" transform="rotate(-40 186 206)" /><path d="M166 170c4 2 6 2 7 6l4-8 4 8c1-4 3-4 7-6 1 12-3 18-11 18s-12-6-11-18z" fill="#E86A4A" /></g>;
       case 'balloon': return <g><path d="M172 226c6-30 14-50 22-70" stroke="#7B6668" strokeWidth="2" fill="none" /><ellipse cx="198" cy="132" rx="24" ry="28" fill="#F27B8E" /><ellipse cx="190" cy="120" rx="6" ry="9" fill="#fff" opacity=".4" /><path d="M194 160l4 6 4-6z" fill="#F27B8E" /></g>;
       case 'book': return <g transform="rotate(-10 176 214)"><rect x="160" y="196" width="34" height="42" rx="4" fill="#9FC3DD" /><rect x="164" y="196" width="4" height="42" fill="#7FA6C9" /><rect x="172" y="206" width="16" height="4" rx="2" fill="#fff" /></g>;
@@ -602,8 +806,10 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
         <ellipse cx={cx} cy="133" rx="9" ry="7" fill="#E9806A" opacity=".55" />
         <circle cx={cx - 5} cy="119" r="5.5" fill="#fff" />
         <circle cx={cx + 6} cy="133" r="2.6" fill="#fff" opacity=".9" />
-        <path d={`M${cx - 16} 110c8-5 24-5 32 0`} stroke="#5E3A34" strokeWidth="3.4" fill="none" strokeLinecap="round" />
+        <path d={`M${cx - 16} 110c8-5 24-5 32 0`} stroke="#5E3A34" strokeWidth={boy ? 2.6 : 3.4} fill="none" strokeLinecap="round" />
+        {!boy && <path d={cx < 120 ? `M${cx - 15} 112l-5-4` : `M${cx + 15} 112l5-4`} stroke="#5E3A34" strokeWidth="3" strokeLinecap="round" />}
       </>)}
+      {boy && <path d={`M${cx - 13} ${eyesClosed ? 106 : 99}c6-3 20-3 26 0`} stroke={hairD} strokeWidth="5" fill="none" strokeLinecap="round" />}
     </g>
   );
 
@@ -634,8 +840,8 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
         <g className="ch-head">
           {ears}
           <ellipse cx="120" cy="112" rx="70" ry="64" fill={`url(#${id('skin')})`} />
-          <ellipse cx="88" cy="146" rx="13" ry="8" fill="#F29A92" opacity=".45" />
-          <ellipse cx="152" cy="146" rx="13" ry="8" fill="#F29A92" opacity=".45" />
+          <ellipse cx="88" cy="146" rx="13" ry="8" fill="#F29A92" opacity={boy ? 0.28 : 0.45} />
+          <ellipse cx="152" cy="146" rx="13" ry="8" fill="#F29A92" opacity={boy ? 0.28 : 0.45} />
           <g className="ch-eyes">{eye(92)}{eye(148)}</g>
           <ellipse cx="120" cy="141" rx="2.2" ry="1.6" fill="#D98C80" />
           {mouth}
@@ -645,6 +851,7 @@ export function Chibi({ look, mood = 'idle', size = 240, className = '', flip = 
         </g>
         {hold && <g className="ch-arm-r ch-hold">{hold}<circle cx="170" cy="228" r="10" fill={`url(#${id('skin')})`} /></g>}
       </g>
+      {!noPet && look.pet && look.pet !== 'none' && <g className="ch-pet" transform="translate(44 258) scale(1.45)">{petBody(look.pet, petStage(look.petXp))}</g>}
       {mood === 'sleep' && <g className="ch-zzz" fill="#7B6668" fontFamily="Baloo 2, sans-serif" fontWeight="800"><text x="190" y="50" fontSize="22">z</text><text x="206" y="30" fontSize="16">z</text></g>}
       {mood === 'think' && <g className="ch-think" fill="#fff"><circle cx="196" cy="54" r="5" /><circle cx="208" cy="38" r="8" /><circle cx="222" cy="18" r="12" /></g>}
     </svg>

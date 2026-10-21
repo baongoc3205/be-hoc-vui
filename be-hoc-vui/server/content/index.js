@@ -9,6 +9,7 @@ import { enTopics2b } from './bank2-en2.js';
 import { sciTopics2 } from './bank2-sci.js';
 import { sciTopics2b } from './bank2-sci2.js';
 import { buildPracticeTopics } from './practice/campaign.js';
+import { buildFunTopics } from './fun.js';
 
 const L = (vi, en) => ({ vi, en: en ?? vi });
 
@@ -39,6 +40,13 @@ export const GAME_INFO = {
   'type-answer': { name: L('Tự điền đáp án', 'Type the answer'), icon: 'type' },
   'multi-pick': { name: L('Chọn nhiều đáp án', 'Pick them all'), icon: 'multi' },
   reading: { name: L('Đọc hiểu', 'Reading'), icon: 'read' },
+  'number-line': { name: L('Tia số', 'Number line'), icon: 'numberline' },
+  balance: { name: L('Cân thăng bằng', 'Balance scale'), icon: 'balance' },
+  pizza: { name: L('Bánh pizza phân số', 'Pizza fractions'), icon: 'pizza' },
+  market: { name: L('Đi chợ tính tiền', 'Market money'), icon: 'market' },
+  'spot-mistake': { name: L('Tìm lỗi sai', 'Spot the mistake'), icon: 'spot' },
+  sentence: { name: L('Xếp câu', 'Build the sentence'), icon: 'sentence' },
+  fishing: { name: L('Câu cá đáp án', 'Answer fishing'), icon: 'fishing' },
   boss: { name: L('Thử thách trùm', 'Boss challenge'), icon: 'boss' },
   chest: { name: L('Rương báu', 'Treasure chest'), icon: 'chest' },
 };
@@ -62,7 +70,10 @@ const mathReview = Array.from({ length: 9 }, (_, i) => {
 
 // Chặng luyện tập sinh theo mẫu: luôn đặt SAU các chủ đề cũ để mã màn và tiến độ cũ không đổi.
 export const PRACTICE_TOPICS = buildPracticeTopics();
-export const TOPICS = [...MATH, ...mathReview, ...bankTopics, ...viTopics2, ...viTopics2b, ...enTopics2, ...enTopics2b, ...sciTopics2, ...sciTopics2b, ...PRACTICE_TOPICS];
+const OLD_TOPICS = [...MATH, ...mathReview, ...bankTopics, ...viTopics2, ...viTopics2b, ...enTopics2, ...enTopics2b, ...sciTopics2, ...sciTopics2b];
+/** Vui học kiểu mới: tia số, cân, pizza, đi chợ, tìm lỗi, xếp câu, câu cá — đặt sau các chủ đề cũ, trước chặng luyện tập. */
+export const FUN_TOPICS = buildFunTopics(OLD_TOPICS);
+export const TOPICS = [...OLD_TOPICS, ...FUN_TOPICS, ...PRACTICE_TOPICS];
 export const topicById = new Map(TOPICS.map((t) => [t.id, t]));
 
 /** Sinh danh sách bài học (màn) cho từng chủ đề. Sau màn thứ 3 có một rương báu. */
@@ -93,7 +104,7 @@ export const lessonById = new Map(LESSONS.map((l) => [l.id, l]));
 export const lessonsFor = (subject, grade) => LESSONS.filter((l) => l.subject === subject && l.grade === grade);
 
 // ---------------- Cửa hàng (xu ảo, không có tiền thật) → ./shop.js ----------------
-export { SHOP, shopById, DEFAULT_LOOK, FREE_ITEMS, COLLECTIONS, COMBOS, comboById } from './shop.js';
+export { SHOP, shopById, DEFAULT_LOOK, BOY_LOOK, FREE_ITEMS, COLLECTIONS, COMBOS, comboById } from './shop.js';
 
 // ---------------- Huy hiệu ----------------
 // cond(s): s = thống kê của bé (xem server/game.js → statsFor)
