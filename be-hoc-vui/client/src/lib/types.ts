@@ -52,10 +52,11 @@ export interface FinishResult {
 
 // ---------- Bạn bè & tương tác ----------
 export interface FriendCard { id: number; nickname: string; grade: number; look: Look; level: number }
-export interface FriendRow extends FriendCard { unread: number; social: boolean; last: { mine: boolean; kind: string; text: string | null; at: number } | null }
-export interface FriendsData { friends: FriendRow[]; incoming: FriendCard[]; outgoing: FriendCard[]; code: string; social: boolean }
+export interface Presence { online: boolean | null; seenAt: number | null }
+export interface FriendRow extends FriendCard, Presence { unread: number; social: boolean; last: { mine: boolean; kind: string; text: string | null; at: number } | null }
+export interface FriendsData { friends: FriendRow[]; incoming: FriendCard[]; outgoing: FriendCard[]; code: string; social: boolean; family?: (FriendCard & Presence & { social: boolean })[]; onlineCount?: number }
 export type Relation = 'self' | 'family' | 'friends' | 'sent' | 'received' | 'blocked' | 'hidden' | 'none';
-export interface Profile extends FriendCard { stars: number; badges: string[]; streak: number; xpWeek: number; relation: Relation; canChat: boolean; social: boolean }
+export interface Profile extends FriendCard, Presence { stars: number; badges: string[]; streak: number; xpWeek: number; relation: Relation; canChat: boolean; social: boolean }
 export interface RankRow extends FriendCard { xp: number; stars: number; me: boolean }
 export interface ChatMsg { id: number; mine: boolean; kind: 'text' | 'invite'; body: string | { room: string; code: string; game: string }; at: number; read: boolean }
 export interface SocialSummary { unread: number; requests: number; gifts?: number; invite: { id: number; from: string; fromId: number; room: string; code: string; game: string } | null }

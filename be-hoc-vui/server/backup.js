@@ -15,7 +15,7 @@ export async function backup(db) {
   for (const name of await listTables(db)) tables[name] = await db.prepare(`SELECT * FROM "${name}"`).all();
   return { app: 'be-hoc-vui', format: 1, createdAt: new Date().toISOString(), tables };
 }
-
+  
 export async function countRows(db) {
   const out = {};
   for (const name of await listTables(db)) out[name] = Number((await db.prepare(`SELECT COUNT(*) n FROM "${name}"`).get()).n);

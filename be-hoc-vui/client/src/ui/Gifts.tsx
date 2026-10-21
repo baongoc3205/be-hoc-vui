@@ -9,6 +9,7 @@ import { Btn, Dialog, Spinner } from './kit';
 import { Avatar } from '../games/board/common';
 import { ItemThumb } from './ShopCards';
 import { CoinIcon } from './Icons';
+import { WithPresence } from './Presence';
 import { errText } from '../screens/Auth';
 import { sfx } from '../lib/sfx';
 import { burstAt } from '../lib/fx';
@@ -35,8 +36,8 @@ export function GiftDialog({ item, price, onClose }: { item: ShopItem; price: nu
     api.get<GiftInbox>(`/children/${childId}/gifts`).then((g) => setLeft(g.left)).catch(() => undefined);
   }, [childId]);
   const people = [
-    ...kids.filter((k) => k.id !== childId).map((k) => ({ id: k.id, nickname: k.nickname, look: k.look, tag: tr('Anh chị em', 'Sibling') })),
-    ...(d?.friends ?? []).filter((f) => f.social).map((f) => ({ id: f.id, nickname: f.nickname, look: f.look, tag: tr('Bạn bè', 'Friend') })),
+    ...kids.filter((k) => k.id !== childId).map((k) => ({ id: k.id, nickname: k.nickname, look: k.look, tag: tr('Anh chị em', 'Sibling'), online: (d?.family ?? []).find((x) => x.id === k.id)?.online ?? null as boolean | null })),
+    ...(d?.friends ?? []).filter((f) => f.social).map((f) => ({ id: f.id, nickname: f.nickname, look: f.look, tag: tr('Bạn bè', 'Friend'), online: f.online })),
   ].filter((p, i, a) => a.findIndex((x) => x.id === p.id) === i);
   const send = async (el: HTMLElement) => {
     if (!to) return;
@@ -58,7 +59,7 @@ export function GiftDialog({ item, price, onClose }: { item: ShopItem; price: nu
         <div className="gift-item"><GiftPreview item={item} /><b>{T.tx(item.name)}</b></div>
         {!d ? <Spinner /> : people.length === 0 ? <p className="shop-note small">{tr('Bé chưa có bạn để tặng. Kết bạn bằng mã ở màn Bạn bè nhé!', 'No friends to give to yet. Add friends with a code first!')}</p> : (
           <div className="gift-people" role="radiogroup">
-            {people.map((p) => <button key={p.id} type="button" role="radio" aria-checked={to === p.id} className={`gift-person ${to === p.id ? 'on' : ''}`} onClick={() => { sfx.tap(); setTo(p.id); }}><Avatar look={p.look} size={48} /><span><b>{p.nickname}</b><small>{p.tag}</small></span></button>)}
+            {people.map((p) => <button key={p.id} type="button" role="radio" aria-checked={to === p.id} className={`gift-person ${to === p.id ? 'on' : ''}`} onClick={() => { sfx.tap(); setTo(p.id); }}><WithPresence online={p.online ?? null} size={12}><Avatar look={p.look} size={48} /></WithPresence><span><b>{p.nickname}</b><small>{p.tag}{p.online ? ' · ● online' : ''}</small></span></button>)}
           </div>
         )}
         <div className="chips gift-notes">{NOTES.map((n) => <button key={n[0]} type="button" className={`chip ${note === tr(...n) ? 'on' : ''}`} onClick={() => { sfx.tap(); setNote(tr(...n)); }}>{tr(...n)}</button>)}</div>

@@ -7,16 +7,18 @@ import type { FriendsData, Look } from '../lib/types';
 import { Btn, Dialog, Panel, Spinner, TopBar } from '../ui/kit';
 import { Scene } from '../ui/Scene';
 import { Avatar, botLook } from '../games/board/common';
-import { OnlineCards, OnlineLudo, OnlineQuiz, type RoomView } from '../games/board/Online';
-import { ROOM_GAMES } from './Friends';
+import { OnlineCards, OnlineLudo, OnlineQuiz, OnlineRace, OnlineWerewolf, type RoomView } from '../games/board/Online';
+import { ROOM_GAMES, RACE_GAMES } from './Friends';
 import { errText } from './Auth';
 import { sfx } from '../lib/sfx';
+import { WithPresence, seenText } from '../ui/Presence';
 
 export function seatLook(s: { look: Look | null; botIdx: number | null }): Look { return s.look ?? botLook(s.botIdx ?? 0); }
 
 export function Room({ roomId }: { roomId: string }) {
   const T = useT(); const tr = (vi: string, en: string) => (T.lang === 'en' ? en : vi);
   const childId = useApp((s) => s.childId);
+  const myLook = useApp((s) => s.cs?.child.look);
   const [v, setV] = useState<RoomView | null>(null);
   const [gone, setGone] = useState(false);
   const [friends, setFriends] = useState<FriendsData | null>(null);
@@ -56,7 +58,7 @@ export function Room({ roomId }: { roomId: string }) {
   );
   return (
     <div className="screen board-screen">
-      <Scene name={v?.game === 'ludo' ? 'village' : v?.game === 'quiz' ? 'meadow' : 'castle'} />
+      <Scene name={v?.game === 'ludo' ? 'village' : v?.game === 'werewolf' ? 'night' : v?.game === 'cards' ? 'castle' : 'meadow'} />
       <div className="screen-content">
         <TopBar title={title} onBack={leave} />
         {!v ? <Spinner /> : v.status === 'lobby' ? (
@@ -64,7 +66,7 @@ export function Room({ roomId }: { roomId: string }) {
             <Panel className="scroll-y" head={<h2>{tr('Phòng chờ', 'Waiting room')}</h2>}>
               <div className="room-code"><span>{tr('Mã phòng', 'Room code')}</span><b>{v.code}</b></div>
               <div className="room-seats">
-                {Array.from({ length: v.game === 'quiz' ? Math.max(2, v.seats.length) : v.opts.players }, (_, i) => v.seats[i]).map((s, i) => (
+                {Array.from({ length: RACE_GAMES.has(v.game) ? Math.max(2, v.seats.length) : v.opts.players }, (_, i) => v.seats[i]).map((s, i) => (
                   <div key={i} className={`room-seat ${s ? '' : 'empty'}`}>
                     {s ? <><Avatar look={seatLook(s)} size={58} /><b>{s.name}{s.you ? ` (${tr('bé', 'you')})` : ''}</b><small>{s.host ? tr('Chủ phòng', 'Host') : s.online ? tr('Sẵn sàng', 'Ready') : tr('Đang vào…', 'Joining…')}</small></>
                       : <><div className="seat-empty">🤖</div><b>{tr('Ghế trống', 'Empty')}</b><small>{tr('Bot sẽ chơi', 'A bot will play')}</small></>}
@@ -73,7 +75,7 @@ export function Room({ roomId }: { roomId: string }) {
               </div>
               {v.isHost ? <>
                 {friends && friends.friends.length > 0 && <><div className="section-title">{tr('Mời bạn bè', 'Invite friends')}</div>
-                  <div className="room-invites">{friends.friends.filter((f) => f.social).map((f) => <button key={f.id} type="button" className="room-inv" disabled={invited.has(f.id)} onClick={() => invite(f.id)}><Avatar look={f.look} size={36} /><span>{f.nickname}</span><i>{invited.has(f.id) ? '✓' : '+'}</i></button>)}</div></>}
+                  <div className="room-invites">{friends.friends.filter((f) => f.social).map((f) => <button key={f.id} type="button" className="room-inv" disabled={invited.has(f.id)} onClick={() => invite(f.id)}><WithPresence online={!!f.online} size={11}><Avatar look={f.look} size={36} /></WithPresence><span>{f.nickname}<small className={`pres-text ${f.online ? 'on' : ''}`}>{seenText(f, T.lang)}</small></span><i>{invited.has(f.id) ? '✓' : '+'}</i></button>)}</div></>}
                 {friends && !friends.friends.length && <p className="muted">{tr('Bé chưa có bạn bè. Gửi mã phòng cho bạn hoặc bắt đầu chơi với bot.', 'No friends yet. Share the room code or start with bots.')}</p>}
                 <div className="panel-actions"><Btn tone="gray" onClick={leave}>{tr('Huỷ phòng', 'Close room')}</Btn><Btn tone="orange" onClick={start}>{tr('Bắt đầu', 'Start')}</Btn></div>
               </> : <p className="shop-note">{tr('Chờ chủ phòng bắt đầu…', 'Waiting for the host to start…')}</p>}
@@ -84,13 +86,15 @@ export function Room({ roomId }: { roomId: string }) {
             {v.game === 'cards' && <OnlineCards v={v} act={act} tr={tr} />}
             {v.game === 'ludo' && <OnlineLudo v={v} act={act} tr={tr} />}
             {v.game === 'quiz' && <OnlineQuiz v={v} act={act} tr={tr} lang={T.lang} />}
+            {v.game === 'werewolf' && <OnlineWerewolf v={v} act={act} tr={tr} lang={T.lang} />}
+            {RACE_GAMES.has(v.game) && v.game !== 'quiz' && myLook && <OnlineRace v={v} act={act} tr={tr} T={T} look={myLook} />}
           </div>
         )}
       </div>
       {v?.status === 'done' && !resultSeen && (
         <Dialog title={v.result?.winners.includes(v.mySeat) ? tr('🎉 Bé thắng rồi!', '🎉 You won!') : tr(`🏆 ${v.result?.winners.map((w) => v.seats[w].name).join(', ')} thắng!`, `🏆 ${v.result?.winners.map((w) => v.seats[w].name).join(', ')} won!`)} icon={null} onClose={() => setResultSeen(true)}
           actions={<><Btn tone="gray" onClick={() => setResultSeen(true)}>{tr('Xem lại bàn', 'See the board')}</Btn><Btn tone="orange" onClick={leave}>{tr('Rời phòng', 'Leave')}</Btn></>}>
-          <div className="room-result">{v.seats.map((s, i) => <div key={i} className={v.result?.winners.includes(i) ? 'win' : ''}><Avatar look={seatLook(s)} size={44} /><b>{s.name}</b>{v.game === 'quiz' && v.state && 'progress' in v.state && <span>{(v.state as { progress: { score: number }[] }).progress[i].score} {tr('điểm', 'pts')}</span>}</div>)}</div>
+          <div className="room-result">{v.seats.map((s, i) => <div key={i} className={v.result?.winners.includes(i) ? 'win' : ''}><Avatar look={seatLook(s)} size={44} /><b>{s.name}</b>{RACE_GAMES.has(v.game) && v.state && 'progress' in v.state && <span>{(v.state as { progress: { score: number }[] }).progress[i].score} {tr('điểm', 'pts')}</span>}</div>)}</div>
           {v.seats[v.mySeat]?.coins != null && <p style={{ marginBottom: 0 }}>{v.seats[v.mySeat].coins! > 0 ? tr(`Bé nhận được ${v.seats[v.mySeat].coins} xu.`, `You earned ${v.seats[v.mySeat].coins} coins.`) : tr('Ván ngắn hoặc bé đã nhận đủ xu hôm nay.', 'Short game, or today’s coins are used up.')}</p>}
         </Dialog>
       )}

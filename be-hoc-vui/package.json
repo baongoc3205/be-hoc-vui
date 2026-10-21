@@ -22,7 +22,8 @@
     "test:ui:social": "node test/ui/social.mjs",
     "test:ui:learn": "node test/ui/learn.mjs",
     "test:ui:gifts": "node test/ui/gifts.mjs",
-    "test:ui:fun": "node test/ui/fun.mjs"
+    "test:ui:fun": "node test/ui/fun.mjs",
+    "test:ui:rooms": "node test/ui/rooms.mjs"
   },
   "devDependencies": {
     "@types/react": "^18.3.18",

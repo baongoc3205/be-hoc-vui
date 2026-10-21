@@ -2,7 +2,7 @@
 import { randomBytes } from 'node:crypto';
 import { HttpError } from './http.js';
 import { buildRounds } from './rounds.js';
-import './arcade.js'; // đăng ký các bài Khu vui chơi vào lessonById
+import { ARCADE_GAMES } from './arcade.js'; // đăng ký các bài Khu vui chơi vào lessonById
 import { computeRewards, currentEnergy, gradeRound, levelInfo, makeRng, shuffle, ageThemeForGrade, MAX_ENERGY } from '../shared/logic.js';
 import { BADGES, BOY_LOOK, CHECKIN_REWARDS, COLLECTIONS, COMBOS, DEFAULT_LOOK, FREE_ITEMS, GAME_INFO, LESSONS, QUEST_POOL, SHOP, SUBJECTS, TOPICS, comboById, lessonById, lessonsFor, shopById, topicById } from './content/index.js';
 import { GIFT_COINS, activeEvents, comboPrice, forSale, giftKey, itemPrice, nextEvent } from '../shared/shop.js';
@@ -258,7 +258,7 @@ async function advanceQuests(db, child, day, ev) {
 // ---------------- Trò chơi cùng bot (bài màu sắc, cá ngựa, ma sói) ----------------
 // Chơi hoàn toàn trên trình duyệt; máy chủ chỉ ghi thời gian chơi (tính vào giới hạn giờ mỗi ngày)
 // và thưởng ít xu cho ván chơi thật (≥ 1 phút), tối đa BOARD_REWARDS ván mỗi ngày.
-export const BOARD_GAMES = ['cards', 'ludo', 'werewolf', 'quiz'];
+export const BOARD_GAMES = ['cards', 'ludo', 'werewolf', 'quiz', ...ARCADE_GAMES];
 const BOARD_REWARDS = 5;
 export async function finishBoard(db, child, body = {}) {
   const game = String(body.game ?? '');

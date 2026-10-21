@@ -32,11 +32,12 @@ export function Arcade() {
   const catalog = useApp((s) => s.catalog)!;
   const [menu, setMenu] = useState<MenuItem[] | null>(null);
   const [pick, setPick] = useState<MenuItem | null>(null);
+  const [mode, setMode] = useState<'solo' | 'friends'>('solo');
+  const go2 = (game: string, sid: string) => { setPick(null); if (mode === 'friends') createRoomAndInvite(game, undefined, { subject: sid === 'any' ? null : sid }).catch((e) => toast(errText(T as never, e), 'warn')); else void playArcade(game, sid); };
   useEffect(() => { api.get<{ games: MenuItem[] }>(`/children/${childId}/arcade`).then((r) => setMenu(r.games)).catch(() => setMenu([])); }, [childId]);
   const open = (m: MenuItem) => {
     sfx.pop();
-    if (m.subjects.length <= 1) { void playArcade(m.game, m.subjects[0] ?? 'any'); return; }
-    setPick(m);
+    setMode('solo'); setPick(m);
   };
   return (
     <div className="screen arcade">
@@ -72,14 +73,19 @@ export function Arcade() {
         <Dialog title={T.tx(catalog.games[pick.game]?.name)} icon="flower" onClose={() => setPick(null)} wide
           actions={<Btn tone="gray" onClick={() => setPick(null)}>{T.t('cancel')}</Btn>}>
           <div className="arcade-pick">
+            <div className="arcade-mode" role="radiogroup">
+              <button type="button" role="radio" aria-checked={mode === 'solo'} className={`gender-btn ${mode === 'solo' ? 'on' : ''}`} onClick={() => { sfx.tap(); setMode('solo'); }}><span aria-hidden>🙋</span>{T.lang === 'en' ? 'Play alone' : 'Chơi một mình'}</button>
+              <button type="button" role="radio" aria-checked={mode === 'friends'} className={`gender-btn ${mode === 'friends' ? 'on' : ''}`} onClick={() => { sfx.tap(); setMode('friends'); }}><span aria-hidden>👫</span>{T.lang === 'en' ? 'With friends' : 'Chơi cùng bạn'}</button>
+            </div>
+            {mode === 'friends' && <p className="arcade-mode-note">{T.lang === 'en' ? 'Everyone in the room gets the same rounds — most correct and fastest wins. Empty seats get bots.' : 'Cả phòng làm cùng một bộ đề, ai đúng nhiều và nhanh hơn thì thắng. Ghế trống có bot chơi cùng.'}</p>}
             <p style={{ margin: '0 0 6px' }}>{T.t('pickSubject')}</p>
             <div className="arcade-subjects">
               {pick.subjects.map((sid) => { const s = catalog.subjects.find((x) => x.id === sid)!; return (
-                <button key={sid} type="button" className="arcade-subj" onClick={() => { setPick(null); void playArcade(pick.game, sid); }}>
+                <button key={sid} type="button" className="arcade-subj" onClick={() => go2(pick.game, sid)}>
                   <SkillTile kind={sid} size={64} /><span>{T.tx(s.name)}</span>
                 </button>
               ); })}
-              <button type="button" className="arcade-subj any" onClick={() => { setPick(null); void playArcade(pick.game, 'any'); }}>
+              <button type="button" className="arcade-subj any" onClick={() => go2(pick.game, 'any')}>
                 <SkillTile kind="rose" size={64}><text x="46" y="60" textAnchor="middle" fontFamily="Baloo 2, sans-serif" fontWeight="800" fontSize="40" fill="#fff">★</text></SkillTile><span>{T.t('anySubject')}</span>
               </button>
             </div>

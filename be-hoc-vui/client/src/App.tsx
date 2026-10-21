@@ -64,7 +64,8 @@ export function App() {
     if (!childId || !parent) return;
     const tick = () => { if (document.visibilityState === 'visible') refreshSocial().catch(() => undefined); };
     tick(); const iv = setInterval(tick, 15_000);
-    return () => clearInterval(iv);
+    document.addEventListener('visibilitychange', tick);
+    return () => { clearInterval(iv); document.removeEventListener('visibilitychange', tick); };
   }, [childId, parent]);
   // giao diện theo tuổi, ngôn ngữ, giảm chuyển động
   useEffect(() => {

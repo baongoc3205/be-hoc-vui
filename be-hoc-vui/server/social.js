@@ -126,6 +126,19 @@ export async function report(db, me, otherId, { messageId, reason } = {}) {
   return { ok: true };
 }
 
+// ---------------- Đang online ----------------
+// Mỗi khi app của bé đang mở (hỏi tin nhắn mỗi 15 giây, hoặc đang ở trong phòng chơi) máy chủ ghi lại lúc thấy bé.
+// Chỉ lưu trong bộ nhớ (máy chủ khởi động lại thì mọi người tạm hiện offline). Chỉ bạn bè và anh chị em cùng nhà
+// mới thấy, và bé nào phụ huynh tắt kết bạn & nhắn tin thì luôn hiện offline.
+export const ONLINE_MS = 45e3;
+const lastSeen = new Map();
+export const markSeen = (id) => { lastSeen.set(Number(id), Date.now()); };
+export function presenceOf(c) {
+  if (!settingsOf(c).social) return { online: false, seenAt: null };
+  const t = lastSeen.get(c.id) ?? null;
+  return { online: t != null && Date.now() - t < ONLINE_MS, seenAt: t };
+}
+
 // ---------------- Hồ sơ & danh sách ----------------
 async function card(db, c) {
   const lv = levelInfo(c.xp).level;
@@ -140,7 +153,8 @@ export async function profile(db, me, otherId) {
   const stars = Number((await db.prepare('SELECT COALESCE(SUM(stars),0) s FROM lesson_progress WHERE child_id = ?').get(other.id)).s);
   const badges = (await db.prepare('SELECT badge_id FROM badges WHERE child_id = ?').all(other.id)).map((r) => r.badge_id);
   const week = Number((await db.prepare('SELECT COALESCE(SUM(xp),0) x FROM play_sessions WHERE child_id = ? AND finished_at > ?').get(other.id, Date.now() - 7 * 864e5)).x);
-  return { ...(await card(db, other)), stars, badges, streak: other.streak, xpWeek: week, relation: rel, canChat: rel === 'friends' && s.social && settingsOf(me).social, social: s.social };
+  const pres = ['self', 'family', 'friends'].includes(rel) ? presenceOf(other) : { online: null, seenAt: null };
+  return { ...(await card(db, other)), stars, badges, streak: other.streak, xpWeek: week, relation: rel, canChat: rel === 'friends' && s.social && settingsOf(me).social, social: s.social, ...pres };
 }
 
 export async function friendsOf(db, me) {
@@ -153,10 +167,15 @@ export async function friendsOf(db, me) {
     if (r.status === 'accepted') {
       const unread = Number((await db.prepare('SELECT COUNT(*) n FROM messages WHERE to_id = ? AND from_id = ? AND read_at IS NULL').get(me.id, oid)).n);
       const last = await db.prepare('SELECT id, from_id, kind, body, created_at FROM messages WHERE (from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?) ORDER BY id DESC LIMIT 1').get(me.id, oid, oid, me.id);
-      out.friends.push({ ...base, unread, last: last ? { mine: last.from_id === me.id, kind: last.kind, text: last.kind === 'text' ? last.body : null, at: last.created_at } : null, social: settingsOf(o).social });
+      out.friends.push({ ...base, unread, last: last ? { mine: last.from_id === me.id, kind: last.kind, text: last.kind === 'text' ? last.body : null, at: last.created_at } : null, social: settingsOf(o).social, ...presenceOf(o) });
     } else if (r.by_id === me.id) out.outgoing.push(base); else out.incoming.push(base);
   }
-  out.friends.sort((x, y) => (y.last?.at ?? 0) - (x.last?.at ?? 0) || x.nickname.localeCompare(y.nickname));
+  // bạn đang online lên đầu, rồi tới bạn vừa nhắn tin
+  out.friends.sort((x, y) => Number(y.online) - Number(x.online) || (y.last?.at ?? 0) - (x.last?.at ?? 0) || x.nickname.localeCompare(y.nickname));
+  // anh chị em cùng nhà (không cần kết bạn) — để mời chơi, tặng quà
+  out.family = [];
+  for (const o of await db.prepare('SELECT * FROM children WHERE parent_id = ? AND id <> ?').all(me.parent_id, me.id)) out.family.push({ ...(await card(db, o)), social: settingsOf(o).social, ...presenceOf(o) });
+  out.onlineCount = out.friends.filter((f) => f.online).length;
   return out;
 }
 
@@ -221,6 +240,7 @@ export async function send(db, me, otherId, body = {}, kind = 'text') {
 }
 /** Tóm tắt cho huy hiệu chấm đỏ: số tin chưa đọc, lời mời kết bạn, lời mời chơi mới nhất. */
 export async function summary(db, me) {
+  markSeen(me.id);
   const unread = Number((await db.prepare('SELECT COUNT(*) n FROM messages m WHERE m.to_id = ? AND m.read_at IS NULL AND NOT EXISTS (SELECT 1 FROM blocks WHERE child_id = ? AND blocked_id = m.from_id)').get(me.id, me.id)).n);
   const requests = Number((await db.prepare("SELECT COUNT(*) n FROM friends WHERE (a = ? OR b = ?) AND status = 'pending' AND by_id <> ?").get(me.id, me.id, me.id)).n);
   const inv = await db.prepare("SELECT m.id, m.body, m.created_at, m.from_id FROM messages m WHERE m.to_id = ? AND m.kind = 'invite' AND m.read_at IS NULL AND m.created_at > ? ORDER BY m.id DESC LIMIT 1").get(me.id, Date.now() - 10 * 60e3);

@@ -12,13 +12,25 @@ import { ProfileDialog, ReportDialog } from '../ui/ProfileDialog';
 import { errText } from './Auth';
 import { sfx } from '../lib/sfx';
 import { GiftInboxDialog, setGiftTarget } from '../ui/Gifts';
+import { WithPresence, seenText } from '../ui/Presence';
 
 type Tr = (vi: string, en: string) => string;
-export const ROOM_GAMES: { id: 'cards' | 'ludo' | 'quiz'; icon: string; name: [string, string] }[] = [
-  { id: 'quiz', icon: '🧠', name: ['Thi đố vui', 'Quiz duel'] },
-  { id: 'cards', icon: '🃏', name: ['Bài Màu Sắc', 'Colour Cards'] },
-  { id: 'ludo', icon: '🐴', name: ['Cá ngựa', 'Ludo'] },
+export type RoomGame = 'cards' | 'ludo' | 'quiz' | 'werewolf' | 'fruit-slice' | 'candy-match' | 'slingshot' | 'draw-trace' | 'balloon-pop' | 'catch-fall' | 'math-race';
+export const ROOM_GAMES: { id: RoomGame; icon: string; name: [string, string]; tone: string }[] = [
+  { id: 'quiz', icon: '🧠', name: ['Thi đố vui', 'Quiz duel'], tone: 'english' },
+  { id: 'cards', icon: '🃏', name: ['Bài Màu Sắc', 'Colour Cards'], tone: 'rose' },
+  { id: 'ludo', icon: '🐴', name: ['Cá ngựa', 'Ludo'], tone: 'science' },
+  { id: 'werewolf', icon: '🐺', name: ['Ma sói', 'Werewolf'], tone: 'english' },
+  { id: 'fruit-slice', icon: '🍉', name: ['Chém trái cây', 'Fruit slice'], tone: 'rose' },
+  { id: 'candy-match', icon: '🍬', name: ['Xếp kẹo', 'Candy match'], tone: 'english' },
+  { id: 'slingshot', icon: '🎯', name: ['Bắn ná', 'Slingshot'], tone: 'science' },
+  { id: 'draw-trace', icon: '✏️', name: ['Bé tập vẽ', 'Trace & draw'], tone: 'vietnamese' },
+  { id: 'balloon-pop', icon: '🎈', name: ['Bắn bóng bay', 'Balloon pop'], tone: 'math' },
+  { id: 'catch-fall', icon: '🧺', name: ['Hứng đồ', 'Catch it'], tone: 'rose' },
+  { id: 'math-race', icon: '🏎️', name: ['Đua xe Toán', 'Math race'], tone: 'math' },
 ];
+/** Game thi đua cùng bộ đề (thi đố + minigame): ai đúng nhiều và nhanh hơn thì thắng. */
+export const RACE_GAMES = new Set<string>(['quiz', 'fruit-slice', 'candy-match', 'slingshot', 'draw-trace', 'balloon-pop', 'catch-fall', 'math-race']);
 const gameName = (id: string, tr: Tr) => { const g = ROOM_GAMES.find((x) => x.id === id); return g ? `${g.icon} ${tr(...g.name)}` : id; };
 
 /** Tạo phòng và (nếu có) mời ngay một bạn. */
@@ -39,7 +51,7 @@ export function GamePicker({ friend, onClose }: { friend?: FriendCard; onClose: 
   const start = async (g: string) => { try { sfx.open(); await createRoomAndInvite(g, friend?.id); onClose(); } catch (e) { toast(errText(T, e), 'warn'); } };
   return (
     <Dialog title={friend ? tr(`Chơi cùng ${friend.nickname}`, `Play with ${friend.nickname}`) : tr('Tạo phòng chơi', 'Create a room')} icon={null} onClose={onClose} actions={<Btn tone="gray" onClick={onClose}>{T.t('cancel')}</Btn>}>
-      <div className="pick-games">{ROOM_GAMES.map((g) => <button key={g.id} type="button" className="pick-game" onClick={() => start(g.id)}><GameTile game={g.id === 'quiz' ? 'quiz-duel' : g.id} tone={{ quiz: 'english', cards: 'rose', ludo: 'science' }[g.id]} size={56} /><b>{tr(...g.name)}</b></button>)}</div>
+      <div className="pick-games">{ROOM_GAMES.map((g) => <button key={g.id} type="button" className="pick-game" onClick={() => start(g.id)}><GameTile game={g.id === 'quiz' ? 'quiz-duel' : g.id} tone={g.tone} size={56} /><b>{tr(...g.name)}</b></button>)}</div>
       <p className="muted" style={{ marginBottom: 0 }}>{tr('Ghế còn trống sẽ có bạn bot chơi cùng.', 'Empty seats are filled by bots.')}</p>
     </Dialog>
   );
@@ -92,13 +104,13 @@ export function Friends({ tab }: { tab?: string }) {
                   <div className="chips">{d.outgoing.map((f) => <span key={f.id} className="chip">{f.nickname}</span>)}</div></>}
               </>}
             </Panel>
-            <Panel className="scroll-y" head={<h2>{tr(`Bạn bè (${d.friends.length})`, `Friends (${d.friends.length})`)}</h2>}>
+            <Panel className="scroll-y" head={<h2>{tr(`Bạn bè (${d.friends.length})`, `Friends (${d.friends.length})`)}{(d.onlineCount ?? 0) > 0 && <span className="online-count">● {tr(`${d.onlineCount} online`, `${d.onlineCount} online`)}</span>}</h2>}>
               {!d.friends.length && <p className="shop-note">{tr('Bé chưa có bạn nào. Nhập mã của bạn cùng lớp hoặc tìm bạn ở Bảng xếp hạng nhé!', 'No friends yet. Enter a classmate’s code or find someone on the rankings!')}</p>}
               {d.friends.map((f) => (
                 <div key={f.id} className="friend-row">
                   <button type="button" className="fr-main" onClick={() => go(`chat/${f.id}`)}>
-                    <Avatar look={f.look} size={52} />
-                    <span><b>{f.nickname}</b><small>{f.last ? (f.last.kind === 'invite' ? tr('🎲 Lời mời chơi', '🎲 Game invite') : `${f.last.mine ? tr('Bé: ', 'You: ') : ''}${f.last.text}`) : tr('Bấm để trò chuyện', 'Tap to chat')}</small></span>
+                    <WithPresence online={f.social ? !!f.online : null}><Avatar look={f.look} size={52} /></WithPresence>
+                    <span><b>{f.nickname}</b>{f.social && <small className={`pres-text ${f.online ? 'on' : ''}`}>{seenText(f, T.lang)}</small>}<small>{f.last ? (f.last.kind === 'invite' ? tr('🎲 Lời mời chơi', '🎲 Game invite') : `${f.last.mine ? tr('Bé: ', 'You: ') : ''}${f.last.text}`) : tr('Bấm để trò chuyện', 'Tap to chat')}</small></span>
                     {f.unread > 0 && <i className="badge-n">{f.unread}</i>}
                   </button>
                   <Btn tone="orange" size="sm" disabled={!d.social || !f.social} onClick={() => setPicker(f)}>{tr('Mời chơi', 'Play')}</Btn>

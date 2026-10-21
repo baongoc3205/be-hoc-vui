@@ -1,5 +1,6 @@
 // Hồ sơ một bạn (mở từ bảng xếp hạng / danh sách bạn bè): xem thành tích, kết bạn, nhắn tin, chặn, báo cáo.
 import { useEffect, useState } from 'react';
+import { seenText } from './Presence';
 import { api } from '../lib/api';
 import { go, refreshSocial, toast, useApp } from '../lib/store';
 import { useT } from '../lib/hooks';
@@ -61,6 +62,7 @@ export function ProfileDialog({ id, onClose }: { id: number; onClose: () => void
           <div className="fp-info">
             <b className="fp-name">{p.nickname}</b>
             <span>{T.t('gradeN', { n: p.grade })} · Lv. {p.level}</span>
+            {p.online != null && p.relation !== 'self' && <span className={`fp-pres ${p.online ? 'on' : ''}`}><i />{seenText(p, T.lang)}</span>}
             <div className="fp-stats">
               <span>⭐ {p.stars}</span><span>🏅 {p.badges.length}</span><span>🔥 {p.streak}</span><span>⚡ {T.t('xpWeek', { n: p.xpWeek })}</span>
             </div>

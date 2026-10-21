@@ -189,3 +189,106 @@ test('tặng quà: chỉ cho bạn bè/anh chị em, người tặng trả xu, t
   await S.block(db, bin, na.id, true);
   await assert.rejects(S.sendGift(db, await fresh(db, na), { to: bin.id, itemId: 'acc:crown' }), { code: 'NOT_FRIENDS' });
 });
+
+// đáp án đúng cho một vòng minigame (giống test/server.test.js)
+function perfectGiven(r) {
+  switch (r.kind) {
+    case 'mc': case 'tf': case 'word': case 'input': case 'multi': return r.answer;
+    case 'classify': return { hits: r.items.filter((i) => i.ok).length, wrong: 0 };
+    case 'trace': return { cover: 0.95, stray: 0.05, pick: r.quiz ? r.quiz.answer : undefined };
+    default: return null;
+  }
+}
+
+test('mọi minigame chơi cùng bạn được: cùng một bộ đề, máy chủ chấm, ai đúng nhiều và nhanh hơn thì thắng', async () => {
+  const db = await openDb({ file: ':memory:' });
+  const na = await family(db, 'Na'), bin = await family(db, 'Bin');
+  await S.requestFriend(db, na, { code: await S.friendCode(db, bin.id) }); await S.respondFriend(db, bin, na.id, true);
+  R.setRoomHooks({ onFinish: async () => 0 });
+  for (const game of ['fruit-slice', 'candy-match', 'slingshot', 'draw-trace', 'balloon-pop', 'catch-fall', 'math-race']) {
+    const room = await R.createRoom(db, na, game, { subject: 'math' });
+    await R.joinRoom(db, bin, room.code);
+    R.startRoom(na, room.id);
+    const r = R._rooms.get(room.id);
+    r.state.startAt = Date.now() - 10;
+    const v0 = R.getRoom(bin, room.id);
+    assert.ok(v0.state.question?.round, `${game}: thiếu vòng chơi`);
+    assert.deepEqual(v0.state.question.round, r.state.rounds[0], `${game}: hai bạn làm cùng đề`);
+    for (let q = 0; q < r.state.rounds.length; q++) {
+      R.actRoom(na, room.id, { type: 'answer', q, given: perfectGiven(r.state.rounds[q]) });
+      R.actRoom(bin, room.id, { type: 'answer', q, given: null });
+    }
+    const v = R.getRoom(na, room.id);
+    assert.equal(v.status, 'done', `${game}: chưa kết thúc`);
+    assert.deepEqual(v.result.winners, [0], `${game}: người làm đúng phải thắng`);
+    assert.equal(v.state.progress[0].correct, r.state.rounds.length, `${game}: chấm sai đáp án đúng`);
+    assert.equal(v.state.progress[1].correct, 0);
+  }
+});
+
+test('Ma sói nhiều người: giấu vai, mỗi bé tự chọn đêm/ngày/bỏ phiếu, hết giờ thì máy chủ chọn hộ, ván kết thúc đúng phe', async () => {
+  const db = await openDb({ file: ':memory:' });
+  const na = await family(db, 'Na'), bin = await family(db, 'Bin');
+  await S.requestFriend(db, na, { code: await S.friendCode(db, bin.id) }); await S.respondFriend(db, bin, na.id, true);
+  const res = [];
+  R.setRoomHooks({ onFinish: async (cid, game, secs, won) => { res.push({ cid, game, won }); return 0; } });
+  const room = await R.createRoom(db, na, 'werewolf', { players: 8 });
+  assert.equal(room.opts.players, 8);
+  await R.joinRoom(db, bin, room.code);
+  R.startRoom(na, room.id);
+  const r = R._rooms.get(room.id);
+  assert.equal(r.seats.length, 8);
+  const vNa = R.getRoom(na, room.id);
+  assert.ok(vNa.state.players[0].role, 'thấy vai của mình');
+  const binRole = r.state.ww.players[1].role;
+  if (!(binRole === 'wolf' && vNa.state.players[0].role === 'wolf')) assert.equal(vNa.state.players[1].role, null, 'không thấy vai của bạn');
+  assert.equal(vNa.state.log.some((l) => l.kind === 'clue'), false);
+  for (let i = 0; i < 80 && r.status === 'playing'; i++) {
+    const st = r.state;
+    for (const [me, kid] of [[0, na], [1, bin]]) {
+      const v = R.getRoom(kid, room.id).state;
+      if (!v.needs) continue;
+      const p = st.ww.players[me];
+      const others = st.ww.players.filter((x) => x.alive && x.id !== me);
+      const t = others.find((x) => x.role !== 'wolf')?.id ?? others[0]?.id;
+      try {
+        if (v.step === 'night') R.actRoom(kid, room.id, p.role === 'wolf' ? { type: 'kill', target: t } : p.role === 'guard' ? { type: 'guard', target: me } : { type: 'check', target: t });
+        else if (v.step === 'witch') R.actRoom(kid, room.id, { type: 'witch', heal: true, poison: null });
+        else if (v.step === 'day') { if (!v.said) R.actRoom(kid, room.id, { type: 'say', kind: 'accuse', target: t }); R.actRoom(kid, room.id, { type: 'ready' }); }
+        else if (v.step === 'vote') R.actRoom(kid, room.id, { type: 'vote', target: t });
+      } catch (e) { if (e.code !== 'GAME_OVER') throw e; }
+    }
+    if (r.status === 'playing' && i % 3 === 2) R._wwAdvance(room.id); // thỉnh thoảng để hết giờ
+  }
+  assert.equal(r.status, 'done', 'ván Ma sói phải kết thúc');
+  const side = r.state.ww.winner;
+  assert.ok(['wolf', 'village'].includes(side));
+  for (const w of r.result.winners) assert.equal(r.state.ww.players[w].role === 'wolf', side === 'wolf');
+  const v = R.getRoom(bin, room.id);
+  assert.equal(v.state.roles.length, 8, 'hết ván thì lộ hết vai');
+  await new Promise((ok) => setTimeout(ok, 20));
+  assert.equal(res.length, 2); assert.ok(res.every((x) => x.game === 'werewolf'));
+});
+
+test('bạn bè online/offline: thấy khi app đang mở, quá 45 giây thì offline, phụ huynh tắt kết bạn thì luôn offline', async (t) => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-25T03:00:00Z').getTime() });
+  const db = await openDb({ file: ':memory:' });
+  const na = await family(db, 'Na'), bin = await family(db, 'Bin'), su = await family(db, 'Su');
+  await S.requestFriend(db, na, { code: await S.friendCode(db, bin.id) }); await S.respondFriend(db, bin, na.id, true);
+  let f = await S.friendsOf(db, na);
+  assert.equal(f.friends[0].online, false, 'chưa mở app thì offline');
+  await S.summary(db, bin); // app của Bin hỏi tin nhắn
+  f = await S.friendsOf(db, na);
+  assert.equal(f.friends[0].online, true); assert.equal(f.onlineCount, 1);
+  assert.equal((await S.profile(db, na, bin.id)).online, true);
+  assert.equal((await S.profile(db, su, bin.id)).online, null, 'người lạ không thấy trạng thái online');
+  t.mock.timers.setTime(new Date('2026-10-25T03:01:00Z').getTime());
+  f = await S.friendsOf(db, na);
+  assert.equal(f.friends[0].online, false, 'quá 45 giây không thấy thì offline');
+  assert.ok(f.friends[0].seenAt > 0, 'vẫn biết lần cuối online');
+  await S.summary(db, bin);
+  await db.prepare('UPDATE children SET settings = ? WHERE id = ?').run(JSON.stringify({ ...JSON.parse(bin.settings), social: false }), bin.id);
+  f = await S.friendsOf(db, na);
+  assert.equal(f.friends[0].online, false, 'phụ huynh tắt kết bạn thì không lộ trạng thái');
+  assert.equal(f.friends[0].seenAt, null);
+});

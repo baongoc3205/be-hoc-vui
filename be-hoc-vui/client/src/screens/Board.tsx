@@ -121,7 +121,7 @@ export function Board({ game }: { game: BoardId }) {
             {limited && <p className="bg-warn">{T.t('err_DAILY_LIMIT')}</p>}
             <div className="panel-actions">
               <Btn tone="gray" onClick={() => go('arcade')}>{T.t('back')}</Btn>
-              {game !== 'werewolf' && <Btn tone="cream" disabled={limited} onClick={() => createRoomAndInvite(game, undefined, { players: opts.players, level: opts.level, exitOne: opts.exitOne }).catch((e) => toast(errText(T, e), 'warn'))}>👫 {tr('Chơi với bạn bè', 'Play with friends')}</Btn>}
+              {<Btn tone="cream" disabled={limited} onClick={() => createRoomAndInvite(game, undefined, { players: opts.players, level: opts.level, exitOne: opts.exitOne }).catch((e) => toast(errText(T, e), 'warn'))}>👫 {tr('Chơi với bạn bè', 'Play with friends')}</Btn>}
               <Btn tone="orange" disabled={limited} onClick={start}>{tr('Chơi với bot', 'Play with bots')}</Btn>
             </div>
           </div>

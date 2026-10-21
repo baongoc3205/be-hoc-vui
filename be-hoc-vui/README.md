@@ -170,10 +170,15 @@ Ba trò chơi tự do, chơi với 1–9 bạn bot:
 
 ### Bạn bè, tin nhắn, bảng xếp hạng và chơi cùng nhau
 
+- **Online / offline:** danh sách bạn bè, hồ sơ, phòng chờ (mời bạn) và hộp thoại tặng quà có chấm xanh *Đang online* hoặc *Online 5 phút trước*; bạn đang online được xếp lên đầu. Chỉ bạn bè và anh chị em cùng nhà mới thấy; phụ huynh tắt kết bạn & nhắn tin thì bé luôn hiện offline. Trạng thái giữ trong bộ nhớ máy chủ (khởi động lại thì tạm hiện offline).
 - **Kết bạn bằng mã:** mỗi bé có mã 6 ký tự ở màn **Bạn bè**. Nhập mã của bạn là gửi lời mời, bạn kia bấm Đồng ý là thành bạn. Cũng có thể gửi lời mời từ hồ sơ trên bảng xếp hạng.
 - **Bảng xếp hạng 7 ngày:** ba thẻ Toàn app / Bạn bè / Gia đình. Chạm vào một bạn để xem hồ sơ (biệt danh, lớp, cấp độ, sao, huy hiệu), kết bạn, chặn hoặc báo cáo.
 - **Nhắn tin:** bé gõ tự do với bạn bè, có sticker và câu nhanh. Lời mời chơi hiện thành thẻ trong khung chat và thanh báo ở mọi màn hình chính.
-- **Chơi cùng nhau:** Bài Màu Sắc, Cá ngựa (2–4 người) và **Thi đố cùng bạn** (cùng bộ câu hỏi đúng lớp, ai đúng nhiều và nhanh hơn thì thắng). Tạo phòng, mời bạn hoặc gửi mã phòng; ghế trống có bot chơi. Máy chủ phân xử mọi nước đi (gieo xúc xắc, chia bài, chấm đáp án), giấu bài của người khác. Ai rời đi hoặc quá 30 giây chưa đi thì bot đi hộ. Thời gian chơi tính vào giới hạn giờ và được thưởng xu như trò chơi với bot.
+- **Chơi cùng nhau — mọi trò trong Khu vui chơi:**
+  - Bài Màu Sắc, Cá ngựa (2–4 người): luật cổ điển, máy chủ chia bài/gieo xúc xắc.
+  - **Ma sói** (làng 6/8/10 người, tối đa 6 bé thật, còn lại là bot): mỗi bé tự làm nhiệm vụ của vai mình ban đêm (sói bắt người — các bé sói thấy nhau và thấy lựa chọn của nhau, bảo vệ che chở, tiên tri soi, phù thuỷ cứu/độc), ban ngày nêu nghi ngờ/bênh vực (2 lần) rồi bấm *Sẵn sàng bỏ phiếu*, sau đó bỏ phiếu. Mỗi bước có đồng hồ (đêm 35 giây, ngày 60 giây, bỏ phiếu 30 giây); hết giờ hoặc bé vắng mặt thì máy chủ chọn hộ. Máy chủ giấu vai của người khác.
+  - **Thi đố cùng bạn** và **mọi minigame** (Chém trái cây, Xếp kẹo, Bắn ná, Bé tập vẽ, Bắn bóng bay, Hứng đồ, Đua xe Toán): cả phòng làm **cùng một bộ đề** đúng lớp chủ phòng, mỗi vòng có giờ, máy chủ chấm lại từng vòng; điểm = đúng + nhanh, ai nhiều điểm hơn thì thắng. Ở Khu vui chơi chọn trò → *Chơi cùng bạn* → chọn môn.
+  - Mời bạn từ màn Bạn bè (*Mời chơi* → chọn trò), từ phòng chờ, hoặc gửi mã phòng. Tạo phòng, mời bạn hoặc gửi mã phòng; ghế trống có bot chơi. Máy chủ phân xử mọi nước đi (gieo xúc xắc, chia bài, chấm đáp án), giấu bài của người khác. Ai rời đi hoặc quá 30 giây chưa đi thì bot đi hộ. Thời gian chơi tính vào giới hạn giờ và được thưởng xu như trò chơi với bot.
   Phòng chơi lưu trong bộ nhớ máy chủ (không cần thêm dịch vụ), trình duyệt hỏi trạng thái mỗi giây. Nếu máy chủ khởi động lại thì các phòng đang chơi bị đóng.
 - **Lớp bảo vệ cho trẻ (luôn bật):**
   - Chỉ nhắn tin với bạn đã đồng ý kết bạn. Chỉ bạn bè hoặc anh chị em cùng gia đình mới vào được phòng của bé.
@@ -181,7 +186,7 @@ Ba trò chơi tự do, chơi với 1–9 bạn bot:
   - Giới hạn 15 tin mỗi phút, 30 lời mời kết bạn mỗi ngày.
   - Có nút chặn (hai bên không thấy và không nhắn được cho nhau) và báo cáo.
 - **Phụ huynh** (trong Góc phụ huynh, cho từng bé): bật/tắt kết bạn & nhắn tin & chơi cùng bạn, bật/tắt hiện trên bảng xếp hạng toàn app, xem tin nhắn gần đây và các báo cáo bé đã gửi. File tải dữ liệu gia đình có kèm tin nhắn và danh sách bạn.
-- Kiểm thử học kết hợp: `npm run test:ui:learn`. Tặng quà, thú cưng, hàng giới hạn: `npm run test:ui:gifts`. Vui học kiểu mới: `npm run test:ui:fun`.
+- Kiểm thử học kết hợp: `npm run test:ui:learn`. Tặng quà, thú cưng, hàng giới hạn: `npm run test:ui:gifts`. Vui học kiểu mới: `npm run test:ui:fun`. Mọi minigame và Ma sói chơi cùng bạn: `npm run test:ui:rooms`.
 - Kiểm thử: `test/social.test.js` (máy chủ) và `npm run test:ui:social` (hai trình duyệt kết bạn, nhắn tin, mời và chơi cùng nhau).
 
 ### Nhạc nền và cảnh nền

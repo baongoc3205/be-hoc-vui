@@ -17,7 +17,7 @@ export function botWitch(s: WState, wid: number, victim: number | null, rnd: Rnd
 export function botNight(s: WState, rnd: Rnd): NightPlan;
 export function resolveNight(s: WState, plan: NightPlan): { s: WState; deaths: number[] };
 export function dayTalk(s: WState, rnd: Rnd): WState;
-export function humanSay(s: WState, kind: 'accuse' | 'clear' | 'claimWolf' | 'claimClean', target: number): WState;
+export function humanSay(s: WState, kind: 'accuse' | 'clear' | 'claimWolf' | 'claimClean', target: number, who?: number): WState;
 export function botVotes(s: WState, rnd: Rnd): Record<number, number | null>;
 export function resolveVote(s: WState, votes: Record<number, number | null>): { s: WState; out: number | null; tally: Record<number, number> };
 export function clue(s: WState, rnd: Rnd): WState;

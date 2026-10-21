@@ -205,13 +205,13 @@ export function dayTalk(s0, rnd) {
 }
 
 /** Bé phát biểu: kind 'accuse' | 'clear' | 'claimWolf' (nhận là Tiên tri, tố ai là sói) | 'claimClean'. */
-export function humanSay(s0, kind, target) {
+export function humanSay(s0, kind, target, who = 0) {
   const s = withSus(s0, clone(s0));
   const n = s.players[target].name;
-  if (kind === 'accuse') { say(s, 0, L(`Tớ nghi ${n} là sói!`, `I think ${n} is a wolf!`)); accuse(s, 0, target, 1.4, false); }
-  if (kind === 'clear') { say(s, 0, L(`Tớ tin ${n} là người tốt.`, `I trust ${n}.`)); for (const b of villageBots(s)) bump(s, b.id, target, -0.08); }
-  if (kind === 'claimWolf') { claimSeer(s, 0); say(s, 0, L(`Tớ là Tiên tri! ${n} là SÓI!`, `I’m the Seer! ${n} is a WOLF!`), 'claim'); accuse(s, 0, target, 1, true); }
-  if (kind === 'claimClean') { claimSeer(s, 0); say(s, 0, L(`Tớ là Tiên tri, ${n} là dân lành.`, `I’m the Seer, ${n} is innocent.`), 'claim'); clear(s, 0, target); }
+  if (kind === 'accuse') { say(s, who, L(`Tớ nghi ${n} là sói!`, `I think ${n} is a wolf!`)); accuse(s, who, target, 1.4, false); }
+  if (kind === 'clear') { say(s, who, L(`Tớ tin ${n} là người tốt.`, `I trust ${n}.`)); for (const b of villageBots(s)) bump(s, b.id, target, -0.08); }
+  if (kind === 'claimWolf') { claimSeer(s, who); say(s, who, L(`Tớ là Tiên tri! ${n} là SÓI!`, `I’m the Seer! ${n} is a WOLF!`), 'claim'); accuse(s, who, target, 1, true); }
+  if (kind === 'claimClean') { claimSeer(s, who); say(s, who, L(`Tớ là Tiên tri, ${n} là dân lành.`, `I’m the Seer, ${n} is innocent.`), 'claim'); clear(s, who, target); }
   return s;
 }
 
